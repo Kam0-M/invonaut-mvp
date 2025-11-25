@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Flowance SaaS Platform
+
+A comprehensive Next.js 14 SaaS application for managing invoices, clients, and business operations.
+
+## Features
+
+- 🧾 **Invoice Management** - Create, send, and track invoices
+- 👥 **Client Management** - Organize and manage client information
+- 📊 **Dashboard** - Overview of business metrics and analytics
+- 🔐 **Authentication** - Secure user authentication with Supabase
+- 📱 **Responsive Design** - Mobile-first design with Tailwind CSS
+- ⚡ **Modern Stack** - Built with Next.js 14, TypeScript, and App Router
+
+## Tech Stack
+
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Supabase
+- **Authentication**: Supabase Auth
+- **Icons**: Lucide React
+- **Date Handling**: date-fns
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+- Supabase account
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd flowance-saas
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+4. Configure your Supabase project:
+   - Create a new Supabase project
+   - Get your project URL and anon key
+   - Update `.env.local` with your Supabase credentials
 
-## Learn More
+5. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Authentication routes
+│   │   ├── login/
+│   │   └── signup/
+│   ├── (dashboard)/       # Dashboard routes
+│   │   ├── dashboard/
+│   │   ├── invoices/
+│   │   └── clients/
+│   ├── api/               # API routes
+│   │   ├── auth/
+│   │   └── invoices/
+│   └── globals.css        # Global styles
+├── components/            # Reusable components
+│   ├── ui/               # UI components
+│   ├── layout/           # Layout components
+│   └── invoices/          # Invoice-specific components
+├── lib/                   # Utility libraries
+│   ├── supabase/         # Supabase configuration
+│   └── utils.ts          # Utility functions
+└── types/                 # TypeScript type definitions
+```
 
-## Deploy on Vercel
+## Available Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Environment Variables
+
+Create a `.env.local` file with the following variables:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## Database Schema
+
+The application uses Supabase with the following main tables:
+
+- `users` - User accounts
+- `clients` - Client information
+- `invoices` - Invoice data
+- `invoice_items` - Invoice line items
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support, email support@flowance.com or create an issue in the repository.
