@@ -326,13 +326,16 @@ export default function NewInvoicePage() {
                 type="date"
                 value={issueDate}
                 onChange={(e) => {
-                  setIssueDate(e.target.value)
-                  // Auto-update due date if issue date changes
-                  if (issueDate) {
-                    const newIssueDate = new Date(e.target.value)
-                    const newDueDate = new Date(newIssueDate)
-                    newDueDate.setDate(newDueDate.getDate() + 30)
-                    setDueDate(newDueDate.toISOString().split('T')[0])
+                  const nextValue = e.target.value
+                  setIssueDate(nextValue)
+                  // Auto-update due date if issue date changes and has a valid value
+                  if (nextValue) {
+                    const newIssueDate = new Date(nextValue)
+                    if (!Number.isNaN(newIssueDate.getTime())) {
+                      const newDueDate = new Date(newIssueDate)
+                      newDueDate.setDate(newDueDate.getDate() + 30)
+                      setDueDate(newDueDate.toISOString().split('T')[0])
+                    }
                   }
                 }}
                 required

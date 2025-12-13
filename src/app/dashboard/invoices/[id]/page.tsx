@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { InvoiceActions } from './invoice-actions'
+import { DeleteInvoiceButton } from '@/components/invoices/delete-invoice-button'
 
 type InvoiceDetailPageProps = {
   params: Promise<{
@@ -172,20 +173,26 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     <div className="space-y-6 print:p-0">
       {/* Header */}
       <div className="flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/invoices">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Invoices
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Invoice</h1>
-            <p className="text-sm text-gray-600 mt-1">{invoiceData.invoice_number}</p>
-          </div>
-        </div>
-        <InvoiceActions invoiceId={invoiceData.id} currentStatus={invoiceData.status} />
-      </div>
+  <div className="flex items-center gap-4">
+    <Link href="/dashboard/invoices">
+      <Button variant="outline" size="sm">
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Invoices
+      </Button>
+    </Link>
+    <div>
+      <h1 className="text-3xl font-bold text-gray-900">Invoice</h1>
+      <p className="text-sm text-gray-600 mt-1">{invoiceData.invoice_number}</p>
+    </div>
+  </div>
+  <div className="flex items-center gap-3">
+    <InvoiceActions invoiceId={invoiceData.id} currentStatus={invoiceData.status} />
+    <DeleteInvoiceButton 
+      invoiceId={invoiceData.id} 
+      invoiceNumber={invoiceData.invoice_number}
+    />
+  </div>
+</div>
 
       {/* Invoice Document */}
       <Card className="p-8 print:shadow-none print:border-0">

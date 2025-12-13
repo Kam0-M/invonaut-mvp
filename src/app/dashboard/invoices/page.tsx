@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { InvoiceRow } from './invoice-row'
+import { InvoiceList } from '@/components/invoices/invoice-list'
 
 type Invoice = {
   id: string
@@ -72,37 +72,7 @@ export default async function InvoicesPage() {
           </Link>
         </Card>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Invoice #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Client
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Issue Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {invoices.map((invoice) => (
-                <InvoiceRow key={invoice.id} invoice={invoice} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <InvoiceList invoices={invoices} />
       )}
     </div>
   )
