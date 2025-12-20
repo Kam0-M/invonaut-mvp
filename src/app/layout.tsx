@@ -2,9 +2,16 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Flowance - Streamline Your Business Operations",
-  description: "A comprehensive SaaS platform for managing invoices, clients, and business operations.",
-};
+  title: 'Flowance - AI-Powered Invoicing for Freelancers',
+  description: 'Never chase another late payment. AI that turns your invoicing chaos into cash flow predictability.',
+  keywords: 'invoicing, freelance, AI, payment tracking, invoice management',
+  authors: [{ name: 'Flowance' }],
+  openGraph: {
+    title: 'Flowance - AI-Powered Invoicing',
+    description: 'Smart invoicing for freelancers',
+    type: 'website',
+  },
+}
 
 export default function RootLayout({
   children,

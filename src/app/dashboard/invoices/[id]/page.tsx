@@ -1,3 +1,4 @@
+import { PaymentPrediction } from '@/components/invoices/payment-prediction'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/card'
@@ -5,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { InvoiceActions } from './invoice-actions'
+import { SendInvoiceButton } from '@/components/invoices/send-invoice-button'
 import { DeleteInvoiceButton } from '@/components/invoices/delete-invoice-button'
+import { DownloadPDFButton } from '@/components/invoices/download-pdf-button'
 
 type InvoiceDetailPageProps = {
   params: Promise<{
@@ -173,26 +176,58 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     <div className="space-y-6 print:p-0">
       {/* Header */}
       <div className="flex items-center justify-between print:hidden">
-  <div className="flex items-center gap-4">
-    <Link href="/dashboard/invoices">
-      <Button variant="outline" size="sm">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Invoices
-      </Button>
-    </Link>
-    <div>
-      <h1 className="text-3xl font-bold text-gray-900">Invoice</h1>
-      <p className="text-sm text-gray-600 mt-1">{invoiceData.invoice_number}</p>
-    </div>
-  </div>
-  <div className="flex items-center gap-3">
-    <InvoiceActions invoiceId={invoiceData.id} currentStatus={invoiceData.status} />
-    <DeleteInvoiceButton 
-      invoiceId={invoiceData.id} 
-      invoiceNumber={invoiceData.invoice_number}
-    />
-  </div>
-</div>
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/invoices">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Invoices
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Invoice</h1>
+            <p className="text-sm text-gray-600 mt-1">{invoiceData.invoice_number}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Edit Button - Only for draft invoices */}
+          {invoiceData.status === 'draft' && (
+            <Link href={`/dashboard/invoices/${invoiceData.id}/edit`}>
+              <Button variant="default">
+                Edit Invoice
+              </Button>
+            </Link>
+          )}
+          
+          <DownloadPDFButton invoiceData={invoiceData} />
+          
+          {(invoiceData.status === 'draft' || invoiceData.status === 'sent') && (
+            <SendInvoiceButton
+              invoiceId={invoiceData.id}
+              clientEmail={invoiceData.client.email || ''}
+              invoiceNumber={invoiceData.invoice_number}
+              clientName={invoiceData.client.name || 'Client'}
+            />
+          )}
+          
+          <InvoiceActions invoiceId={invoiceData.id} currentStatus={invoiceData.status} />
+          
+          <DeleteInvoiceButton 
+            invoiceId={invoiceData.id} 
+            invoiceNumber={invoiceData.invoice_number}
+          />
+        </div>
+      </div>
+
+      {/* AI Payment Prediction */}
+      {invoiceData.status === 'sent' && (
+        <PaymentPrediction
+          invoiceId={invoiceData.id}
+          clientId={invoiceData.client.id}
+          totalAmount={invoiceData.total_amount}
+          status={invoiceData.status}
+          dueDate={invoiceData.due_date}
+        />
+      )}
 
       {/* Invoice Document */}
       <Card className="p-8 print:shadow-none print:border-0">
@@ -321,4 +356,3 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
     </div>
   )
 }
-

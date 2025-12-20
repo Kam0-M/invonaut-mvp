@@ -72,9 +72,10 @@ export default function NewClientPage() {
 
       setSuccess('Client added successfully!')
       
-      // Redirect after 1 second
+      // Redirect after 1 second and force refresh
       setTimeout(() => {
         router.push('/dashboard/clients')
+        router.refresh()
       }, 1000)
 
     } catch (err: any) {

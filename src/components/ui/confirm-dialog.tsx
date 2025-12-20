@@ -1,6 +1,7 @@
 'use client'
 
 import { Button } from './button'
+import { forwardRef } from "react"
 
 type ConfirmDialogProps = {
   isOpen: boolean

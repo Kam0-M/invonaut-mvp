@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,14 +25,16 @@ type LineItem = {
 
 export default function NewInvoicePage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams()
+  const preSelectedClientId = searchParams.get('clientId')
+  
+  const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
   const [invoiceNumber, setInvoiceNumber] = useState('INV-00001')
 
-  // Form state
   const [clientId, setClientId] = useState('')
   const [issueDate, setIssueDate] = useState('')
   const [dueDate, setDueDate] = useState('')
@@ -42,12 +44,10 @@ export default function NewInvoicePage() {
   const [notes, setNotes] = useState('')
   const [taxRate, setTaxRate] = useState(0)
 
-  // Calculate totals
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0)
   const taxAmount = (subtotal * taxRate) / 100
   const totalAmount = subtotal + taxAmount
 
-  // Format currency
   const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -57,7 +57,6 @@ export default function NewInvoicePage() {
     }).format(amount)
   }
 
-  // Fetch clients on mount
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -77,6 +76,10 @@ export default function NewInvoicePage() {
 
         if (error) throw error
         setClients(data || [])
+        
+        if (preSelectedClientId) {
+          setClientId(preSelectedClientId)
+        }
       } catch (err) {
         console.error('Error fetching clients:', err)
         setError('Failed to load clients. Please refresh the page.')
@@ -86,9 +89,8 @@ export default function NewInvoicePage() {
     }
 
     fetchClients()
-  }, [router])
+  }, [router, preSelectedClientId])
 
-  // Generate invoice number
   useEffect(() => {
     const generateInvoiceNumber = async () => {
       try {
@@ -122,7 +124,6 @@ export default function NewInvoicePage() {
     generateInvoiceNumber()
   }, [])
 
-  // Set default dates
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0]
     setIssueDate(today)
@@ -132,9 +133,6 @@ export default function NewInvoicePage() {
     setDueDate(dueDateObj.toISOString().split('T')[0])
   }, [])
 
-  // Calculate totals are handled in updateLineItem function
-
-  // Update line item
   const updateLineItem = (id: string, field: keyof LineItem, value: string | number) => {
     setLineItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -148,7 +146,6 @@ export default function NewInvoicePage() {
     }))
   }
 
-  // Add line item
   const addLineItem = () => {
     const newId = Date.now().toString()
     setLineItems(prev => [...prev, {
@@ -160,19 +157,16 @@ export default function NewInvoicePage() {
     }])
   }
 
-  // Remove line item
   const removeLineItem = (id: string) => {
     if (lineItems.length > 1) {
       setLineItems(prev => prev.filter(item => item.id !== id))
     }
   }
 
-  // Handle save as draft
   const handleSaveDraft = async () => {
     setError(null)
     setSuccess(false)
 
-    // Validation
     if (!clientId) {
       setError('Please select a client')
       return
@@ -181,6 +175,12 @@ export default function NewInvoicePage() {
     const validItems = lineItems.filter(item => item.description.trim() !== '')
     if (validItems.length === 0) {
       setError('Please add at least one line item with a description')
+      return
+    }
+
+    const emptyDescriptions = lineItems.some(item => item.description.trim() === '')
+    if (emptyDescriptions) {
+      setError('All line items must have a description. Please fill in all descriptions or remove empty items.')
       return
     }
 
@@ -195,7 +195,6 @@ export default function NewInvoicePage() {
         return
       }
 
-      // Insert invoice
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
         .insert({
@@ -219,7 +218,6 @@ export default function NewInvoicePage() {
         throw new Error('Failed to create invoice')
       }
 
-      // Insert line items
       const itemsToInsert = validItems.map(item => ({
         invoice_id: invoice.id,
         description: item.description,
@@ -237,6 +235,7 @@ export default function NewInvoicePage() {
       setSuccess(true)
       setTimeout(() => {
         router.push('/dashboard/invoices')
+        router.refresh()
       }, 1000)
     } catch (err: any) {
       console.error('Error saving invoice:', err)
@@ -254,6 +253,8 @@ export default function NewInvoicePage() {
     )
   }
 
+  const isClientLocked = !!preSelectedClientId
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -268,28 +269,29 @@ export default function NewInvoicePage() {
 
       {error && (
         <Card className="p-4 bg-red-50 border-red-200">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800 font-medium">{error}</p>
         </Card>
       )}
 
       {success && (
         <Card className="p-4 bg-green-50 border-green-200">
-          <p className="text-sm text-green-800">Invoice saved successfully! Redirecting...</p>
+          <p className="text-sm text-green-800">✅ Invoice saved successfully! Redirecting...</p>
         </Card>
       )}
 
       <Card className="p-6">
         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleSaveDraft(); }}>
-          {/* Client Selection */}
           <div>
             <label htmlFor="client" className="block text-sm font-medium text-gray-700 mb-2">
               Client <span className="text-red-500">*</span>
+              {isClientLocked && <span className="ml-2 text-xs text-blue-600">(Pre-selected)</span>}
             </label>
             <select
               id="client"
               value={clientId}
               onChange={(e) => setClientId(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              disabled={isClientLocked}
+              className={`flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${isClientLocked ? 'bg-gray-100 cursor-not-allowed' : ''}`}
               required
             >
               <option value="">Select a client</option>
@@ -301,7 +303,6 @@ export default function NewInvoicePage() {
             </select>
           </div>
 
-          {/* Invoice Number */}
           <div>
             <label htmlFor="invoiceNumber" className="block text-sm font-medium text-gray-700 mb-2">
               Invoice Number
@@ -315,7 +316,6 @@ export default function NewInvoicePage() {
             />
           </div>
 
-          {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 mb-2">
@@ -328,7 +328,6 @@ export default function NewInvoicePage() {
                 onChange={(e) => {
                   const nextValue = e.target.value
                   setIssueDate(nextValue)
-                  // Auto-update due date if issue date changes and has a valid value
                   if (nextValue) {
                     const newIssueDate = new Date(nextValue)
                     if (!Number.isNaN(newIssueDate.getTime())) {
@@ -355,11 +354,10 @@ export default function NewInvoicePage() {
             </div>
           </div>
 
-          {/* Line Items */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <label className="block text-sm font-medium text-gray-700">
-                Line Items
+                Line Items <span className="text-red-500">*</span>
               </label>
               <Button
                 type="button"
@@ -373,18 +371,19 @@ export default function NewInvoicePage() {
             </div>
 
             <div className="space-y-4">
-              {lineItems.map((item, index) => (
+              {lineItems.map((item) => (
                 <Card key={item.id} className="p-4">
                   <div className="grid grid-cols-12 gap-4 items-end">
                     <div className="col-span-12 md:col-span-5">
                       <label className="block text-xs font-medium text-gray-600 mb-1">
-                        Description
+                        Description <span className="text-red-500">*</span>
                       </label>
                       <Input
                         type="text"
                         value={item.description}
                         onChange={(e) => updateLineItem(item.id, 'description', e.target.value)}
-                        placeholder="Item description"
+                        placeholder="Enter item description"
+                        required
                       />
                     </div>
                     <div className="col-span-4 md:col-span-2">
@@ -442,7 +441,6 @@ export default function NewInvoicePage() {
             </div>
           </div>
 
-          {/* Notes */}
           <div>
             <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
               Notes (Optional)
@@ -457,7 +455,6 @@ export default function NewInvoicePage() {
             />
           </div>
 
-          {/* Tax Rate */}
           <div>
             <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 mb-2">
               Tax Rate (%)
@@ -474,7 +471,6 @@ export default function NewInvoicePage() {
             />
           </div>
 
-          {/* Summary */}
           <Card className="p-6 bg-gray-50">
             <div className="space-y-3">
               <div className="flex justify-between text-sm">
@@ -492,7 +488,6 @@ export default function NewInvoicePage() {
             </div>
           </Card>
 
-          {/* Action Buttons */}
           <div className="flex justify-end gap-4 pt-4">
             <Link href="/dashboard/invoices">
               <Button type="button" variant="outline">
@@ -512,4 +507,3 @@ export default function NewInvoicePage() {
     </div>
   )
 }
-

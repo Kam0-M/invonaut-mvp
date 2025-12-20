@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ClientRow } from '@/components/clients/client-row'
 
 type Client = {
   id: string
@@ -28,11 +29,12 @@ export default async function ClientsPage() {
   }
 
   const { data } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-
+  .from('clients')
+  .select('id, name, email, phone, company, payment_terms, created_at')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
+  .limit(500)
+  
   const clients = (data ?? []) as Client[]
   const clientCount = clients.length
 
@@ -94,23 +96,15 @@ export default async function ClientsPage() {
             </thead>
             <tbody className="divide-y divide-slate-200 bg-white">
               {clients.map(client => (
-                <tr key={client.id} className="hover:bg-slate-50">
-                  <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
-                    {client.name}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                    {client.company || '—'}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                    {client.email || '—'}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                    {client.phone || '—'}
-                  </td>
-                  <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
-                    {client.payment_terms ? `${client.payment_terms} days` : '—'}
-                  </td>
-                </tr>
+                <ClientRow
+                  key={client.id}
+                  id={client.id}
+                  name={client.name}
+                  company={client.company}
+                  email={client.email}
+                  phone={client.phone}
+                  paymentTerms={client.payment_terms}
+                />
               ))}
             </tbody>
           </table>

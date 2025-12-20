@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
+import { InvoiceRow } from '@/components/dashboard/invoice-row'
 
 type Invoice = {
   id: string
@@ -41,11 +42,15 @@ export default async function DashboardPage() {
 
   const { data } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, issue_date, due_date, total_amount, subtotal, tax_amount, created_at, clients(name, company)')
+    .select('id, invoice_number, status, issue_date, due_date, total_amount, created_at, clients!inner(name, company)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
-
-  const invoices: Invoice[] = (data ?? []) as Invoice[]
+    .limit(100)
+    const rawInvoices = (data ?? []) as any[]
+    const invoices: Invoice[] = rawInvoices.map(inv => ({
+      ...inv,
+      clients: Array.isArray(inv.clients) && inv.clients.length > 0 ? inv.clients[0] : inv.clients
+    }))
   const now = new Date()
 
   // Metrics
@@ -57,11 +62,11 @@ export default async function DashboardPage() {
     .filter(inv => inv.status === 'sent')
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
 
-  const paidThisMonth = invoices
+    const paidThisMonth = invoices
     .filter(inv => inv.status === 'paid')
     .filter(inv => {
       const d = new Date(inv.issue_date)
-      return d.getUTCFullYear() === now.getUTCFullYear() && d.getUTCMonth() === now.getUTCMonth()
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
     })
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
 
@@ -72,24 +77,28 @@ export default async function DashboardPage() {
   }).length
 
   // Revenue chart data (last 6 months)
-  const monthLabels = Array.from({ length: 6 }).map((_, idx) => {
-    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - idx), 1))
-    return { key: `${d.getUTCFullYear()}-${d.getUTCMonth()}`, label: d.toLocaleString('en-US', { month: 'short' }) }
-  })
+  const revenueChartData = (() => {
+    const monthLabels = Array.from({ length: 6 }, (_, idx) => {
+      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - idx), 1))
+      return { 
+        year: d.getUTCFullYear(), 
+        month: d.getUTCMonth(), 
+        label: d.toLocaleString('en-US', { month: 'short' }) 
+      }
+    })
 
-  const revenueChartData = monthLabels.map(({ key, label }) => {
-    const [yearStr, monthStr] = key.split('-')
-    const year = Number(yearStr)
-    const month = Number(monthStr)
-    const revenue = invoices
-      .filter(inv => inv.status === 'paid')
-      .filter(inv => {
-        const d = new Date(inv.issue_date)
-        return d.getUTCFullYear() === year && d.getUTCMonth() === month
-      })
-      .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
-    return { month: label, revenue }
-  })
+    const paidInvoices = invoices.filter(inv => inv.status === 'paid')
+    
+    return monthLabels.map(({ year, month, label }) => {
+      const revenue = paidInvoices
+        .filter(inv => {
+          const d = new Date(inv.issue_date)
+          return d.getUTCFullYear() === year && d.getUTCMonth() === month
+        })
+        .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
+      return { month: label, revenue }
+    })
+  })()
 
   // Status chart data
   const statusCounts = ['draft', 'sent', 'paid', 'overdue'] as const
@@ -105,7 +114,7 @@ export default async function DashboardPage() {
     color: statusColors[status]
   }))
 
-  const recentInvoices = invoices.slice(0, 5)
+  const recentInvoices = invoices.slice(0, 15)
 
   const metricCards = [
     { label: 'Total Revenue', value: formatCurrency(totalRevenue) },
@@ -225,40 +234,16 @@ export default async function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-slate-200 bg-white">
                 {recentInvoices.map(inv => (
-                  <tr key={inv.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                      <Link href={`/dashboard/invoices/${inv.id}`} className="underline-offset-4 hover:underline">
-                        {inv.invoice_number}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {inv.clients?.name || '—'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {formatDate(inv.issue_date)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {formatDate(inv.due_date)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {formatCurrency(inv.total_amount)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                          inv.status === 'paid'
-                            ? 'bg-green-100 text-green-800'
-                            : inv.status === 'sent'
-                            ? 'bg-blue-100 text-blue-800'
-                            : inv.status === 'overdue'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {inv.status}
-                      </span>
-                    </td>
-                  </tr>
+                  <InvoiceRow
+                    key={inv.id}
+                    id={inv.id}
+                    invoiceNumber={inv.invoice_number}
+                    clientName={inv.clients?.name || null}
+                    issueDate={inv.issue_date}
+                    dueDate={inv.due_date}
+                    totalAmount={inv.total_amount}
+                    status={inv.status}
+                  />
                 ))}
               </tbody>
             </table>

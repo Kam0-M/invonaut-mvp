@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { InvoiceList } from '@/components/invoices/invoice-list'
+import { ArrowLeft, Plus } from 'lucide-react'
 
 type Invoice = {
   id: string
@@ -28,30 +29,41 @@ export default async function InvoicesPage() {
     redirect('/login')
   }
 
-  const { data } = await supabase
+  const { data: allInvoices } = await supabase
     .from('invoices')
-    .select('*, clients(name)')
+    .select('*, clients(name, company)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
+    .limit(500)
 
-  const invoices = (data ?? []) as Invoice[]
+  const invoices = (allInvoices ?? []) as Invoice[]
   const invoiceCount = invoices.length
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">Invoices</h1>
-          <p className="text-sm text-slate-500">
-            {invoiceCount === 0
-              ? 'No invoices yet'
-              : invoiceCount === 1
-              ? '1 invoice'
-              : `${invoiceCount} invoices`}
-          </p>
+      {/* Header with Back Button (Left) and Create Button (Right) */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-2xl font-semibold text-slate-900">Invoices</h1>
+            <p className="text-sm text-slate-500">
+              {invoiceCount === 0
+                ? 'No invoices yet'
+                : invoiceCount === 1
+                ? '1 invoice'
+                : `${invoiceCount} invoices`}
+            </p>
+          </div>
         </div>
         <Link href="/dashboard/invoices/new">
           <Button className="bg-primary text-white hover:bg-primary/90">
+            <Plus className="w-4 h-4 mr-2" />
             Create Invoice
           </Button>
         </Link>
@@ -67,6 +79,7 @@ export default async function InvoicesPage() {
           </p>
           <Link href="/dashboard/invoices/new">
             <Button className="bg-primary text-white hover:bg-primary/90">
+              <Plus className="w-4 h-4 mr-2" />
               Create Invoice
             </Button>
           </Link>
