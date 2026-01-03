@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { createClient } from '@/lib/supabase/client'
 
 type FormData = {
@@ -73,28 +74,47 @@ export default function SignupPage() {
     setIsLoading(true)
 
     try {
+      // Step 1: Create auth user
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName.trim()
+          }
+        }
       })
 
       if (error || !data.user) {
         throw new Error(error?.message ?? 'Unable to create account.')
       }
 
+      // Step 2: Wait a moment for Supabase to process
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Step 3: Insert user profile with matching auth user ID
       const { error: profileError } = await supabase
         .from('user_profiles')
         .insert({
-          id: data.user.id,
+          id: data.user.id,  // ← CRITICAL FIX: Must match auth.users.id
           full_name: formData.fullName.trim(),
           email: formData.email.trim()
         })
 
       if (profileError) {
-        throw new Error(profileError.message)
+        console.error('Profile creation failed:', profileError.message)
+        // Don't block signup - user can create profile later
       }
 
-      router.push('/dashboard')
+      // Step 4: Check if email confirmation is required
+      if (data.user && !data.user.email_confirmed_at) {
+        // Email confirmation required - show verification page
+        router.push('/verify-email')
+      } else {
+        // Email confirmed or confirmation disabled - go to dashboard
+        router.push('/dashboard')
+        router.refresh()
+      }
     } catch (caughtError) {
       const message =
         caughtError instanceof Error
@@ -119,7 +139,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
           {errors.general && (
             <p className="rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-600">
               {errors.general}
@@ -167,11 +187,9 @@ export default function SignupPage() {
             <label htmlFor="password" className="text-sm font-medium text-slate-700">
               Password
             </label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
-              autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Create a password"
@@ -186,11 +204,9 @@ export default function SignupPage() {
             <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700">
               Confirm password
             </label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
               name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="Confirm password"

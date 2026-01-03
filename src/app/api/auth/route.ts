@@ -18,9 +18,13 @@ export async function POST(request: NextRequest) {
         name: 'John Doe'
       }
     })
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')
+      ? 'Could not sign in. Please check your internet connection and try again.'
+      : 'Could not sign in. Please verify your email and password are correct and try again.'
+    
     return NextResponse.json(
-      { success: false, message: 'Login failed' },
+      { success: false, message: errorMessage },
       { status: 400 }
     )
   }

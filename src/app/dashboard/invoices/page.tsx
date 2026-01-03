@@ -13,6 +13,7 @@ type Invoice = {
   due_date: string
   total_amount: number
   status: string
+  last_followed_up?: string | null
   clients: {
     name: string
   } | null
@@ -31,12 +32,19 @@ export default async function InvoicesPage() {
 
   const { data: allInvoices } = await supabase
     .from('invoices')
-    .select('*, clients(name, company)')
+    .select('id, invoice_number, issue_date, due_date, total_amount, status, last_followed_up, clients(name, company)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(500)
 
-  const invoices = (allInvoices ?? []) as Invoice[]
+  // Transform the data to handle clients array from Supabase join
+  const invoices: Invoice[] = (allInvoices ?? []).map((inv: any) => ({
+    ...inv,
+    clients: Array.isArray(inv.clients) && inv.clients.length > 0 
+      ? inv.clients[0] 
+      : inv.clients
+  }))
+  
   const invoiceCount = invoices.length
 
   return (

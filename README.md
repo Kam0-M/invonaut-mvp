@@ -430,4 +430,8 @@ For issues or questions:
 
 ---
 
+<<<<<<< HEAD
 **Built with ❤️ by a freelancer, for freelancers.**
+=======
+**Built with ❤️ by a freelancer, for freelancers.**
+>>>>>>> 170c82c496b37e6f921140b9f6da6c632dea059a

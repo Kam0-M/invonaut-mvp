@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 type DeleteInvoiceButtonProps = {
   invoiceId: string
@@ -24,6 +25,7 @@ export function DeleteInvoiceButton({
   const handleDelete = async () => {
     setIsDeleting(true)
     setError(null)
+    const loadingToast = toast.loading('Deleting invoice...')
 
     try {
       const supabase = createClient()
@@ -44,12 +46,17 @@ export function DeleteInvoiceButton({
 
       if (invoiceError) throw invoiceError
 
-      // Success! Redirect to invoice list
-      router.push('/dashboard/invoices')
-      router.refresh()
+      toast.success('Invoice deleted successfully!', { id: loadingToast, duration: 3000 })
+      
+      // Success! Redirect to invoice list after a short delay
+      setTimeout(() => {
+        router.push('/dashboard/invoices')
+        router.refresh()
+      }, 500)
     } catch (err: any) {
       console.error('Error deleting invoice:', err)
       setError(err.message || 'Failed to delete invoice')
+      toast.error('⚠️ ' + (err.message || 'Failed to delete invoice'), { id: loadingToast, duration: 3000 })
       setIsDeleting(false)
     }
   }

@@ -1,0 +1,134 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
+
+export async function GET(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams
+    const invoiceId = searchParams.get('id')
+
+    if (!invoiceId) {
+      return NextResponse.json(
+        { error: 'Invoice ID is required. Please provide an invoice ID.' },
+        { status: 400 }
+      )
+    }
+
+    const supabase = await createClient()
+    const {
+      data: { user },
+      error: userError
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'You must be logged in to download invoices. Please sign in and try again.' },
+        { status: 401 }
+      )
+    }
+
+    // Fetch invoice with client info
+    const { data: invoice, error: invoiceError } = await supabase
+      .from('invoices')
+      .select(`
+        id,
+        invoice_number,
+        status,
+        issue_date,
+        due_date,
+        subtotal,
+        tax_amount,
+        total_amount,
+        notes,
+        clients (
+          id,
+          name,
+          email,
+          phone,
+          company,
+          address
+        )
+      `)
+      .eq('id', invoiceId)
+      .eq('user_id', user.id)
+      .single()
+
+    if (invoiceError || !invoice) {
+      return NextResponse.json(
+        { error: 'Invoice not found. This invoice may have been deleted or you may not have permission to access it.' },
+        { status: 404 }
+      )
+    }
+
+    // Fetch invoice items
+    const { data: items, error: itemsError } = await supabase
+      .from('invoice_items')
+      .select('*')
+      .eq('invoice_id', invoiceId)
+
+    if (itemsError) {
+      return NextResponse.json(
+        { error: 'Could not load invoice details. Please refresh the page and try again.' },
+        { status: 500 }
+      )
+    }
+
+    // Fetch user profile for business info
+    const { data: userProfile } = await supabase
+      .from('user_profiles')
+      .select('full_name, email, business_name, address')
+      .eq('id', user.id)
+      .single()
+
+    const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients
+
+    // Generate PDF
+    const pdfArrayBuffer = await generateInvoicePDF({
+      invoice_number: invoice.invoice_number,
+      issue_date: invoice.issue_date,
+      due_date: invoice.due_date,
+      status: invoice.status,
+      subtotal: invoice.subtotal,
+      tax_amount: invoice.tax_amount,
+      total_amount: invoice.total_amount,
+      notes: invoice.notes || '',
+      client: {
+        name: clientData?.name,
+        email: clientData?.email || '',
+        phone: clientData?.phone || '',
+        company: clientData?.company || '',
+        address: clientData?.address || ''
+      },
+      user_profile: {
+        business_name: userProfile?.business_name || null,
+        full_name: userProfile?.full_name || null,
+        email: userProfile?.email || null,
+        address: userProfile?.address || null
+      },
+      items: (items || []).map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.total
+      }))
+    })
+
+    // Convert ArrayBuffer to Buffer
+    const pdfBuffer = Buffer.from(pdfArrayBuffer)
+
+    // Return PDF as response
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="invoice-${invoice.invoice_number}.pdf"`,
+      },
+    })
+  } catch (error: any) {
+    console.error('Download invoice error:', error)
+    return NextResponse.json(
+      { error: 'Failed to generate PDF. Please try again later.' },
+      { status: 500 }
+    )
+  }
+}
+

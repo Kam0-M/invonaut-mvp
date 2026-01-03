@@ -1,9 +1,10 @@
-// src/components/invoices/edit-invoice-form.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 interface LineItem {
   id?: string;
@@ -83,7 +84,16 @@ export default function EditInvoiceForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate line items
+    const emptyDescriptions = lineItems.some(item => item.description.trim() === '');
+    if (emptyDescriptions) {
+      toast.error('All line items must have a description');
+      return;
+    }
+
     setIsLoading(true);
+    const loadingToast = toast.loading('Saving changes...');
 
     try {
       const supabase = createClient();
@@ -127,20 +137,23 @@ export default function EditInvoiceForm({
 
       if (itemsError) throw itemsError;
 
-      // Success - redirect to invoice detail
-      router.push(`/dashboard/invoices/${invoice.id}`);
-      router.refresh();
+      toast.success('Invoice updated successfully!', { id: loadingToast });
+
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push(`/dashboard/invoices/${invoice.id}`);
+        router.refresh();
+      }, 500);
     } catch (error: any) {
       console.error('Error updating invoice:', error);
-      alert('Failed to update invoice: ' + error.message);
-    } finally {
+      toast.error(error.message || 'Failed to update invoice. Please try again.', { id: loadingToast });
       setIsLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow">
-      {/* Client Selection */}
+      {/* Client Selection - LOCKED */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Client *
@@ -148,8 +161,9 @@ export default function EditInvoiceForm({
         <select
           value={clientId}
           onChange={(e) => setClientId(e.target.value)}
+          disabled={true}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
         >
           <option value="">Select a client</option>
           {clients.map((client) => (
@@ -158,6 +172,7 @@ export default function EditInvoiceForm({
             </option>
           ))}
         </select>
+        <p className="text-xs text-gray-500 mt-1">🔒 Client cannot be changed after invoice creation</p>
       </div>
 
       {/* Invoice Number (Read-only) */}
@@ -185,6 +200,7 @@ export default function EditInvoiceForm({
             value={issueDate}
             onChange={(e) => setIssueDate(e.target.value)}
             required
+            disabled={isLoading}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           />
         </div>
@@ -197,6 +213,7 @@ export default function EditInvoiceForm({
             value={dueDate}
             onChange={(e) => setDueDate(e.target.value)}
             required
+            disabled={isLoading}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
           />
         </div>
@@ -218,6 +235,7 @@ export default function EditInvoiceForm({
                   updateLineItem(index, 'description', e.target.value)
                 }
                 required
+                disabled={isLoading}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
               />
               <input
@@ -230,6 +248,7 @@ export default function EditInvoiceForm({
                 min="0"
                 step="0.01"
                 required
+                disabled={isLoading}
                 className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
               />
               <input
@@ -242,6 +261,7 @@ export default function EditInvoiceForm({
                 min="0"
                 step="0.01"
                 required
+                disabled={isLoading}
                 className="w-28 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
               />
               <div className="w-28 px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-right text-gray-900 font-medium">
@@ -250,7 +270,7 @@ export default function EditInvoiceForm({
               <button
                 type="button"
                 onClick={() => removeLineItem(index)}
-                disabled={lineItems.length === 1}
+                disabled={lineItems.length === 1 || isLoading}
                 className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 ✕
@@ -261,7 +281,8 @@ export default function EditInvoiceForm({
         <button
           type="button"
           onClick={addLineItem}
-          className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          disabled={isLoading}
+          className="mt-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors disabled:opacity-50"
         >
           + Add Line Item
         </button>
@@ -279,6 +300,7 @@ export default function EditInvoiceForm({
           min="0"
           max="100"
           step="0.01"
+          disabled={isLoading}
           className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
         />
       </div>
@@ -308,6 +330,7 @@ export default function EditInvoiceForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={3}
+          disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
           placeholder="Additional notes or payment instructions..."
         />
@@ -326,9 +349,16 @@ export default function EditInvoiceForm({
         <button
           type="submit"
           disabled={isLoading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center"
         >
-          {isLoading ? 'Saving...' : 'Save Changes'}
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            'Save Changes'
+          )}
         </button>
       </div>
     </form>

@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, CheckCircle, XCircle } from 'lucide-react'
+import { Mail, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog } from '@/components/ui/dialog'
 import { Card } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 
 type SendInvoiceButtonProps = {
   invoiceId: string
@@ -13,11 +15,6 @@ type SendInvoiceButtonProps = {
   invoiceNumber: string
   clientName: string
 }
-
-type Toast = {
-  type: 'success' | 'error'
-  message: string
-} | null
 
 export function SendInvoiceButton({
   invoiceId,
@@ -28,19 +25,15 @@ export function SendInvoiceButton({
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState(clientEmail)
   const [isSending, setIsSending] = useState(false)
-  const [toast, setToast] = useState<Toast>(null)
-
-  const showToast = (type: 'success' | 'error', message: string) => {
-    setToast({ type, message })
-    setTimeout(() => setToast(null), 5000)
-  }
 
   const handleSend = async () => {
     if (!email || isSending) return
   
     setIsSending(true)
+    const loadingToast = toast.loading('Sending invoice...')
   
     try {
+      // Send the invoice email
       const response = await fetch('/api/send-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,36 +48,48 @@ export function SendInvoiceButton({
       if (!response.ok) {
         const errorMessage = data.error || 'Failed to send invoice'
         
-        // Show appropriate error message
         if (errorMessage.includes('Demo mode')) {
-          showToast('error', '⚠️ Demo Mode: Can only send to kamohelo.thakhisi@gmail.com')
+          toast.error('⚠️ Demo Mode: Can only send to kamohelo.thakhisi@gmail.com', { id: loadingToast, duration: 3000 })
         } else {
-          showToast('error', errorMessage)
+          toast.error('⚠️ ' + errorMessage, { id: loadingToast, duration: 3000 })
         }
         
         setIsSending(false)
         return
       }
+
+      // ✨ AUTO-MARK AS SENT: Update invoice status to "sent"
+      const supabase = createClient()
+      const { error: updateError } = await supabase
+        .from('invoices')
+        .update({ status: 'sent' })
+        .eq('id', invoiceId)
+
+      if (updateError) {
+        console.error('Failed to update invoice status:', updateError)
+        toast.success('Invoice sent successfully!', { id: loadingToast, duration: 3000 })
+      } else {
+        toast.success('Invoice sent successfully!', { id: loadingToast, duration: 3000 })
+      }
   
-      showToast('success', '✅ Invoice sent successfully!')
       setIsSending(false)
       
-      // Close modal after 2 seconds on success
+      // Close modal and refresh page after 1 second
       setTimeout(() => {
         setIsOpen(false)
-        setToast(null)
-      }, 2000)
+        window.location.reload()
+      }, 1000)
       
     } catch (error) {
-      showToast('error', '❌ Failed to send invoice. Please try again.')
+      toast.error('⚠️ Failed to send invoice', { id: loadingToast, duration: 3000 })
       setIsSending(false)
     }
   }
 
   const handleClose = () => {
-    setIsOpen(false)
-    setToast(null)
-    setIsSending(false)
+    if (!isSending) {
+      setIsOpen(false)
+    }
   }
 
   const subjectLine = `Invoice ${invoiceNumber} from Flowance`
@@ -95,8 +100,6 @@ export function SendInvoiceButton({
         onClick={() => {
           setIsOpen(true)
           setEmail(clientEmail)
-          setToast(null)
-          setIsSending(false)
         }}
         className="bg-primary hover:bg-primary/90 text-white"
       >
@@ -159,24 +162,6 @@ export function SendInvoiceButton({
             </div>
           </Card>
 
-          {/* Toast Notification */}
-          {toast && (
-            <div
-              className={`flex items-center gap-2 p-3 rounded-md ${
-                toast.type === 'success'
-                  ? 'bg-green-50 border border-green-200 text-green-800'
-                  : 'bg-red-50 border border-red-200 text-red-800'
-              }`}
-            >
-              {toast.type === 'success' ? (
-                <CheckCircle className="w-5 h-5" />
-              ) : (
-                <XCircle className="w-5 h-5" />
-              )}
-              <p className="text-sm font-medium">{toast.message}</p>
-            </div>
-          )}
-
           {/* Action Buttons */}
           <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
             <Button
@@ -193,7 +178,7 @@ export function SendInvoiceButton({
             >
               {isSending ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Sending...
                 </>
               ) : (
@@ -209,4 +194,3 @@ export function SendInvoiceButton({
     </>
   )
 }
-

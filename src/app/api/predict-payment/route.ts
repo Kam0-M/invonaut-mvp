@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ 
+        error: 'You must be logged in to view payment predictions. Please sign in and try again.' 
+      }, { status: 401 })
     }
 
     // Fetch current invoice details
@@ -27,7 +29,9 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (!invoice) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
+      return NextResponse.json({ 
+        error: 'Invoice not found. This invoice may have been deleted or you may not have permission to access it.' 
+      }, { status: 404 })
     }
 
     // Fetch all client invoices for history
@@ -50,10 +54,14 @@ export async function POST(request: NextRequest) {
       prediction,
       paymentHistory
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Prediction API error:', error)
+    const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')
+      ? 'Could not generate payment prediction. Please check your internet connection and try again.'
+      : 'Could not generate payment prediction. Please try again later or contact support if the problem persists.'
+    
     return NextResponse.json(
-      { error: 'Failed to generate prediction' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
