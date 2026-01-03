@@ -1,106 +1,78 @@
-import { PaymentPrediction } from '@/components/invoices/payment-prediction'
-import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { InvoiceActions } from './invoice-actions'
+import { ArrowLeft, Download, Pencil } from 'lucide-react'
 import { SendInvoiceButton } from '@/components/invoices/send-invoice-button'
 import { DeleteInvoiceButton } from '@/components/invoices/delete-invoice-button'
-import { DownloadPDFButton } from '@/components/invoices/download-pdf-button'
+import { FollowUpButton } from '@/components/invoices/follow-up-button'
+import { MarkAsPaidButton } from '@/components/invoices/mark-paid-button'
+import { PaymentPrediction } from '@/components/invoices/payment-prediction'
+import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
+import { NotFound } from '@/components/ui/not-found'
 
-type InvoiceDetailPageProps = {
-  params: Promise<{
-    id: string
-  }>
+type PageProps = {
+  params: Promise<{ id: string }>
 }
 
-type InvoiceData = {
+type Invoice = {
   id: string
+  client_id: string
   invoice_number: string
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
+  status: 'draft' | 'sent' | 'paid' | 'overdue'
   issue_date: string
   due_date: string
   subtotal: number
   tax_amount: number
   total_amount: number
   notes: string | null
-  client: {
-    id: string
+  last_followed_up: string | null
+  clients: {
     name: string
     email: string | null
-    phone: string | null
     company: string | null
     address: string | null
-  }
-  user_profile: {
-    full_name: string | null
-    email: string | null
-    business_name: string | null
-    address: string | null
-  }
-  items: Array<{
-    id?: string
-    description: string
-    quantity: number
-    unit_price: number
-    total: number
-  }>
+  } | null
 }
 
-// Format currency as USD
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(amount)
+type InvoiceItem = {
+  id: string
+  description: string
+  quantity: number
+  unit_price: number
+  total: number
 }
 
-// Format date as "Jan 15, 2024"
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', {
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+
+const formatDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
-    month: 'short',
+    month: 'long',
     day: 'numeric'
   })
-}
 
-// Get status badge styling
-const getStatusBadgeClass = (status: string): string => {
-  switch (status) {
-    case 'draft':
-      return 'bg-gray-100 text-gray-800'
-    case 'sent':
-      return 'bg-blue-100 text-blue-800'
-    case 'paid':
-      return 'bg-green-100 text-green-800'
-    case 'overdue':
-      return 'bg-red-100 text-red-800'
-    case 'cancelled':
-      return 'bg-gray-100 text-gray-600'
-    default:
-      return 'bg-gray-100 text-gray-800'
-  }
-}
-
-export default async function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
+export default async function InvoiceDetailPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabase.auth.getUser()
 
   if (userError || !user) {
     redirect('/login')
   }
 
-  // Fetch invoice with client info
-  const { data: invoice, error: invoiceError } = await supabase
+  // Fetch invoice with client details
+  const { data: invoiceData, error: invoiceError } = await supabase
     .from('invoices')
     .select(`
       id,
+      client_id,
       invoice_number,
       status,
       issue_date,
@@ -109,250 +81,276 @@ export default async function InvoiceDetailPage({ params }: InvoiceDetailPagePro
       tax_amount,
       total_amount,
       notes,
-      client_id,
-      clients (
-        id,
-        name,
-        email,
-        phone,
-        company,
-        address
-      )
+      last_followed_up,
+      clients!inner(name, email, company, address)
     `)
     .eq('id', id)
     .eq('user_id', user.id)
     .single()
 
-  if (invoiceError || !invoice) {
-    redirect('/dashboard/invoices')
+  if (invoiceError || !invoiceData) {
+    return (
+      <NotFound
+        title="Invoice Not Found"
+        description="The invoice you're looking for doesn't exist or you don't have permission to view it."
+        backLink="/dashboard/invoices"
+        backText="Back to Invoices"
+      />
+    )
+  }
+
+  const invoice = invoiceData as any
+  const normalizedInvoice: Invoice = {
+    ...invoice,
+    clients: Array.isArray(invoice.clients) && invoice.clients.length > 0 
+      ? invoice.clients[0] 
+      : invoice.clients
   }
 
   // Fetch invoice items
-  const { data: items, error: itemsError } = await supabase
+  const { data: itemsData } = await supabase
     .from('invoice_items')
-    .select('*')
+    .select('id, description, quantity, unit_price, total')
     .eq('invoice_id', id)
-    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
 
-  if (itemsError) {
-    redirect('/dashboard/invoices')
+  const items = (itemsData || []) as InvoiceItem[]
+
+  // Calculate display status
+  const displayStatus = getInvoiceDisplayStatus({
+    status: normalizedInvoice.status,
+    due_date: normalizedInvoice.due_date
+  })
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'draft':
+        return 'bg-gray-100 text-gray-800'
+      case 'sent':
+        return 'bg-blue-100 text-blue-800'
+      case 'paid':
+        return 'bg-green-100 text-green-800'
+      case 'overdue':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
   }
 
-  // Fetch user profile for business info
-  const { data: userProfile } = await supabase
-    .from('user_profiles')
-    .select('full_name, email, business_name, address')
-    .eq('id', user.id)
-    .single()
+  const canEdit = normalizedInvoice.status === 'draft'
+  const canSendEmail = normalizedInvoice.clients?.email && normalizedInvoice.status !== 'paid'
+  const canMarkAsPaid = normalizedInvoice.status === 'sent' || displayStatus === 'overdue'
+  const isOverdue = displayStatus === 'overdue'
+  const daysOverdue = isOverdue 
+    ? Math.floor((new Date().getTime() - new Date(normalizedInvoice.due_date).getTime()) / (1000 * 60 * 60 * 24))
+    : 0
 
-  const invoiceData: InvoiceData = {
-    id: invoice.id,
-    invoice_number: invoice.invoice_number,
-    status: invoice.status,
-    issue_date: invoice.issue_date,
-    due_date: invoice.due_date,
-    subtotal: Number(invoice.subtotal),
-    tax_amount: Number(invoice.tax_amount),
-    total_amount: Number(invoice.total_amount),
-    notes: invoice.notes,
-    client: (invoice.clients as any) || {
-      id: '',
-      name: 'Unknown Client',
-      email: null,
-      phone: null,
-      company: null,
-      address: null
-    },
-    user_profile: userProfile || {
-      full_name: null,
-      email: null,
-      business_name: null,
-      address: null
-    },
-    items: items || []
-  }
+  // ✅ AI Prediction should show for "sent" and "overdue" invoices
+  const showAIPrediction = normalizedInvoice.status === 'sent' || displayStatus === 'overdue'
 
   return (
-    <div className="space-y-6 print:p-0">
-      {/* Header */}
-      <div className="flex items-center justify-between print:hidden">
-        <div className="flex items-center gap-4">
+    <div className="space-y-6">
+      {/* Header with Fixed Button Positions */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <Link href="/dashboard/invoices">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="mb-3">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Invoices
+              Back
             </Button>
           </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Invoice</h1>
-            <p className="text-sm text-gray-600 mt-1">{invoiceData.invoice_number}</p>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900 break-words">{normalizedInvoice.invoice_number}</h1>
+          <p className="text-sm text-gray-500 break-words">
+            Invoice for {normalizedInvoice.clients?.name || 'Unknown Client'}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Edit Button - Only for draft invoices */}
-          {invoiceData.status === 'draft' && (
-            <Link href={`/dashboard/invoices/${invoiceData.id}/edit`}>
-              <Button variant="default">
-                Edit Invoice
+
+        <div className="flex-shrink-0 flex flex-wrap gap-2 justify-end">
+          {canEdit && (
+            <Link href={`/dashboard/invoices/${id}/edit`}>
+              <Button variant="outline" size="sm">
+                <Pencil className="w-4 h-4 mr-2" />
+                Edit
               </Button>
             </Link>
           )}
           
-          <DownloadPDFButton invoiceData={invoiceData} />
-          
-          {(invoiceData.status === 'draft' || invoiceData.status === 'sent') && (
-            <SendInvoiceButton
-              invoiceId={invoiceData.id}
-              clientEmail={invoiceData.client.email || ''}
-              invoiceNumber={invoiceData.invoice_number}
-              clientName={invoiceData.client.name || 'Client'}
+          <a 
+            href={`/api/download-invoice?id=${id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" size="sm">
+              <Download className="w-4 h-4 mr-2" />
+              Download PDF
+            </Button>
+          </a>
+
+          {canSendEmail && (
+            <SendInvoiceButton 
+              invoiceId={id}
+              invoiceNumber={normalizedInvoice.invoice_number}
+              clientEmail={normalizedInvoice.clients?.email || ''}
+              clientName={normalizedInvoice.clients?.name || ''}
             />
           )}
-          
-          <InvoiceActions invoiceId={invoiceData.id} currentStatus={invoiceData.status} />
-          
-          <DeleteInvoiceButton 
-            invoiceId={invoiceData.id} 
-            invoiceNumber={invoiceData.invoice_number}
-          />
+
+          {canMarkAsPaid && (
+            <MarkAsPaidButton
+              invoiceId={id}
+              invoiceNumber={normalizedInvoice.invoice_number}
+            />
+          )}
+
+          {isOverdue && (
+            <FollowUpButton
+              invoiceId={id}
+              invoiceNumber={normalizedInvoice.invoice_number}
+              clientName={normalizedInvoice.clients?.name || ''}
+              lastFollowedUp={normalizedInvoice.last_followed_up}
+              daysOverdue={daysOverdue}
+            />
+          )}
+
+          <DeleteInvoiceButton invoiceId={id} invoiceNumber={normalizedInvoice.invoice_number} />
         </div>
       </div>
 
-      {/* AI Payment Prediction */}
-      {invoiceData.status === 'sent' && (
+      {/* Status Badge */}
+      <div className="flex items-center gap-3">
+        <span className={`inline-flex rounded-full px-3 py-1 text-sm font-semibold ${getStatusColor(displayStatus)}`}>
+          {displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1)}
+        </span>
+        {isOverdue && (
+          <span className="text-sm text-red-600 font-medium">
+            {daysOverdue} days overdue
+          </span>
+        )}
+      </div>
+
+      {/* ✅ AI PAYMENT PREDICTION - Shows for Sent/Overdue invoices */}
+      {showAIPrediction && (
         <PaymentPrediction
-          invoiceId={invoiceData.id}
-          clientId={invoiceData.client.id}
-          totalAmount={invoiceData.total_amount}
-          status={invoiceData.status}
-          dueDate={invoiceData.due_date}
+          invoiceId={id}
+          clientId={normalizedInvoice.client_id}
+          clientName={normalizedInvoice.clients?.name || 'Client'}
+          invoiceAmount={normalizedInvoice.total_amount}
+          invoiceStatus={normalizedInvoice.status}
+          dueDate={normalizedInvoice.due_date}
         />
       )}
 
-      {/* Invoice Document */}
-      <Card className="p-8 print:shadow-none print:border-0">
-        {/* Invoice Header */}
-        <div className="mb-8 pb-8 border-b border-gray-200">
-          <div className="flex justify-between items-start">
-            {/* Business Info (Left) */}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {invoiceData.user_profile.business_name || invoiceData.user_profile.full_name || 'Your Business'}
-              </h2>
-              {invoiceData.user_profile.email && (
-                <p className="text-sm text-gray-600">{invoiceData.user_profile.email}</p>
-              )}
-              {invoiceData.user_profile.address && (
-                <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-                  {invoiceData.user_profile.address}
-                </p>
-              )}
-            </div>
+      {/* Invoice Details - Full Width */}
+      <Card className="p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Client Info */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Bill To</h3>
+            <p className="text-base font-semibold text-gray-900 break-words">{normalizedInvoice.clients?.name || 'N/A'}</p>
+            {normalizedInvoice.clients?.company && (
+              <p className="text-sm text-gray-600 break-words">{normalizedInvoice.clients.company}</p>
+            )}
+            {normalizedInvoice.clients?.email && (
+              <p className="text-sm text-gray-600 break-words">{normalizedInvoice.clients.email}</p>
+            )}
+            {normalizedInvoice.clients?.address && (
+              <p className="text-sm text-gray-600 whitespace-pre-line break-words">{normalizedInvoice.clients.address}</p>
+            )}
+          </div>
 
-            {/* Client Info (Right) */}
-            <div className="text-right">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Bill To:</h3>
-              <p className="text-sm font-medium text-gray-900">{invoiceData.client.name}</p>
-              {invoiceData.client.company && (
-                <p className="text-sm text-gray-600">{invoiceData.client.company}</p>
-              )}
-              {invoiceData.client.address && (
-                <p className="text-sm text-gray-600 mt-1 whitespace-pre-line">
-                  {invoiceData.client.address}
-                </p>
-              )}
-              {invoiceData.client.email && (
-                <p className="text-sm text-gray-600 mt-1">{invoiceData.client.email}</p>
-              )}
-              {invoiceData.client.phone && (
-                <p className="text-sm text-gray-600">{invoiceData.client.phone}</p>
-              )}
+          {/* Invoice Info */}
+          <div className="text-right">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Invoice Details</h3>
+            <div className="space-y-1">
+              <div className="flex justify-end gap-2">
+                <span className="text-sm text-gray-600">Invoice #:</span>
+                <span className="text-sm font-semibold text-gray-900">{normalizedInvoice.invoice_number}</span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <span className="text-sm text-gray-600">Issue Date:</span>
+                <span className="text-sm font-semibold text-gray-900">{formatDate(normalizedInvoice.issue_date)}</span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <span className="text-sm text-gray-600">Due Date:</span>
+                <span className={`text-sm font-semibold ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
+                  {formatDate(normalizedInvoice.due_date)}
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Invoice Details */}
-        <div className="mb-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Issue Date</p>
-            <p className="text-sm font-medium text-gray-900">{formatDate(invoiceData.issue_date)}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Due Date</p>
-            <p className="text-sm font-medium text-gray-900">{formatDate(invoiceData.due_date)}</p>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Status</p>
-            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(invoiceData.status)}`}>
-              {invoiceData.status.charAt(0).toUpperCase() + invoiceData.status.slice(1)}
-            </span>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-gray-500 uppercase mb-1">Invoice #</p>
-            <p className="text-sm font-medium text-gray-900">{invoiceData.invoice_number}</p>
           </div>
         </div>
 
         {/* Line Items Table */}
-        <div className="mb-8">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-700">
-                  Description
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-700">
-                  Quantity
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-700">
-                  Unit Price
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-700">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {invoiceData.items.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-6 py-4 text-sm text-gray-900">{item.description}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 text-right">{item.quantity}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600 text-right">{formatCurrency(item.unit_price)}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 text-right">{formatCurrency(item.total)}</td>
+        <div className="border-t border-gray-200 pt-6">
+          <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Items</h3>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Description
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Quantity
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Unit Price
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Total
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {items.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-4 py-3 text-sm text-gray-900 break-words">{item.description}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{item.quantity}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 text-right">{formatCurrency(item.unit_price)}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">{formatCurrency(item.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        {/* Summary Section */}
-        <div className="flex justify-end mb-8">
-          <div className="w-full md:w-80 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Subtotal:</span>
-              <span className="font-medium text-gray-900">{formatCurrency(invoiceData.subtotal)}</span>
+        {/* Totals */}
+        <div className="border-t border-gray-200 mt-6 pt-6">
+          <div className="flex flex-col items-end space-y-2">
+            <div className="flex justify-between w-64">
+              <span className="text-sm text-gray-600">Subtotal:</span>
+              <span className="text-sm font-semibold text-gray-900">{formatCurrency(normalizedInvoice.subtotal)}</span>
             </div>
-            {invoiceData.tax_amount > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Tax:</span>
-                <span className="font-medium text-gray-900">{formatCurrency(invoiceData.tax_amount)}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-lg font-bold pt-3 border-t-2 border-gray-300">
-              <span className="text-gray-900">Total:</span>
-              <span className="text-primary">{formatCurrency(invoiceData.total_amount)}</span>
+            <div className="flex justify-between w-64">
+              <span className="text-sm text-gray-600">Tax:</span>
+              <span className="text-sm font-semibold text-gray-900">{formatCurrency(normalizedInvoice.tax_amount)}</span>
+            </div>
+            <div className="flex justify-between w-64 pt-2 border-t border-gray-200">
+              <span className="text-lg font-bold text-gray-900">Total:</span>
+              <span className="text-lg font-bold text-primary">{formatCurrency(normalizedInvoice.total_amount)}</span>
             </div>
           </div>
         </div>
 
-        {/* Notes Section */}
-        {invoiceData.notes && (
-          <div className="pt-8 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Notes</h3>
-            <p className="text-sm text-gray-600 whitespace-pre-line">{invoiceData.notes}</p>
+        {/* Notes */}
+        {normalizedInvoice.notes && (
+          <div className="border-t border-gray-200 mt-6 pt-6">
+            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Notes</h3>
+            <p className="text-sm text-gray-600 whitespace-pre-line break-words">{normalizedInvoice.notes}</p>
           </div>
         )}
       </Card>
+
+      {/* Follow-Up History */}
+      {normalizedInvoice.last_followed_up && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Follow-Up History</h3>
+          <p className="text-sm text-gray-600">
+            Last reminder sent on {formatDate(normalizedInvoice.last_followed_up)}
+          </p>
+        </Card>
+      )}
     </div>
   )
 }

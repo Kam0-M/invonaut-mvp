@@ -31,17 +31,9 @@ type InvoiceData = {
 }
 
 type GenerateInvoicePDFOptions = {
-  /**
-   * When true (browser only), trigger a download after creating the PDF.
-   * On the server this is ignored.
-   */
   download?: boolean
 }
 
-/**
- * Generate a professional invoice PDF using jsPDF.
- * Returns an ArrayBuffer so callers can convert to Buffer (Node) or Blob (browser).
- */
 export async function generateInvoicePDF(
   invoiceData: InvoiceData,
   options: GenerateInvoicePDFOptions = {}
@@ -58,12 +50,10 @@ export async function generateInvoicePDF(
 
   let yPosition = margin
 
-  // Helper function to add text
   const addText = (text: string, x: number, y: number, options?: any) => {
     pdf.text(text, x, y, options)
   }
 
-  // Helper function to format currency
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -71,7 +61,6 @@ export async function generateInvoicePDF(
     }).format(amount)
   }
 
-  // Helper function to format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -86,60 +75,93 @@ export async function generateInvoicePDF(
   addText('INVOICE', margin, yPosition)
   yPosition += 10
 
-  // Business Info (Left)
+  // Business Info (Left) - with text wrapping
   pdf.setFontSize(12)
   pdf.setFont('helvetica', 'bold')
-  addText(
-    invoiceData.user_profile.business_name ||
-      invoiceData.user_profile.full_name ||
-      'Your Business',
-    margin,
-    yPosition
-  )
-  yPosition += 6
+  const businessName = invoiceData.user_profile.business_name ||
+    invoiceData.user_profile.full_name ||
+    'Your Business'
+  const businessNameLines = pdf.splitTextToSize(businessName, 80)
+  businessNameLines.forEach((line: string) => {
+    addText(line, margin, yPosition)
+    yPosition += 6
+  })
 
   pdf.setFontSize(10)
   pdf.setFont('helvetica', 'normal')
   if (invoiceData.user_profile.email) {
-    addText(invoiceData.user_profile.email, margin, yPosition)
-    yPosition += 5
-  }
-  if (invoiceData.user_profile.address) {
-    const addressLines = invoiceData.user_profile.address.split('\n')
-    addressLines.forEach((line) => {
+    const emailLines = pdf.splitTextToSize(invoiceData.user_profile.email, 80)
+    emailLines.forEach((line: string) => {
       addText(line, margin, yPosition)
       yPosition += 5
     })
   }
+  if (invoiceData.user_profile.address) {
+    const addressLines = invoiceData.user_profile.address.split('\n')
+    addressLines.forEach((line) => {
+      const wrappedLines = pdf.splitTextToSize(line, 80)
+      wrappedLines.forEach((wrappedLine: string) => {
+        addText(wrappedLine, margin, yPosition)
+        yPosition += 5
+      })
+    })
+  }
 
-  // Client Info (Right)
+  // Client Info (Right) - improved text wrapping
   let clientYPosition = 30
+  const clientInfoX = pageWidth - margin - 70
+  const clientInfoMaxWidth = 70
+
   pdf.setFontSize(10)
   pdf.setFont('helvetica', 'bold')
-  addText('Bill To:', pageWidth - margin - 60, clientYPosition)
+  addText('Bill To:', clientInfoX, clientYPosition)
   clientYPosition += 6
 
   pdf.setFont('helvetica', 'normal')
-  addText(invoiceData.client.name, pageWidth - margin - 60, clientYPosition)
-  clientYPosition += 5
-
-  if (invoiceData.client.company) {
-    addText(invoiceData.client.company, pageWidth - margin - 60, clientYPosition)
-    clientYPosition += 5
-  }
-  if (invoiceData.client.address) {
-    const clientAddressLines = invoiceData.client.address.split('\n')
-    clientAddressLines.forEach((line) => {
-      addText(line, pageWidth - margin - 60, clientYPosition)
+  
+  // Client name - wrapped properly
+  if (invoiceData.client.name) {
+    const clientNameLines = pdf.splitTextToSize(invoiceData.client.name, clientInfoMaxWidth)
+    clientNameLines.forEach((line: string) => {
+      addText(line, clientInfoX, clientYPosition)
       clientYPosition += 5
     })
   }
-  if (invoiceData.client.email) {
-    addText(invoiceData.client.email, pageWidth - margin - 60, clientYPosition)
-    clientYPosition += 5
+
+  // Company - wrapped properly
+  if (invoiceData.client.company) {
+    const companyLines = pdf.splitTextToSize(invoiceData.client.company, clientInfoMaxWidth)
+    companyLines.forEach((line: string) => {
+      addText(line, clientInfoX, clientYPosition)
+      clientYPosition += 5
+    })
   }
+
+  // Client address - wrapped properly
+  if (invoiceData.client.address) {
+    const clientAddressLines = invoiceData.client.address.split('\n')
+    clientAddressLines.forEach((line) => {
+      const wrappedLines = pdf.splitTextToSize(line, clientInfoMaxWidth)
+      wrappedLines.forEach((wrappedLine: string) => {
+        addText(wrappedLine, clientInfoX, clientYPosition)
+        clientYPosition += 5
+      })
+    })
+  }
+
+  // Email - wrapped properly
+  if (invoiceData.client.email) {
+    const emailLines = pdf.splitTextToSize(invoiceData.client.email, clientInfoMaxWidth)
+    emailLines.forEach((line: string) => {
+      addText(line, clientInfoX, clientYPosition)
+      clientYPosition += 5
+    })
+  }
+
+  // Phone
   if (invoiceData.client.phone) {
-    addText(invoiceData.client.phone, pageWidth - margin - 60, clientYPosition)
+    addText(invoiceData.client.phone, clientInfoX, clientYPosition)
+    clientYPosition += 5
   }
 
   yPosition = Math.max(yPosition, clientYPosition) + 10
@@ -173,38 +195,85 @@ export async function generateInvoicePDF(
   pdf.line(margin, yPosition, pageWidth - margin, yPosition)
   yPosition += 6
 
-  // Table Header
+  // Table Header - perfectly aligned columns
   pdf.setFontSize(9)
   pdf.setFont('helvetica', 'bold')
+  const qtyX = pageWidth - margin - 75
+  const priceX = pageWidth - margin - 50
+  const totalX = pageWidth - margin - 25
+  
   addText('Description', margin, yPosition)
-  addText('Qty', pageWidth - margin - 80, yPosition, { align: 'right' })
-  addText('Price', pageWidth - margin - 50, yPosition, { align: 'right' })
-  addText('Total', pageWidth - margin, yPosition, { align: 'right' })
+  addText('Qty', qtyX, yPosition)
+  addText('Price', priceX, yPosition)
+  addText('Total', totalX, yPosition)
   yPosition += 5
 
   pdf.line(margin, yPosition, pageWidth - margin, yPosition)
   yPosition += 6
 
-  // Table Rows
+  // Table Rows - with description wrapping
   pdf.setFont('helvetica', 'normal')
+  const descriptionMaxWidth = 90 // Reduced width to prevent overlap with Qty column
+
   invoiceData.items.forEach((item) => {
     // Check if we need a new page
     if (yPosition > pageHeight - 60) {
       pdf.addPage()
       yPosition = margin
+      
+      // Redraw table header on new page
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'bold')
+      addText('Description', margin, yPosition)
+      addText('Qty', qtyX, yPosition)
+      addText('Price', priceX, yPosition)
+      addText('Total', totalX, yPosition)
+      yPosition += 5
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 6
+      pdf.setFont('helvetica', 'normal')
     }
 
-    addText(item.description, margin, yPosition)
-    addText(item.quantity.toString(), pageWidth - margin - 80, yPosition, {
-      align: 'right'
+    // Split long descriptions into multiple lines
+    const descriptionLines = pdf.splitTextToSize(item.description, descriptionMaxWidth)
+    const itemStartY = yPosition
+    const lineHeight = 5
+
+    // Calculate total height needed for this item
+    const totalItemHeight = descriptionLines.length * lineHeight + 2
+
+    // Check if entire item fits on current page
+    if (yPosition + totalItemHeight > pageHeight - 60) {
+      pdf.addPage()
+      yPosition = margin
+      
+      // Redraw table header on new page
+      pdf.setFontSize(9)
+      pdf.setFont('helvetica', 'bold')
+      addText('Description', margin, yPosition)
+      addText('Qty', qtyX, yPosition)
+      addText('Price', priceX, yPosition)
+      addText('Total', totalX, yPosition)
+      yPosition += 5
+      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
+      yPosition += 6
+      pdf.setFont('helvetica', 'normal')
+    }
+
+    const finalItemStartY = yPosition
+
+    // Print ALL description lines
+    descriptionLines.forEach((line: string) => {
+      addText(line, margin, yPosition)
+      yPosition += lineHeight
     })
-    addText(formatCurrency(item.unit_price), pageWidth - margin - 50, yPosition, {
-      align: 'right'
-    })
-    addText(formatCurrency(item.total), pageWidth - margin, yPosition, {
-      align: 'right'
-    })
-    yPosition += 6
+
+    // Print qty, price, total - PERFECTLY ALIGNED under headers
+    addText(item.quantity.toString(), qtyX, finalItemStartY)
+    addText(formatCurrency(item.unit_price), priceX, finalItemStartY)
+    addText(formatCurrency(item.total), totalX, finalItemStartY)
+    
+    yPosition += 2 // Small space between items
   })
 
   yPosition += 4
@@ -280,10 +349,8 @@ export async function generateInvoicePDF(
     { align: 'center' }
   )
 
-  // Produce ArrayBuffer for server/email attachments or client-side blob
   const arrayBuffer = pdf.output('arraybuffer') as ArrayBuffer
 
-  // Optional browser download flow
   if (options.download && typeof window !== 'undefined') {
     const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)

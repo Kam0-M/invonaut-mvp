@@ -1,106 +1,94 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Brain, TrendingUp, AlertCircle, Info } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { Sparkles, AlertCircle, TrendingUp, Calendar, Loader2 } from 'lucide-react'
 
-type PaymentPredictionProps = {
+type PredictionData = {
+  predictedDate: string
+  confidence: number
+  riskLevel: 'low' | 'medium' | 'high'
+  insight: string
+}
+
+type Props = {
   invoiceId: string
   clientId: string
-  totalAmount: number
-  status: string
+  clientName: string
+  invoiceAmount: number
+  invoiceStatus: string
   dueDate: string
 }
 
-type Prediction = {
-  predicted_date: string
-  confidence_score: number
-  risk_level: 'low' | 'medium' | 'high'
-  insight: string
-  reasoning: string
-}
-
-export function PaymentPrediction({
-  invoiceId,
-  clientId,
-  totalAmount,
-  status,
-  dueDate
-}: PaymentPredictionProps) {
-  const [prediction, setPrediction] = useState<Prediction | null>(null)
+export function PaymentPrediction({ invoiceId, clientId, clientName, invoiceAmount, invoiceStatus, dueDate }: Props) {
+  const [prediction, setPrediction] = useState<PredictionData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function fetchPrediction() {
       try {
+        setLoading(true)
+        setError(null)
+
         const response = await fetch('/api/predict-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             invoiceId,
             clientId,
-            totalAmount,
-            status,
+            totalAmount: invoiceAmount,
+            status: invoiceStatus,
             dueDate
           })
         })
 
-        if (!response.ok) throw new Error('Failed to fetch prediction')
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || 'Failed to fetch prediction')
+        }
 
         const data = await response.json()
-        setPrediction(data.prediction)
-      } catch (err: any) {
+        
+        // API returns { prediction: {...}, paymentHistory: {...} }
+        // We need the prediction object
+        const rawPrediction = data.prediction || data
+        
+        // Convert snake_case to camelCase
+        const predictionData: PredictionData = {
+          predictedDate: rawPrediction.predicted_date || rawPrediction.predictedDate,
+          confidence: rawPrediction.confidence_score || rawPrediction.confidence,
+          riskLevel: rawPrediction.risk_level || rawPrediction.riskLevel,
+          insight: rawPrediction.insight
+        }
+        
+        // Validate converted data
+        if (!predictionData.predictedDate || !predictionData.riskLevel) {
+          console.error('Validation failed after conversion:', predictionData)
+          throw new Error('Invalid prediction data received. Check console for details.')
+        }
+
+        setPrediction(predictionData)
+      } catch (err) {
         console.error('Prediction error:', err)
-        setError(err.message)
+        setError(err instanceof Error ? err.message : 'Unable to generate prediction. Please try again later.')
       } finally {
         setLoading(false)
       }
     }
 
-    // Only predict for sent invoices
-    if (status === 'sent') {
-      fetchPrediction()
-    } else {
-      setLoading(false)
-    }
-  }, [invoiceId, clientId, totalAmount, status, dueDate])
-
-  // Don't show for paid/draft invoices
-  if (status !== 'sent' || !prediction) return null
-
-  const getRiskColor = (risk: string) => {
-    switch (risk) {
-      case 'low':
-        return 'border-green-200 bg-green-50'
-      case 'medium':
-        return 'border-yellow-200 bg-yellow-50'
-      case 'high':
-        return 'border-red-200 bg-red-50'
-      default:
-        return 'border-gray-200 bg-gray-50'
-    }
-  }
-
-  const getRiskIcon = (risk: string) => {
-    switch (risk) {
-      case 'low':
-        return <TrendingUp className="w-5 h-5 text-green-600" />
-      case 'medium':
-        return <AlertCircle className="w-5 h-5 text-yellow-600" />
-      case 'high':
-        return <AlertCircle className="w-5 h-5 text-red-600" />
-      default:
-        return <Info className="w-5 h-5 text-gray-600" />
-    }
-  }
+    fetchPrediction()
+  }, [invoiceId, clientId, clientName, invoiceAmount, invoiceStatus, dueDate])
 
   if (loading) {
     return (
-      <Card className="p-6 border-2 border-dashed border-gray-200">
+      <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
         <div className="flex items-center gap-3">
-          <Brain className="w-5 h-5 text-gray-400 animate-pulse" />
-          <p className="text-sm text-gray-600">AI analyzing payment patterns...</p>
+          <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">AI Payment Prediction</h3>
+            <p className="text-sm text-gray-600">Analyzing payment patterns...</p>
+          </div>
         </div>
       </Card>
     )
@@ -108,88 +96,142 @@ export function PaymentPrediction({
 
   if (error) {
     return (
-      <Card className="p-6 border-2 border-gray-200 bg-gray-50">
-        <div className="flex items-center gap-3">
-          <AlertCircle className="w-5 h-5 text-gray-400" />
-          <p className="text-sm text-gray-600">
-            AI prediction unavailable. Check back later.
-          </p>
+      <Card className="p-6 bg-red-50 border-red-200">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Prediction Unavailable</h3>
+            <p className="text-sm text-gray-600 mt-1">{error}</p>
+            <p className="text-xs text-gray-500 mt-2">Check browser console for details.</p>
+          </div>
         </div>
       </Card>
     )
   }
 
+  if (!prediction) return null
+
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low':
+        return {
+          bg: 'bg-green-100',
+          text: 'text-green-800',
+          border: 'border-green-300',
+          icon: 'text-green-600'
+        }
+      case 'medium':
+        return {
+          bg: 'bg-yellow-100',
+          text: 'text-yellow-800',
+          border: 'border-yellow-300',
+          icon: 'text-yellow-600'
+        }
+      case 'high':
+        return {
+          bg: 'bg-red-100',
+          text: 'text-red-800',
+          border: 'border-red-300',
+          icon: 'text-red-600'
+        }
+      default:
+        return {
+          bg: 'bg-gray-100',
+          text: 'text-gray-800',
+          border: 'border-gray-300',
+          icon: 'text-gray-600'
+        }
+    }
+  }
+
+  const riskColors = getRiskColor(prediction.riskLevel || 'medium')
+  const confidenceColor = prediction.confidence >= 80 ? 'text-green-600' : prediction.confidence >= 60 ? 'text-yellow-600' : 'text-red-600'
+
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    } catch {
+      return dateString
+    }
+  }
+
+  const formatRiskLevel = (risk: string) => {
+    if (!risk) return 'Unknown'
+    return risk.charAt(0).toUpperCase() + risk.slice(1)
+  }
+
   return (
-    <Card className={`p-6 border-2 ${getRiskColor(prediction.risk_level)}`}>
+    <Card className="p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-md">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Brain className="w-6 h-6 text-primary" />
-          <div>
-            <h3 className="font-semibold text-gray-900">AI Payment Prediction</h3>
-            <p className="text-xs text-gray-500">Based on client payment history</p>
-          </div>
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-6 h-6 text-blue-600" />
+          <h3 className="text-xl font-bold text-gray-900">AI Payment Prediction</h3>
         </div>
-        {getRiskIcon(prediction.risk_level)}
+        <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskColors.bg} ${riskColors.text} ${riskColors.border} border`}>
+          {formatRiskLevel(prediction.riskLevel)} Risk
+        </span>
       </div>
 
-      {/* Prediction Details */}
-      <div className="space-y-4">
-        {/* Confidence Score */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-gray-600">Confidence Score</span>
-            <span className="text-sm font-semibold text-gray-900">
-              {prediction.confidence_score}%
-            </span>
+      {/* Main Prediction */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+        {/* Predicted Payment Date */}
+        <div className="flex items-start gap-3">
+          <div className={`p-2 rounded-lg ${riskColors.bg}`}>
+            <Calendar className={`w-5 h-5 ${riskColors.icon}`} />
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-primary h-2 rounded-full transition-all"
-              style={{ width: `${prediction.confidence_score}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Predicted Date */}
-        <div className="flex items-center justify-between py-3 border-t border-gray-200">
-          <span className="text-sm text-gray-600">Predicted Payment Date</span>
-          <span className="text-sm font-semibold text-gray-900">
-            {new Date(prediction.predicted_date).toLocaleDateString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            })}
-          </span>
-        </div>
-
-        {/* Risk Level */}
-        <div className="flex items-center justify-between py-3 border-t border-gray-200">
-          <span className="text-sm text-gray-600">Risk Level</span>
-          <span className="text-sm font-semibold text-gray-900 capitalize">
-            {prediction.risk_level}
-          </span>
-        </div>
-
-        {/* AI Insight */}
-        <div className="pt-3 border-t border-gray-200">
-          <p className="text-sm text-gray-700 leading-relaxed">
-            {prediction.insight}
-          </p>
-        </div>
-
-        {/* Disclaimer */}
-        <div className="pt-3 border-t border-gray-200 bg-white rounded-lg p-3">
-          <div className="flex items-start gap-2">
-            <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-gray-500 leading-relaxed">
-              <strong>AI Prediction Disclaimer:</strong> This prediction is based on
-              historical payment patterns and statistical analysis. It is not financial
-              advice or a guarantee of payment. Always use your judgment and follow up
-              with clients as needed.
+          <div>
+            <p className="text-sm font-medium text-gray-600">Predicted Payment Date</p>
+            <p className="text-xl font-bold text-gray-900 mt-1">
+              {formatDate(prediction.predictedDate)}
             </p>
           </div>
         </div>
+
+        {/* Confidence Score */}
+        <div className="flex items-start gap-3">
+          <div className="p-2 rounded-lg bg-blue-100">
+            <TrendingUp className="w-5 h-5 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-gray-600">Confidence Score</p>
+            <div className="flex items-center gap-2 mt-1">
+              <p className={`text-xl font-bold ${confidenceColor}`}>
+                {prediction.confidence}%
+              </p>
+              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden max-w-[120px]">
+                <div
+                  className={`h-full ${
+                    prediction.confidence >= 80
+                      ? 'bg-green-600'
+                      : prediction.confidence >= 60
+                      ? 'bg-yellow-600'
+                      : 'bg-red-600'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(0, prediction.confidence))}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Insight */}
+      <div className="bg-white/70 rounded-lg p-4 border border-blue-200">
+        <p className="text-sm font-medium text-gray-700 mb-2">AI Insight:</p>
+        <p className="text-sm text-gray-600 leading-relaxed">{prediction.insight || 'No insight available.'}</p>
+      </div>
+
+      {/* Disclaimer */}
+      <div className="mt-4 flex items-start gap-2 text-xs text-gray-500">
+        <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+        <p>
+          This is an AI-generated prediction based on historical patterns and is not guaranteed. Use as guidance only.
+        </p>
       </div>
     </Card>
   )

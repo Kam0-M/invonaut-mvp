@@ -6,12 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function NewClientPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   
   const [formData, setFormData] = useState({
     name: '',
@@ -25,8 +25,6 @@ export default function NewClientPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
-    setSuccess('')
 
     try {
       const supabase = createClient()
@@ -41,17 +39,27 @@ export default function NewClientPage() {
 
       // Validate required fields
       if (!formData.name.trim()) {
-        setError('Client name is required')
+        toast.error('Client name is required. Please enter a name for this client.', { duration: 3000 })
+        setLoading(false)
+        return
+      }
+
+      // Validate client name length
+      const MAX_CLIENT_NAME_LENGTH = 200
+      if (formData.name.trim().length > MAX_CLIENT_NAME_LENGTH) {
+        toast.error(`Client name cannot exceed ${MAX_CLIENT_NAME_LENGTH} characters. Please use a shorter name.`, { duration: 3000 })
         setLoading(false)
         return
       }
 
       // Validate email format if provided
       if (formData.email && !formData.email.includes('@')) {
-        setError('Please enter a valid email address')
+        toast.error('Please enter a valid email address. Make sure it includes an @ symbol.', { duration: 3000 })
         setLoading(false)
         return
       }
+
+      const loadingToast = toast.loading('Adding client...')
 
       // Insert client
       const { error: insertError } = await supabase
@@ -70,16 +78,31 @@ export default function NewClientPage() {
         throw insertError
       }
 
-      setSuccess('Client added successfully!')
+      toast.success('Client created successfully!', { id: loadingToast, duration: 3000 })
       
-      // Redirect after 1 second and force refresh
+      // Redirect after 0.5 seconds
       setTimeout(() => {
         router.push('/dashboard/clients')
         router.refresh()
-      }, 1000)
+      }, 500)
 
     } catch (err: any) {
-      setError(err.message || 'Failed to add client. Please try again.')
+      // Format user-friendly error messages
+      let errorMessage = 'Could not create client. Please check your internet connection and try again.'
+      
+      if (err?.code === '23505' || err?.message?.includes('duplicate') || err?.message?.includes('unique')) {
+        errorMessage = 'This client already exists. Try searching for them instead or use a different name.'
+      } else if (err?.code === 'PGRST116') {
+        errorMessage = 'Could not create client. The database connection was interrupted. Please check your internet connection and try again.'
+      } else if (err?.message) {
+        if (err.message.includes('network') || err.message.includes('connection') || err.message.includes('timeout')) {
+          errorMessage = 'Could not create client. Please check your internet connection and try again.'
+        } else if (err.message.length < 100 && !err.message.includes('PGRST')) {
+          errorMessage = err.message
+        }
+      }
+      
+      toast.error('' + errorMessage, { duration: 3000 })
       setLoading(false)
     }
   }
@@ -95,18 +118,6 @@ export default function NewClientPage() {
 
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-600">
-              {success}
-            </div>
-          )}
-
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Name <span className="text-red-500">*</span>
@@ -117,6 +128,7 @@ export default function NewClientPage() {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="John Doe"
               required
+              disabled={loading}
             />
           </div>
 
@@ -129,6 +141,7 @@ export default function NewClientPage() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="john@example.com"
+              disabled={loading}
             />
           </div>
 
@@ -141,6 +154,7 @@ export default function NewClientPage() {
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               placeholder="555-0123"
+              disabled={loading}
             />
           </div>
 
@@ -153,38 +167,41 @@ export default function NewClientPage() {
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               placeholder="Acme Corporation"
+              disabled={loading}
             />
           </div>
 
           <div>
-  <label className="block text-sm font-medium text-slate-700 mb-1">
-    Address
-  </label>
-  <textarea
-    value={formData.address}
-    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-    placeholder="123 Main Street, City, State, ZIP"
-    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-500"
-    rows={3}
-  />
-</div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Address
+            </label>
+            <textarea
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              placeholder="123 Main Street, City, State, ZIP"
+              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-500"
+              rows={3}
+              disabled={loading}
+            />
+          </div>
 
-<div>
-  <label className="block text-sm font-medium text-slate-700 mb-1">
-    Payment Terms
-  </label>
-  <select
-    value={formData.payment_terms}
-    onChange={(e) => setFormData({ ...formData, payment_terms: Number(e.target.value) })}
-    className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
-  >
-    <option value={7}>7 days</option>
-    <option value={15}>15 days</option>
-    <option value={30}>30 days</option>
-    <option value={45}>45 days</option>
-    <option value={60}>60 days</option>
-  </select>
-</div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Payment Terms
+            </label>
+            <select
+              value={formData.payment_terms}
+              onChange={(e) => setFormData({ ...formData, payment_terms: Number(e.target.value) })}
+              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
+              disabled={loading}
+            >
+              <option value={7}>7 days</option>
+              <option value={15}>15 days</option>
+              <option value={30}>30 days</option>
+              <option value={45}>45 days</option>
+              <option value={60}>60 days</option>
+            </select>
+          </div>
 
           <div className="flex gap-3 pt-4">
             <Button
@@ -192,7 +209,14 @@ export default function NewClientPage() {
               disabled={loading}
               className="bg-primary text-white hover:bg-primary/90"
             >
-              {loading ? 'Saving...' : 'Save Client'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Client'
+              )}
             </Button>
             <Button
               type="button"

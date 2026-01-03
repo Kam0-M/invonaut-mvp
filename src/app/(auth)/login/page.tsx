@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { createClient } from '@/lib/supabase/client'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -71,6 +72,7 @@ export default function LoginPage() {
       }
 
       router.push('/dashboard')
+      router.refresh()
     } catch (caughtError) {
       const fallback =
         caughtError instanceof Error ? caughtError.message : 'Login failed. Please try again'
@@ -123,24 +125,20 @@ export default function LoginPage() {
             <label htmlFor="password" className="text-sm font-medium text-slate-700">
               Password
             </label>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
-              autoComplete="current-password"
               value={formState.password}
               onChange={handleChange}
               placeholder="Enter your password"
+              autoComplete="current-password"
+              required
               className="mt-2"
             />
             {errors.password && (
               <p className="mt-1 text-xs font-medium text-red-600">{errors.password}</p>
             )}
           </div>
-
-          <p className="text-right text-xs font-semibold tracking-wide text-[#0066FF]">
-            Forgot password?
-          </p>
 
           <Button
             type="submit"
@@ -152,7 +150,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-slate-500">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href="/signup"
             className="font-semibold text-[#0066FF] underline-offset-4 transition hover:underline"

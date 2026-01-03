@@ -3,46 +3,24 @@ import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Mail, Phone, Building2, MapPin, Calendar, FileText } from 'lucide-react'
-import { InvoiceRow } from '@/components/invoices/invoice-row'
+import { ArrowLeft, Pencil, Mail, Phone, Building2, MapPin, Calendar, FileText, Users } from 'lucide-react'
+import { DeleteClientButton } from '@/components/clients/delete-client-button'
+import { NotFound } from '@/components/ui/not-found'
 
-type Client = {
-  id: string
-  name: string
-  email: string | null
-  phone: string | null
-  company: string | null
-  address: string | null
-  payment_terms: number | null
-  created_at: string
-}
-
-type Invoice = {
-  id: string
-  invoice_number: string
-  status: string
-  total_amount: number
-  due_date: string
-  created_at: string
-}
-
-export default async function ClientDetailPage({
-  params,
-}: {
+type PageProps = {
   params: Promise<{ id: string }>
-}) {
+}
+
+export default async function ClientDetailPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
-  
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser()
 
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
   if (userError || !user) {
     redirect('/login')
   }
 
+  // Fetch client
   const { data: client, error: clientError } = await supabase
     .from('clients')
     .select('*')
@@ -51,153 +29,219 @@ export default async function ClientDetailPage({
     .single()
 
   if (clientError || !client) {
-    redirect('/dashboard/clients')
+    return (
+      <NotFound
+        title="Client Not Found"
+        description="The client you're looking for doesn't exist or you don't have permission to view it."
+        backLink="/dashboard/clients"
+        backText="Back to Clients"
+        icon={<Users className="w-12 h-12 text-red-600" />}
+      />
+    )
   }
 
+  // Fetch invoices for this client
   const { data: invoices } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, total_amount, due_date, created_at')
+    .select('*')
     .eq('client_id', id)
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
-  const clientInvoices = (invoices ?? []) as Invoice[]
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'bg-green-100 text-green-800'
-      case 'sent':
-        return 'bg-blue-100 text-blue-800'
-      case 'overdue':
-        return 'bg-red-100 text-red-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    })
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-slate-900">{client.name}</h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Client since {new Date(client.created_at).toLocaleDateString()}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/dashboard/invoices/new?clientId=${client.id}`}>
-            <Button className="bg-primary text-white hover:bg-primary/90">
-              <FileText className="w-4 h-4 mr-2" />
-              Create Invoice
-            </Button>
-          </Link>
+      {/* Header with Fixed Button Positions */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
           <Link href="/dashboard/clients">
-            <Button variant="outline">
+            <Button variant="outline" size="sm" className="mb-3">
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Clients
             </Button>
           </Link>
         </div>
+        
+        <div className="flex-shrink-0 flex flex-wrap gap-2">
+          <Link href={`/dashboard/clients/${id}/edit`}>
+            <Button variant="outline" size="sm">
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Client
+            </Button>
+          </Link>
+          <Link href={`/dashboard/invoices/new?clientId=${id}`}>
+            <Button size="sm" className="bg-primary text-white hover:bg-primary/90">
+              <FileText className="w-4 h-4 mr-2" />
+              Create Invoice
+            </Button>
+          </Link>
+          <DeleteClientButton 
+            clientId={id} 
+            clientName={client.name}
+            hasInvoices={invoices ? invoices.length > 0 : false}
+          />
+        </div>
       </div>
 
+      {/* Client Information Card */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Client Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {client.company && (
+        <h2 className="text-xl font-bold text-gray-900 mb-4 break-words">
+          <span className="text-primary">{client.name}</span> - Client Information
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Contact Details */}
+          <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Building2 className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Company</p>
-                <p className="text-sm text-slate-900">{client.company}</p>
+              <Building2 className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Company</p>
+                <p className="text-base text-gray-900 break-words">{client.company || '—'}</p>
               </div>
             </div>
-          )}
-          
-          {client.email && (
+
             <div className="flex items-start gap-3">
-              <Mail className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Email</p>
-                <p className="text-sm text-slate-900">{client.email}</p>
+              <Mail className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Email</p>
+                <p className="text-base text-gray-900 break-words">{client.email || '—'}</p>
               </div>
             </div>
-          )}
-          
-          {client.phone && (
+
             <div className="flex items-start gap-3">
-              <Phone className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Phone</p>
-                <p className="text-sm text-slate-900">{client.phone}</p>
+              <Phone className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Phone</p>
+                <p className="text-base text-gray-900 break-words">{client.phone || '—'}</p>
               </div>
             </div>
-          )}
-          
-          {client.address && (
+
             <div className="flex items-start gap-3">
-              <MapPin className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Address</p>
-                <p className="text-sm text-slate-900">{client.address}</p>
+              <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Address</p>
+                <p className="text-base text-gray-900 break-words whitespace-pre-line">
+                  {client.address || '—'}
+                </p>
               </div>
             </div>
-          )}
-          
-          {client.payment_terms && (
+          </div>
+
+          {/* Business Details */}
+          <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Calendar className="w-5 h-5 text-slate-400 mt-0.5" />
-              <div>
-                <p className="text-xs font-medium text-slate-500 uppercase">Payment Terms</p>
-                <p className="text-sm text-slate-900">{client.payment_terms} days</p>
+              <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Payment Terms</p>
+                <p className="text-base text-gray-900">
+                  {client.payment_terms ? `${client.payment_terms} days` : '—'}
+                </p>
               </div>
             </div>
-          )}
+
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Client Since</p>
+                <p className="text-base text-gray-900">{formatDate(client.created_at)}</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <FileText className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-500">Total Invoices</p>
+                <p className="text-base text-gray-900">{invoices?.length || 0}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </Card>
 
+      {/* Invoices Section */}
       <Card className="p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">
-          Invoices ({clientInvoices.length})
-        </h2>
-        
-        {clientInvoices.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-sm text-slate-500 mb-4">No invoices yet for this client</p>
-            <Link href={`/dashboard/invoices/new?clientId=${client.id}`}>
-              <Button className="bg-primary text-white hover:bg-primary/90">
-                Create First Invoice
-              </Button>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">Invoices</h2>
+          <Link href={`/dashboard/invoices/new?clientId=${id}`}>
+            <Button size="sm" variant="outline">
+              <FileText className="w-4 h-4 mr-2" />
+              New Invoice
+            </Button>
+          </Link>
+        </div>
+
+        {!invoices || invoices.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-600 mb-4">No invoices yet for this client</p>
+            <Link href={`/dashboard/invoices/new?clientId=${id}`}>
+              <Button size="sm">Create First Invoice</Button>
             </Link>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-lg border border-slate-200">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-500">
-                    Invoice
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Invoice #
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-500">
-                    Status
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Date
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-500">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
                     Amount
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase text-slate-500">
-                    Due Date
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 bg-white">
-                {clientInvoices.map(invoice => (
-                  <InvoiceRow
-                    key={invoice.id}
-                    id={invoice.id}
-                    invoiceNumber={invoice.invoice_number}
-                    status={invoice.status}
-                    totalAmount={invoice.total_amount}
-                    dueDate={invoice.due_date}
-                  />
-                ))}
+              <tbody className="divide-y divide-gray-200 bg-white">
+                {invoices.map((invoice: any) => {
+                  const formatCurrency = (amount: number) =>
+                    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+                  
+                  return (
+                    <tr key={invoice.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                        <Link href={`/dashboard/invoices/${invoice.id}`} className="hover:text-primary">
+                          {invoice.invoice_number}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        {formatDate(invoice.issue_date)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {formatCurrency(invoice.total_amount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                          invoice.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                          invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                          invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
+                          'bg-red-100 text-red-800'
+                        }`}>
+                          {invoice.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Link href={`/dashboard/invoices/${invoice.id}`}>
+                          <Button size="sm" variant="outline">View</Button>
+                        </Link>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>

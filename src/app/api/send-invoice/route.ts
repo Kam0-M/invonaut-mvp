@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
 
     if (!invoiceId || !recipientEmail) {
       return NextResponse.json(
-        { success: false, error: 'invoiceId and recipientEmail are required' },
+        { success: false, error: 'Missing required information. Please provide both invoice ID and recipient email address.' },
         { status: 400 }
       )
     }
@@ -24,7 +24,10 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (userError || !user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'You must be logged in to send invoices. Please sign in and try again.' 
+      }, { status: 401 })
     }
 
     // Fetch invoice with client info
@@ -54,7 +57,10 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (invoiceError || !invoice) {
-      return NextResponse.json({ success: false, error: 'Invoice not found' }, { status: 404 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Invoice not found. This invoice may have been deleted or you may not have permission to access it.' 
+      }, { status: 404 })
     }
 
     // Fetch invoice items
@@ -64,7 +70,10 @@ export async function POST(request: NextRequest) {
       .eq('invoice_id', invoiceId)
 
     if (itemsError) {
-      return NextResponse.json({ success: false, error: 'Unable to fetch invoice items' }, { status: 500 })
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Could not load invoice details. Please refresh the page and try again.' 
+      }, { status: 500 })
     }
 
     // Fetch user profile for business info
@@ -156,8 +165,12 @@ export async function POST(request: NextRequest) {
     })
 
     if (emailError) {
+      const errorMsg = emailError.message?.includes('invalid') || emailError.message?.includes('email')
+        ? 'Email could not be sent. Verify the client\'s email address is correct and try again.'
+        : 'Email could not be sent. Please check your email service configuration and try again.'
+      
       return NextResponse.json(
-        { success: false, error: emailError.message || 'Failed to send email' },
+        { success: false, error: errorMsg },
         { status: 500 }
       )
     }
@@ -165,8 +178,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, message: 'Invoice sent successfully' })
   } catch (error: any) {
     console.error('Send invoice error:', error)
+    const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')
+      ? 'Email could not be sent. Please check your internet connection and try again.'
+      : 'Email could not be sent. Please verify the client\'s email address is correct and try again.'
+    
     return NextResponse.json(
-      { success: false, error: error?.message || 'Failed to send invoice' },
+      { success: false, error: errorMessage },
       { status: 500 }
     )
   }

@@ -26,9 +26,13 @@ export async function GET(request: NextRequest) {
       success: true,
       invoices: mockInvoices
     })
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')
+      ? 'Could not load invoices. Please check your internet connection and refresh the page.'
+      : 'Could not load invoices. Please refresh the page and try again.'
+    
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch invoices' },
+      { success: false, message: errorMessage },
       { status: 500 }
     )
   }
@@ -49,9 +53,13 @@ export async function POST(request: NextRequest) {
         ...body
       }
     })
-  } catch (error) {
+  } catch (error: any) {
+    const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')
+      ? 'Could not create invoice. Please check your internet connection and try again.'
+      : 'Could not create invoice. Make sure all required fields are filled and try again.'
+    
     return NextResponse.json(
-      { success: false, message: 'Failed to create invoice' },
+      { success: false, message: errorMessage },
       { status: 400 }
     )
   }
