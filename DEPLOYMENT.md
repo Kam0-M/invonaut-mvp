@@ -25,10 +25,12 @@ Before deploying to production, ensure:
 - [ ] API routes protected with authentication checks
 - [ ] Input validation implemented on all forms
 - [ ] XSS prevention verified
+- [ ] Logo upload validation working (file size, format)
 
 ### Configuration
 - [ ] Production environment variables ready
 - [ ] Supabase production project created
+- [ ] Supabase Storage bucket configured for logos
 - [ ] OpenAI API key has sufficient credits
 - [ ] Resend API key is valid
 - [ ] Domain name purchased (if using custom domain)
@@ -61,7 +63,7 @@ Before deploying to production, ensure:
          ▼             ▼             ▼
     ┌────────┐   ┌──────────┐  ┌─────────┐
     │Supabase│   │ OpenAI   │  │ Resend  │
-    │  DB    │   │   API    │  │  Email  │
+    │DB+Store│   │   API    │  │  Email  │
     └────────┘   └──────────┘  └─────────┘
 ```
 
@@ -69,7 +71,7 @@ Before deploying to production, ensure:
 1. User accesses app via Vercel edge network
 2. Next.js serves pages (SSR or static)
 3. API routes handle backend logic
-4. Supabase manages database and auth
+4. Supabase manages database, auth, and file storage (logos)
 5. OpenAI provides AI predictions
 6. Resend sends transactional emails
 
@@ -107,13 +109,17 @@ Copy and paste this complete schema:
 -- FLOWANCE PRODUCTION DATABASE SCHEMA
 -- ================================================
 
--- Create user_profiles table
+-- Create user_profiles table with white label support
 CREATE TABLE user_profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name TEXT,
   email TEXT,
   business_name TEXT,
   address TEXT,
+  logo_url TEXT,
+  brand_color TEXT DEFAULT '#0066FF',
+  secondary_brand_color TEXT DEFAULT '#00D4AA',
+  subscription_tier TEXT DEFAULT 'starter' CHECK (subscription_tier IN ('starter', 'professional', 'business')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -275,6 +281,61 @@ CREATE POLICY "Users can delete own invoice items"
 
 3. **Click "Run"** and verify "Success" message
 
+### Set Up Storage for Logo Uploads
+
+1. **Go to Storage in Supabase Dashboard**
+
+2. **Create New Bucket**
+   - Click "New Bucket"
+   - **Name**: `logos`
+   - **Public bucket**: Toggle ON (logos need to be publicly accessible)
+   - **File size limit**: 10 MB
+   - **Allowed MIME types**: Leave empty or add: `image/png, image/jpeg, image/svg+xml, image/webp`
+   - Click "Create bucket"
+
+3. **Configure Bucket Policies**
+
+The bucket should already be public, but verify:
+- Go to Storage → logos bucket → Policies
+- Ensure "Public access" is enabled
+- If not, add this policy:
+
+```sql
+-- Allow public access to logo files
+CREATE POLICY "Public Access"
+ON storage.objects FOR SELECT
+USING ( bucket_id = 'logos' );
+
+-- Allow authenticated users to upload their own logos
+CREATE POLICY "Authenticated users can upload logos"
+ON storage.objects FOR INSERT
+WITH CHECK (
+  bucket_id = 'logos' 
+  AND auth.role() = 'authenticated'
+);
+
+-- Allow users to update their own logos
+CREATE POLICY "Users can update own logos"
+ON storage.objects FOR UPDATE
+USING (
+  bucket_id = 'logos'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+-- Allow users to delete their own logos
+CREATE POLICY "Users can delete own logos"
+ON storage.objects FOR DELETE
+USING (
+  bucket_id = 'logos'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+```
+
+4. **Test Logo Upload**
+   - Upload a test image through Supabase dashboard
+   - Verify you can access it via public URL
+   - Delete test image
+
 ### Configure Authentication
 
 1. **Go to Authentication → Settings**
@@ -358,6 +419,7 @@ RESEND_API_KEY=your_resend_api_key
 - Use **Production** Supabase values (not development)
 - Keep `SUPABASE_SERVICE_ROLE_KEY` secret
 - Never commit these to Git
+- Storage (logos) is automatically handled via Supabase URL
 
 3. **Deploy**
    - Click "Deploy"
@@ -371,6 +433,7 @@ RESEND_API_KEY=your_resend_api_key
    - Test signup flow
    - Create test client and invoice
    - Verify database connection works
+   - **Test logo upload** (if on Professional/Business tier)
 
 2. **Check Build Logs**
    - If deployment fails, check build logs in Vercel dashboard
@@ -424,6 +487,7 @@ Value: [DKIM key from Resend]
 6. **Test Email Sending**
    - Send test invoice in production
    - Verify email delivers successfully
+   - **Check that white label branding appears** (logo + colors)
 
 ### Option B: Use Alternative Email Service
 
@@ -484,6 +548,7 @@ Value: cname.vercel-dns.com
    - Go to Supabase → Authentication → Settings
    - Update Site URL to: `https://your-domain.com`
    - Update Redirect URLs to match new domain
+   - **No changes needed for Storage** - uses Supabase URLs
 
 ---
 
@@ -518,6 +583,7 @@ WHERE schemaname = 'public';
    - Create two test accounts
    - Verify User A cannot see User B's data
    - Test all CRUD operations
+   - **Test User A cannot access User B's uploaded logos**
 
 3. **Check Foreign Key Constraints**
 ```sql
@@ -534,6 +600,18 @@ JOIN information_schema.constraint_column_usage AS ccu
 WHERE tc.constraint_type = 'FOREIGN KEY';
 ```
    - Verify all relationships correct
+
+### Storage Security Audit
+
+1. **Verify Logo Bucket Policies**
+   - Check that `logos` bucket is public (read-only)
+   - Verify authenticated users can upload
+   - Test that users can only delete their own logos
+
+2. **Test File Upload Limits**
+   - Try uploading file > 10MB (should fail)
+   - Try uploading non-image file (should fail in UI)
+   - Verify only PNG/JPG/SVG/WebP accepted
 
 ### API Route Protection
 
@@ -608,7 +686,7 @@ Test these in production:
 - [ ] Receive verification email
 - [ ] Click verification link
 - [ ] Redirected to dashboard
-- [ ] Profile created in database
+- [ ] Profile created in database with default subscription_tier 'starter'
 
 **2. Client Management**
 - [ ] Create new client
@@ -628,6 +706,7 @@ Test these in production:
 - [ ] Email received with PDF
 - [ ] PDF renders correctly
 - [ ] Status changes to "Sent"
+- [ ] **If Professional/Business tier**: Verify logo and colors in email
 
 **5. Payment Tracking**
 - [ ] Mark invoice as paid
@@ -645,22 +724,42 @@ Test these in production:
 - [ ] Email received
 - [ ] 48-hour rate limit works
 - [ ] Timestamp updates
+- [ ] **If Professional/Business tier**: Verify branded email
+
+**8. White Label Settings (Professional/Business Only)**
+- [ ] Manually upgrade test user to 'professional' tier in database
+- [ ] Navigate to Settings page
+- [ ] Upload logo (PNG/JPG/SVG/WebP, < 10MB)
+- [ ] Logo displays in preview
+- [ ] Click logo to see lightbox modal
+- [ ] Choose primary brand color
+- [ ] Choose secondary brand color
+- [ ] Save changes (no errors)
+- [ ] Create and send test invoice
+- [ ] Verify logo appears in PDF
+- [ ] Verify logo appears in email
+- [ ] Verify colors applied correctly
+- [ ] Try leaving page without saving (unsaved changes warning)
 
 ### Performance Testing
 
 - [ ] Dashboard loads in < 2 seconds
 - [ ] Invoice list loads in < 1 second
 - [ ] PDF generation completes in < 3 seconds
+- [ ] Logo upload completes in < 2 seconds
+- [ ] Settings page loads in < 1 second
 - [ ] No console errors
 - [ ] Mobile responsiveness (test on actual device)
 
 ### Security Testing
 
 - [ ] Cannot access other users' data
+- [ ] Cannot access other users' uploaded logos
 - [ ] Protected routes redirect to login
 - [ ] API routes require authentication
 - [ ] XSS prevention working
 - [ ] SQL injection prevention working
+- [ ] File upload validation working (size, format)
 
 ---
 
@@ -685,6 +784,38 @@ Test these in production:
 2. Check Supabase project is active
 3. Verify URL and keys are correct
 4. Test with Postman or curl
+
+### Logo Upload Fails
+
+**Symptom**: "Failed to upload logo" error
+
+**Solution**:
+1. Verify `logos` bucket exists in Supabase Storage
+2. Check bucket is set to Public
+3. Verify file is under 10MB
+4. Check file format (PNG/JPG/SVG/WebP only)
+5. Check Storage policies are correct
+6. Verify `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Vercel
+
+### Logo Not Displaying in PDFs
+
+**Symptom**: Logo shows in Settings but not in generated PDFs
+
+**Solution**:
+1. Verify logo URL is public (test in browser)
+2. Check PDF generation code in `src/lib/pdf/generate-invoice-pdf.ts`
+3. Verify logo path is correct
+4. Check browser console for CORS errors
+
+### White Label Not Showing for User
+
+**Symptom**: User cannot see Settings or white label features
+
+**Solution**:
+1. Check `subscription_tier` in database (must be 'professional' or 'business')
+2. Verify tier checking logic in `src/app/dashboard/settings/page.tsx`
+3. Clear browser cache
+4. Check user is logged in
 
 ### Emails Not Sending
 
@@ -751,11 +882,13 @@ Vercel creates preview URL for testing before merging to main.
 **Supabase Free Tier Limits**:
 - 500MB database size
 - 50,000 monthly active users
-- 2GB file storage
+- 2GB file storage (for logos)
+- 5GB bandwidth/month
 
 **Upgrade When**:
 - Approaching database size limit
 - Need more than 50K users
+- Logo storage exceeds 2GB
 - Need advanced features (point-in-time recovery)
 
 **Vercel Free Tier Limits**:
@@ -776,6 +909,14 @@ As data grows:
 3. Implement pagination on large lists
 4. Use database connection pooling
 
+### Storage Optimization
+
+As logo uploads grow:
+1. Compress logos on upload (client-side)
+2. Implement image optimization service
+3. Set up CDN for faster logo delivery
+4. Archive deleted users' logos
+
 ---
 
 ## 🔧 Maintenance Checklist
@@ -783,6 +924,7 @@ As data grows:
 ### Weekly
 - [ ] Check error logs in Vercel
 - [ ] Monitor Supabase database size
+- [ ] Check Supabase Storage usage
 - [ ] Review user feedback/issues
 - [ ] Check email delivery rates
 
@@ -792,12 +934,14 @@ As data grows:
 - [ ] Security audit (check for CVEs)
 - [ ] Backup database (Supabase auto-backs up)
 - [ ] Review API usage/costs
+- [ ] Clean up unused logos in Storage
 
 ### Quarterly
 - [ ] Major dependency updates
 - [ ] Security penetration testing
 - [ ] Performance optimization review
 - [ ] User experience improvements
+- [ ] Storage cleanup (archived users)
 
 ---
 
@@ -822,26 +966,29 @@ As data grows:
 1. **Rotate all API keys immediately**
 2. **Enable 2FA on all accounts**
 3. **Audit database access logs**
-4. **Notify affected users if data compromised**
-5. **Update passwords/credentials**
+4. **Check Storage for unauthorized uploads**
+5. **Notify affected users if data compromised**
+6. **Update passwords/credentials**
 
 ---
 
 ## ✅ Deployment Complete
 
-Congratulations! Flowance is now live in production. 🎉
+Congratulations! Flowance is now live in production with full white label support. 🎉
 
 ### Next Steps
 
 1. **Monitor Performance**: Check Vercel analytics daily
 2. **Collect User Feedback**: Add feedback form or email
-3. **Iterate**: Fix bugs and add features based on feedback
-4. **Market**: Share with target users (freelancers)
+3. **Test White Label**: Upgrade test users and verify branding works
+4. **Iterate**: Fix bugs and add features based on feedback
+5. **Market**: Share with target users (freelancers)
 
 ### Resources
 
 - **Vercel Docs**: [vercel.com/docs](https://vercel.com/docs)
 - **Supabase Docs**: [supabase.com/docs](https://supabase.com/docs)
+- **Supabase Storage**: [supabase.com/docs/guides/storage](https://supabase.com/docs/guides/storage)
 - **Next.js Docs**: [nextjs.org/docs](https://nextjs.org/docs)
 
 ---
@@ -849,3 +996,7 @@ Congratulations! Flowance is now live in production. 🎉
 **Production Deployment Date**: __________  
 **Deployed By**: Kamohelo Thakhisi  
 **Production URL**: __________
+
+---
+
+**🎉 Congratulations on deploying Flowance to production!**
