@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -30,7 +29,6 @@ export function DeleteInvoiceButton({
     try {
       const supabase = createClient()
 
-      // Delete invoice items first (cascade)
       const { error: itemsError } = await supabase
         .from('invoice_items')
         .delete()
@@ -38,7 +36,6 @@ export function DeleteInvoiceButton({
 
       if (itemsError) throw itemsError
 
-      // Delete the invoice
       const { error: invoiceError } = await supabase
         .from('invoices')
         .delete()
@@ -48,7 +45,6 @@ export function DeleteInvoiceButton({
 
       toast.success('Invoice deleted successfully!', { id: loadingToast, duration: 3000 })
       
-      // Success! Redirect to invoice list after a short delay
       setTimeout(() => {
         router.push('/dashboard/invoices')
         router.refresh()
@@ -63,14 +59,13 @@ export function DeleteInvoiceButton({
 
   return (
     <>
-      <Button
-        variant="outline"
+      <button
         onClick={() => setIsDialogOpen(true)}
-        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-red-300 bg-white hover:bg-red-50 hover:border-red-400 hover:shadow-lg transition-all duration-200 font-bold text-red-600 text-sm whitespace-nowrap"
       >
-        <Trash2 className="w-4 h-4 mr-2" />
+        <Trash2 className="w-4 h-4" />
         Delete Invoice
-      </Button>
+      </button>
 
       <ConfirmDialog
         isOpen={isDialogOpen}
@@ -84,8 +79,8 @@ export function DeleteInvoiceButton({
       />
 
       {error && (
-        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="mt-2 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
+          <p className="text-sm text-red-600 font-medium">{error}</p>
         </div>
       )}
     </>

@@ -14,10 +14,10 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Invoices', href: '/invoices', icon: FileText },
-  { name: 'Clients', href: '/clients', icon: Users },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Invoices', href: '/dashboard/invoices', icon: FileText },
+  { name: 'Clients', href: '/dashboard/clients', icon: Users },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
   { name: 'Help', href: '/help', icon: HelpCircle },
 ]
 
@@ -31,7 +31,10 @@ export function Sidebar() {
           <nav className="flex-1 px-2 pb-4 space-y-1">
             {navigation.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href
+              // Exact match for Dashboard, startsWith for others
+              const isActive = item.href === '/dashboard' 
+                ? pathname === '/dashboard'
+                : pathname?.startsWith(item.href)
               
               return (
                 <Link

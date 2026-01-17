@@ -26,29 +26,21 @@ export function RevenueChart({ data }: RevenueChartProps) {
         <XAxis 
           dataKey="month" 
           stroke="#6B7280"
-          style={{ fontSize: '12px' }}
         />
         <YAxis 
           stroke="#6B7280"
-          style={{ fontSize: '12px' }}
           tickFormatter={formatCurrency}
         />
         <Tooltip 
           formatter={(value: number) => formatCurrency(value)}
-          contentStyle={{
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '8px',
-            padding: '8px 12px'
-          }}
         />
         <Line 
           type="monotone" 
           dataKey="revenue" 
           stroke="#0066FF" 
-          strokeWidth={3}
-          dot={{ fill: '#0066FF', r: 4 }}
-          activeDot={{ r: 6 }}
+          strokeWidth={4}
+          dot={{ fill: '#0066FF', r: 5 }}
+          activeDot={{ r: 7 }}
         />
       </LineChart>
     </ResponsiveContainer>

@@ -10,17 +10,17 @@ type ClientRowDashboardProps = {
 export function ClientRowDashboard({ id, name, company, email }: ClientRowDashboardProps) {
   return (
     <tr 
-      className="hover:bg-slate-50 cursor-pointer transition-colors"
+      className="hover:bg-blue-50 cursor-pointer transition-all duration-200 border-b border-gray-100 last:border-b-0"
       onClick={() => window.location.href = `/dashboard/clients/${id}`}
     >
-      <td className="px-4 py-3 text-sm font-medium text-slate-900">
+      <td className="px-4 py-4 text-sm font-black text-gray-900">
         {name}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600">
-        {company || '-'}
+      <td className="px-4 py-4 text-sm font-bold text-gray-700">
+        {company || '—'}
       </td>
-      <td className="px-4 py-3 text-sm text-slate-600">
-        {email || '-'}
+      <td className="px-4 py-4 text-sm font-medium text-gray-600">
+        {email || '—'}
       </td>
     </tr>
   )

@@ -1,4 +1,31 @@
-import jsPDF from 'jspdf'
+// Helper function to load image as base64 (Node.js compatible)
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error('Failed to fetch image')
+    
+    // Convert response to Buffer (Node.js)
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    
+    // Determine MIME type from URL extension
+    let mimeType = 'image/png'
+    if (url.toLowerCase().endsWith('.jpg') || url.toLowerCase().endsWith('.jpeg')) {
+      mimeType = 'image/jpeg'
+    } else if (url.toLowerCase().endsWith('.svg')) {
+      mimeType = 'image/svg+xml'
+    } else if (url.toLowerCase().endsWith('.webp')) {
+      mimeType = 'image/webp'
+    }
+    
+    // Convert to base64 data URL
+    const base64 = buffer.toString('base64')
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.error('Error loading image:', error)
+    return null
+  }
+}import jsPDF from 'jspdf'
 
 type InvoiceData = {
   invoice_number: string
@@ -17,10 +44,13 @@ type InvoiceData = {
     address: string | null
   }
   user_profile: {
+    business_name: string | null
     full_name: string | null
     email: string | null
-    business_name: string | null
     address: string | null
+    logo_url?: string | null
+    brand_color?: string | null
+    secondary_brand_color?: string | null
   }
   items: Array<{
     description: string
@@ -30,336 +60,276 @@ type InvoiceData = {
   }>
 }
 
-type GenerateInvoicePDFOptions = {
-  download?: boolean
+// Helper function to convert hex color to RGB
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 0, g: 102, b: 255 } // Default Flowance blue
 }
 
-export async function generateInvoicePDF(
-  invoiceData: InvoiceData,
-  options: GenerateInvoicePDFOptions = {}
-): Promise<ArrayBuffer> {
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
+
+
+export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer> {
+  // Extract white label data
+  const brandColor = data.user_profile.brand_color || '#0066FF'
+  const secondaryColor = data.user_profile.secondary_brand_color || '#00D4AA'
+  const logoUrl = data.user_profile.logo_url
+  const hasLogo = !!logoUrl
+
+  // Convert colors to RGB
+  const primaryColorRGB = hexToRgb(brandColor)
+  const secondaryColorRGB = hexToRgb(secondaryColor)
+
+  console.log('PDF Generator - White Label Data:', {
+    brand_color: brandColor,
+    secondary_brand_color: secondaryColor,
+    logo_url: logoUrl,
+    primaryColorRGB,
+    secondaryColorRGB,
+    hasLogo
   })
 
-  const pageWidth = pdf.internal.pageSize.getWidth()
-  const pageHeight = pdf.internal.pageSize.getHeight()
-  const margin = 20
-
-  let yPosition = margin
-
-  const addText = (text: string, x: number, y: number, options?: any) => {
-    pdf.text(text, x, y, options)
+  // Load logo if available
+  let logoBase64: string | null = null
+  if (logoUrl) {
+    logoBase64 = await loadImageAsBase64(logoUrl)
+    console.log('Logo loaded:', logoBase64 ? 'Success' : 'Failed')
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount)
+  const doc = new jsPDF()
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  let yPosition = 20
+
+  // Business info and logo section
+  doc.setFontSize(10)
+  doc.setTextColor(100)
+
+  const businessName = data.user_profile.business_name || data.user_profile.full_name || 'Your Business'
+  const businessEmail = data.user_profile.email || ''
+  const businessAddress = data.user_profile.address || ''
+
+  // Add logo if available
+  if (logoBase64) {
+    try {
+      // Logo on the left (40x40px)
+      doc.addImage(logoBase64, 'PNG', 20, yPosition, 40, 40)
+      
+      // Business info to the right of logo
+      doc.text(businessName, 65, yPosition + 5)
+      if (businessEmail) doc.text(businessEmail, 65, yPosition + 12)
+      if (businessAddress) {
+        const addressLines = doc.splitTextToSize(businessAddress, 80)
+        doc.text(addressLines, 65, yPosition + 19)
+      }
+      
+      yPosition += 50 // Move down after logo section
+    } catch (error) {
+      console.error('Error adding logo to PDF:', error)
+      // Fallback: show business info without logo
+      doc.text(businessName, 20, yPosition)
+      if (businessEmail) doc.text(businessEmail, 20, yPosition + 7)
+      if (businessAddress) {
+        const addressLines = doc.splitTextToSize(businessAddress, 80)
+        doc.text(addressLines, 20, yPosition + 14)
+      }
+      yPosition += 35
+    }
+  } else {
+    // No logo - just business info
+    doc.text(businessName, 20, yPosition)
+    if (businessEmail) doc.text(businessEmail, 20, yPosition + 7)
+    if (businessAddress) {
+      const addressLines = doc.splitTextToSize(businessAddress, 80)
+      doc.text(addressLines, 20, yPosition + 14)
+    }
+    yPosition += 35
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
+  // INVOICE title with primary brand color
+  doc.setFontSize(28)
+  doc.setTextColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
+  doc.setFont('helvetica', 'bold')
+  doc.text('INVOICE', pageWidth - 20, 30, { align: 'right' })
+
+  // Invoice number with primary color
+  doc.setFontSize(12)
+  doc.setFont('helvetica', 'normal')
+  doc.text(data.invoice_number, pageWidth - 20, 40, { align: 'right' })
+
+  // Horizontal line with primary color
+  doc.setDrawColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
+  doc.setLineWidth(0.5)
+  doc.line(20, yPosition, pageWidth - 20, yPosition)
+
+  yPosition += 15
+
+  // Invoice details
+  doc.setFontSize(10)
+  doc.setTextColor(60)
+  doc.setFont('helvetica', 'bold')
+  doc.text('Issue Date:', 20, yPosition)
+  doc.text('Due Date:', 20, yPosition + 7)
+  doc.text('Status:', 20, yPosition + 14)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100)
+  doc.text(new Date(data.issue_date).toLocaleDateString(), 60, yPosition)
+  doc.text(new Date(data.due_date).toLocaleDateString(), 60, yPosition + 7)
+  
+  // Status badge with colors
+  const statusColors: Record<string, { bg: number[]; text: number[] }> = {
+    draft: { bg: [243, 244, 246], text: [55, 65, 81] },
+    sent: { bg: [219, 234, 254], text: [30, 64, 175] },
+    paid: { bg: [220, 252, 231], text: [22, 101, 52] },
+    overdue: { bg: [254, 226, 226], text: [153, 27, 27] }
+  }
+  const statusColor = statusColors[data.status] || statusColors.draft
+  doc.text(data.status.toUpperCase(), 60, yPosition + 14)
+
+  yPosition += 25
+
+  // Bill To section
+  doc.setFont('helvetica', 'bold')
+  doc.setTextColor(60)
+  doc.text('BILL TO:', 20, yPosition)
+  yPosition += 7
+
+  doc.setFont('helvetica', 'normal')
+  doc.setTextColor(100)
+  doc.text(data.client.name, 20, yPosition)
+  yPosition += 7
+
+  if (data.client.company) {
+    doc.text(data.client.company, 20, yPosition)
+    yPosition += 7
   }
 
-  // === HEADER SECTION ===
-  pdf.setFontSize(24)
-  pdf.setFont('helvetica', 'bold')
-  addText('INVOICE', margin, yPosition)
+  if (data.client.email) {
+    doc.text(data.client.email, 20, yPosition)
+    yPosition += 7
+  }
+
+  if (data.client.phone) {
+    doc.text(data.client.phone, 20, yPosition)
+    yPosition += 7
+  }
+
+  if (data.client.address) {
+    const addressLines = doc.splitTextToSize(data.client.address, 80)
+    doc.text(addressLines, 20, yPosition)
+    yPosition += addressLines.length * 7
+  }
+
   yPosition += 10
 
-  // Business Info (Left) - with text wrapping
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  const businessName = invoiceData.user_profile.business_name ||
-    invoiceData.user_profile.full_name ||
-    'Your Business'
-  const businessNameLines = pdf.splitTextToSize(businessName, 80)
-  businessNameLines.forEach((line: string) => {
-    addText(line, margin, yPosition)
-    yPosition += 6
+  // Items table header with primary color background
+  doc.setFillColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
+  doc.rect(20, yPosition, pageWidth - 40, 10, 'F')
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(255, 255, 255)
+  doc.text('Description', 25, yPosition + 7)
+  doc.text('Qty', pageWidth - 90, yPosition + 7)
+  doc.text('Unit Price', pageWidth - 70, yPosition + 7)
+  doc.text('Total', pageWidth - 35, yPosition + 7, { align: 'right' })
+
+  yPosition += 15
+
+  // Items with alternating row colors
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  data.items.forEach((item, index) => {
+    // Alternating row background
+    if (index % 2 === 0) {
+      doc.setFillColor(249, 250, 251)
+      doc.rect(20, yPosition - 5, pageWidth - 40, 10, 'F')
+    }
+
+    doc.setTextColor(60)
+    const descLines = doc.splitTextToSize(item.description, 100)
+    doc.text(descLines, 25, yPosition)
+    
+    doc.text(item.quantity.toString(), pageWidth - 90, yPosition)
+    doc.text(`$${item.unit_price.toFixed(2)}`, pageWidth - 70, yPosition)
+    doc.text(`$${item.total.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
+
+    yPosition += Math.max(descLines.length * 5, 10)
   })
 
-  pdf.setFontSize(10)
-  pdf.setFont('helvetica', 'normal')
-  if (invoiceData.user_profile.email) {
-    const emailLines = pdf.splitTextToSize(invoiceData.user_profile.email, 80)
-    emailLines.forEach((line: string) => {
-      addText(line, margin, yPosition)
-      yPosition += 5
-    })
-  }
-  if (invoiceData.user_profile.address) {
-    const addressLines = invoiceData.user_profile.address.split('\n')
-    addressLines.forEach((line) => {
-      const wrappedLines = pdf.splitTextToSize(line, 80)
-      wrappedLines.forEach((wrappedLine: string) => {
-        addText(wrappedLine, margin, yPosition)
-        yPosition += 5
-      })
-    })
-  }
-
-  // Client Info (Right) - improved text wrapping
-  let clientYPosition = 30
-  const clientInfoX = pageWidth - margin - 70
-  const clientInfoMaxWidth = 70
-
-  pdf.setFontSize(10)
-  pdf.setFont('helvetica', 'bold')
-  addText('Bill To:', clientInfoX, clientYPosition)
-  clientYPosition += 6
-
-  pdf.setFont('helvetica', 'normal')
-  
-  // Client name - wrapped properly
-  if (invoiceData.client.name) {
-    const clientNameLines = pdf.splitTextToSize(invoiceData.client.name, clientInfoMaxWidth)
-    clientNameLines.forEach((line: string) => {
-      addText(line, clientInfoX, clientYPosition)
-      clientYPosition += 5
-    })
-  }
-
-  // Company - wrapped properly
-  if (invoiceData.client.company) {
-    const companyLines = pdf.splitTextToSize(invoiceData.client.company, clientInfoMaxWidth)
-    companyLines.forEach((line: string) => {
-      addText(line, clientInfoX, clientYPosition)
-      clientYPosition += 5
-    })
-  }
-
-  // Client address - wrapped properly
-  if (invoiceData.client.address) {
-    const clientAddressLines = invoiceData.client.address.split('\n')
-    clientAddressLines.forEach((line) => {
-      const wrappedLines = pdf.splitTextToSize(line, clientInfoMaxWidth)
-      wrappedLines.forEach((wrappedLine: string) => {
-        addText(wrappedLine, clientInfoX, clientYPosition)
-        clientYPosition += 5
-      })
-    })
-  }
-
-  // Email - wrapped properly
-  if (invoiceData.client.email) {
-    const emailLines = pdf.splitTextToSize(invoiceData.client.email, clientInfoMaxWidth)
-    emailLines.forEach((line: string) => {
-      addText(line, clientInfoX, clientYPosition)
-      clientYPosition += 5
-    })
-  }
-
-  // Phone
-  if (invoiceData.client.phone) {
-    addText(invoiceData.client.phone, clientInfoX, clientYPosition)
-    clientYPosition += 5
-  }
-
-  yPosition = Math.max(yPosition, clientYPosition) + 10
-
-  // === INVOICE DETAILS ===
-  pdf.setDrawColor(200, 200, 200)
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition)
-  yPosition += 8
-
-  const detailsY = yPosition
-  pdf.setFontSize(9)
-  pdf.setFont('helvetica', 'bold')
-  addText('Invoice Number:', margin, detailsY)
-  addText('Issue Date:', margin + 50, detailsY)
-  addText('Due Date:', margin + 100, detailsY)
-  addText('Status:', margin + 150, detailsY)
-
-  pdf.setFont('helvetica', 'normal')
-  addText(invoiceData.invoice_number, margin, detailsY + 5)
-  addText(formatDate(invoiceData.issue_date), margin + 50, detailsY + 5)
-  addText(formatDate(invoiceData.due_date), margin + 100, detailsY + 5)
-  addText(
-    invoiceData.status.charAt(0).toUpperCase() + invoiceData.status.slice(1),
-    margin + 150,
-    detailsY + 5
-  )
-
-  yPosition = detailsY + 15
-
-  // === LINE ITEMS TABLE ===
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition)
-  yPosition += 6
-
-  // Table Header - perfectly aligned columns
-  pdf.setFontSize(9)
-  pdf.setFont('helvetica', 'bold')
-  const qtyX = pageWidth - margin - 75
-  const priceX = pageWidth - margin - 50
-  const totalX = pageWidth - margin - 25
-  
-  addText('Description', margin, yPosition)
-  addText('Qty', qtyX, yPosition)
-  addText('Price', priceX, yPosition)
-  addText('Total', totalX, yPosition)
   yPosition += 5
 
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition)
-  yPosition += 6
+  // Totals section with primary color accents
+  doc.setDrawColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
+  doc.setLineWidth(0.5)
+  doc.line(pageWidth - 100, yPosition, pageWidth - 20, yPosition)
 
-  // Table Rows - with description wrapping
-  pdf.setFont('helvetica', 'normal')
-  const descriptionMaxWidth = 90 // Reduced width to prevent overlap with Qty column
-
-  invoiceData.items.forEach((item) => {
-    // Check if we need a new page
-    if (yPosition > pageHeight - 60) {
-      pdf.addPage()
-      yPosition = margin
-      
-      // Redraw table header on new page
-      pdf.setFontSize(9)
-      pdf.setFont('helvetica', 'bold')
-      addText('Description', margin, yPosition)
-      addText('Qty', qtyX, yPosition)
-      addText('Price', priceX, yPosition)
-      addText('Total', totalX, yPosition)
-      yPosition += 5
-      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
-      yPosition += 6
-      pdf.setFont('helvetica', 'normal')
-    }
-
-    // Split long descriptions into multiple lines
-    const descriptionLines = pdf.splitTextToSize(item.description, descriptionMaxWidth)
-    const itemStartY = yPosition
-    const lineHeight = 5
-
-    // Calculate total height needed for this item
-    const totalItemHeight = descriptionLines.length * lineHeight + 2
-
-    // Check if entire item fits on current page
-    if (yPosition + totalItemHeight > pageHeight - 60) {
-      pdf.addPage()
-      yPosition = margin
-      
-      // Redraw table header on new page
-      pdf.setFontSize(9)
-      pdf.setFont('helvetica', 'bold')
-      addText('Description', margin, yPosition)
-      addText('Qty', qtyX, yPosition)
-      addText('Price', priceX, yPosition)
-      addText('Total', totalX, yPosition)
-      yPosition += 5
-      pdf.line(margin, yPosition, pageWidth - margin, yPosition)
-      yPosition += 6
-      pdf.setFont('helvetica', 'normal')
-    }
-
-    const finalItemStartY = yPosition
-
-    // Print ALL description lines
-    descriptionLines.forEach((line: string) => {
-      addText(line, margin, yPosition)
-      yPosition += lineHeight
-    })
-
-    // Print qty, price, total - PERFECTLY ALIGNED under headers
-    addText(item.quantity.toString(), qtyX, finalItemStartY)
-    addText(formatCurrency(item.unit_price), priceX, finalItemStartY)
-    addText(formatCurrency(item.total), totalX, finalItemStartY)
-    
-    yPosition += 2 // Small space between items
-  })
-
-  yPosition += 4
-  pdf.line(margin, yPosition, pageWidth - margin, yPosition)
   yPosition += 10
 
-  // === TOTALS SECTION ===
-  const totalsX = pageWidth - margin - 60
+  // Subtotal
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.setTextColor(100)
+  doc.text('Subtotal:', pageWidth - 70, yPosition)
+  doc.text(`$${data.subtotal.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
 
-  pdf.setFontSize(10)
-  pdf.setFont('helvetica', 'normal')
-  addText('Subtotal:', totalsX, yPosition)
-  addText(formatCurrency(invoiceData.subtotal), pageWidth - margin, yPosition, {
-    align: 'right'
-  })
-  yPosition += 6
+  yPosition += 8
 
-  if (invoiceData.tax_amount > 0) {
-    addText('Tax:', totalsX, yPosition)
-    addText(formatCurrency(invoiceData.tax_amount), pageWidth - margin, yPosition, {
-      align: 'right'
-    })
-    yPosition += 6
-  }
+  // Tax
+  doc.text('Tax:', pageWidth - 70, yPosition)
+  doc.text(`$${data.tax_amount.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
 
-  yPosition += 2
-  pdf.setDrawColor(0, 0, 0)
-  pdf.line(totalsX - 5, yPosition, pageWidth - margin, yPosition)
-  yPosition += 6
+  yPosition += 12
 
-  pdf.setFontSize(12)
-  pdf.setFont('helvetica', 'bold')
-  addText('Total:', totalsX, yPosition)
-  addText(formatCurrency(invoiceData.total_amount), pageWidth - margin, yPosition, {
-    align: 'right'
-  })
+  // Total with primary color
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(12)
+  doc.setTextColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
+  doc.text('TOTAL:', pageWidth - 70, yPosition)
+  doc.text(`$${data.total_amount.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
 
-  // === NOTES SECTION ===
-  if (invoiceData.notes) {
-    yPosition += 15
-
-    if (yPosition > pageHeight - 40) {
-      pdf.addPage()
-      yPosition = margin
+  // Notes section if present
+  if (data.notes) {
+    yPosition += 20
+    if (yPosition > pageHeight - 60) {
+      doc.addPage()
+      yPosition = 20
     }
 
-    pdf.setFontSize(10)
-    pdf.setFont('helvetica', 'bold')
-    addText('Notes:', margin, yPosition)
-    yPosition += 6
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(60)
+    doc.text('Notes:', 20, yPosition)
+    yPosition += 7
 
-    pdf.setFont('helvetica', 'normal')
-    pdf.setFontSize(9)
-    const noteLines = pdf.splitTextToSize(invoiceData.notes, pageWidth - 2 * margin)
-    noteLines.forEach((line: string) => {
-      if (yPosition > pageHeight - 20) {
-        pdf.addPage()
-        yPosition = margin
-      }
-      addText(line, margin, yPosition)
-      yPosition += 5
-    })
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100)
+    const notesLines = doc.splitTextToSize(data.notes, pageWidth - 40)
+    doc.text(notesLines, 20, yPosition)
   }
 
-  // === FOOTER ===
-  pdf.setFontSize(8)
-  pdf.setFont('helvetica', 'italic')
-  pdf.setTextColor(128, 128, 128)
-  addText(
-    'Generated by Flowance - AI-Powered Invoicing',
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: 'center' }
-  )
+  // Footer with secondary color accent
+  const footerY = pageHeight - 20
+  doc.setDrawColor(secondaryColorRGB.r, secondaryColorRGB.g, secondaryColorRGB.b)
+  doc.setLineWidth(1)
+  doc.line(20, footerY - 5, pageWidth - 20, footerY - 5)
 
-  const arrayBuffer = pdf.output('arraybuffer') as ArrayBuffer
-
-  if (options.download && typeof window !== 'undefined') {
-    const blob = new Blob([arrayBuffer], { type: 'application/pdf' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${invoiceData.invoice_number}.pdf`
-    link.click()
-    URL.revokeObjectURL(url)
+  doc.setFontSize(8)
+  doc.setTextColor(120)
+  doc.setFont('helvetica', 'italic')
+  
+  // Only show "Generated by Flowance" if no logo
+  if (!hasLogo) {
+    doc.text('Generated by Flowance', pageWidth / 2, footerY, { align: 'center' })
   }
 
-  return arrayBuffer
+  // Convert to ArrayBuffer
+  const pdfBlob = doc.output('arraybuffer')
+  return pdfBlob
 }

@@ -1,13 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
 import { ClientRowDashboard } from '@/components/dashboard/client-row-dashboard'
 import { InvoiceRowDashboard } from '@/components/dashboard/invoice-row-dashboard'
-import { Users, FileText, TrendingUp } from 'lucide-react'
+import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 
 type InvoiceRaw = {
@@ -64,14 +62,12 @@ export default async function DashboardPage() {
     
   const rawInvoices = (invoiceData ?? []) as any[]
   
-  // Map invoices and calculate display status for each
   const invoices: Invoice[] = rawInvoices.map(inv => {
     const normalizedInv = {
       ...inv,
       clients: Array.isArray(inv.clients) && inv.clients.length > 0 ? inv.clients[0] : inv.clients
     }
     
-    // Calculate display status dynamically
     const displayStatus = getInvoiceDisplayStatus({ 
       status: normalizedInv.status, 
       due_date: normalizedInv.due_date 
@@ -95,7 +91,7 @@ export default async function DashboardPage() {
   
   const now = new Date()
 
-  // Metrics - use displayStatus for calculations
+  // Metrics
   const totalRevenue = invoices
     .filter(inv => inv.displayStatus === 'paid')
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
@@ -114,7 +110,7 @@ export default async function DashboardPage() {
 
   const overdueCount = invoices.filter(inv => inv.displayStatus === 'overdue').length
 
-  // Revenue chart data (last 6 months) - use displayStatus
+  // Revenue chart data
   const revenueChartData = (() => {
     const monthLabels = Array.from({ length: 6 }, (_, idx) => {
       const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - idx), 1))
@@ -138,7 +134,7 @@ export default async function DashboardPage() {
     })
   })()
 
-  // Status chart data - use displayStatus
+  // Status chart data
   const statusCounts = ['draft', 'sent', 'paid', 'overdue'] as const
   const statusColors: Record<(typeof statusCounts)[number], string> = {
     draft: '#9CA3AF',
@@ -156,132 +152,180 @@ export default async function DashboardPage() {
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
 
-  const metricCards = [
-    { label: 'Total Revenue', value: formatCurrency(totalRevenue) },
-    { label: 'Pending Payments', value: formatCurrency(pendingPayments) },
-    { label: 'Paid This Month', value: formatCurrency(paidThisMonth) },
-    { label: 'Overdue Invoices', value: overdueCount.toString() }
-  ]
-
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Dashboard</h1>
-          <p className="text-sm text-slate-500">Track your invoices, revenue, and client activity.</p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <Link href="/dashboard/invoices/new" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto bg-primary text-white hover:bg-primary/90">Create Invoice</Button>
-          </Link>
-          <Link href="/dashboard/clients/new" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full sm:w-auto">Add Client</Button>
-          </Link>
+    <div className="space-y-8 max-w-7xl">
+      {/* Header with Gradient - Matches Landing Page */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-10 shadow-2xl">
+        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
+        
+        <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-6 h-6 text-teal-300" />
+              <span className="text-teal-300 font-bold text-sm uppercase tracking-wider">Dashboard</span>
+            </div>
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 tracking-tight">Welcome back!</h1>
+            <p className="text-blue-100 text-lg font-medium">Track your invoices, revenue, and client activity in real-time.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link href="/dashboard/invoices/new" className="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-center hover:shadow-2xl transition-all hover:scale-105">
+              <div className="flex items-center justify-center gap-2">
+                <FileText className="w-5 h-5" />
+                Create Invoice
+              </div>
+            </Link>
+            <Link href="/dashboard/clients/new" className="inline-block bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Users className="w-5 h-5" />
+                Add Client
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metricCards.map(card => (
-          <Card key={card.label} className="p-4">
-            <p className="text-sm text-slate-500">{card.label}</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{card.value}</p>
-          </Card>
-        ))}
+      {/* Metrics - Premium Cards with Hover Effects */}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        {/* Total Revenue */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <DollarSign className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-xs font-bold text-green-700 uppercase tracking-wider bg-green-200 px-3 py-1.5 rounded-full">Total</span>
+          </div>
+          <p className="text-sm font-bold text-green-700 mb-2 uppercase tracking-wide">Total Revenue</p>
+          <p className="text-4xl font-black text-green-900">{formatCurrency(totalRevenue)}</p>
+        </div>
+
+        {/* Pending Payments */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-50 rounded-2xl p-8 border-2 border-blue-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <Clock className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider bg-blue-200 px-3 py-1.5 rounded-full">Pending</span>
+          </div>
+          <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">Pending Payments</p>
+          <p className="text-4xl font-black text-blue-900">{formatCurrency(pendingPayments)}</p>
+        </div>
+
+        {/* Paid This Month */}
+        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-8 border-2 border-teal-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <TrendingUp className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider bg-teal-200 px-3 py-1.5 rounded-full">Month</span>
+          </div>
+          <p className="text-sm font-bold text-teal-700 mb-2 uppercase tracking-wide">Paid This Month</p>
+          <p className="text-4xl font-black text-teal-900">{formatCurrency(paidThisMonth)}</p>
+        </div>
+
+        {/* Overdue Invoices */}
+        <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-8 border-2 border-red-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+          <div className="flex items-center justify-between mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
+            <span className="text-xs font-bold text-red-700 uppercase tracking-wider bg-red-200 px-3 py-1.5 rounded-full">Alert</span>
+          </div>
+          <p className="text-sm font-bold text-red-700 mb-2 uppercase tracking-wide">Overdue Invoices</p>
+          <p className="text-4xl font-black text-red-900">{overdueCount}</p>
+        </div>
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Card className="p-4 sm:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-base sm:text-lg font-semibold text-slate-900">Revenue (Last 6 Months)</h2>
-            <span className="text-xs sm:text-sm text-slate-500">Paid invoices</span>
+        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue Trend</h2>
+              <p className="text-sm text-gray-600 font-medium">Last 6 months performance</p>
+            </div>
           </div>
           {hasInvoices && totalRevenue > 0 ? (
             <RevenueChart data={revenueChartData} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <TrendingUp className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No revenue data yet</h3>
-              <p className="text-sm text-gray-600 mb-4">Create and send invoices to start tracking your revenue</p>
-              <Link href="/dashboard/invoices/new">
-                <Button className="bg-[#0066FF] text-white hover:bg-[#0052CC]">Create Invoice</Button>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <TrendingUp className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 mb-2">No revenue data yet</h3>
+              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">Create and send invoices to start tracking your revenue growth</p>
+              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                Create First Invoice
               </Link>
             </div>
           )}
-        </Card>
+        </div>
 
-        <Card className="p-4 sm:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h2 className="text-base sm:text-lg font-semibold text-slate-900">Invoice Status</h2>
-            <span className="text-xs sm:text-sm text-slate-500">Draft, Sent, Paid, Overdue</span>
+        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Invoice Status</h2>
+              <p className="text-sm text-gray-600 font-medium">Current distribution breakdown</p>
+            </div>
           </div>
           {hasInvoices ? (
             <StatusChart data={statusChartData} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No invoices yet</h3>
-              <p className="text-sm text-gray-600 mb-4">Create your first invoice to start tracking payments</p>
-              <Link href="/dashboard/invoices/new">
-                <Button className="bg-[#0066FF] text-white hover:bg-[#0052CC]">Create Invoice</Button>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <FileText className="w-10 h-10 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
+              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">Create your first invoice to start tracking payments</p>
+              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                Create First Invoice
               </Link>
             </div>
           )}
-        </Card>
+        </div>
       </div>
 
-      {/* Recent Invoices & Clients - Side by Side */}
+      {/* Recent Invoices & Clients */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {/* Recent Invoices */}
-        <Card className="p-4 sm:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+          <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-slate-900">Recent Invoices</h2>
-              <p className="text-xs sm:text-sm text-slate-500">Latest {recentInvoices.length} invoices</p>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recent Invoices</h2>
+              <p className="text-sm text-gray-600 font-medium">Latest {recentInvoices.length} invoices</p>
             </div>
             {hasInvoices && (
-              <Link href="/dashboard/invoices" className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">View All</Button>
+              <Link href="/dashboard/invoices" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
+                View All →
               </Link>
             )}
           </div>
 
           {!hasInvoices ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <FileText className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No invoices yet</h3>
-              <p className="text-sm text-gray-600 mb-4">Create your first invoice to start tracking payments</p>
-              <Link href="/dashboard/invoices/new">
-                <Button className="bg-[#0066FF] text-white hover:bg-[#0052CC]">Create Invoice</Button>
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <FileText className="w-8 h-8 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
+              <p className="text-sm text-gray-600 mb-6 font-medium">Start creating invoices to track payments</p>
+              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                Create Invoice
               </Link>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">
               <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-                <div className="overflow-hidden rounded-lg border border-slate-200">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                <div className="overflow-hidden rounded-xl border-2 border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Invoice #
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Client
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Due Date
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Amount
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Status
-                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Invoice #</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Client</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Due Date</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Amount</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 bg-white">
+                    <tbody className="divide-y divide-gray-200 bg-white">
                       {recentInvoices.map(inv => (
                         <InvoiceRowDashboard
                           key={inv.id}
@@ -299,50 +343,46 @@ export default async function DashboardPage() {
               </div>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Recent Clients */}
-        <Card className="p-4 sm:p-6">
-          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
+          <div className="mb-6 flex items-center justify-between">
             <div>
-              <h2 className="text-base sm:text-lg font-semibold text-slate-900">Recent Clients</h2>
-              <p className="text-xs sm:text-sm text-slate-500">Latest {clients.length} clients</p>
+              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recent Clients</h2>
+              <p className="text-sm text-gray-600 font-medium">Latest {clients.length} clients</p>
             </div>
             {hasClients && (
-              <Link href="/dashboard/clients" className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">View All</Button>
+              <Link href="/dashboard/clients" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
+                View All →
               </Link>
             )}
           </div>
 
           {!hasClients ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Users className="w-16 h-16 text-gray-300 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No clients yet</h3>
-              <p className="text-sm text-gray-600 mb-4">Add your first client to start creating invoices</p>
-              <Link href="/dashboard/clients/new">
-                <Button className="bg-[#0066FF] text-white hover:bg-[#0052CC]">Add Client</Button>
+              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
+                <Users className="w-8 h-8 text-teal-600" />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 mb-2">No clients yet</h3>
+              <p className="text-sm text-gray-600 mb-6 font-medium">Add your first client to start creating invoices</p>
+              <Link href="/dashboard/clients/new" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
+                Add Client
               </Link>
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">
               <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-                <div className="overflow-hidden rounded-lg border border-slate-200">
-                  <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                <div className="overflow-hidden rounded-xl border-2 border-gray-200">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Name
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Company
-                        </th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                          Email
-                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Name</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Company</th>
+                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Email</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200 bg-white">
+                    <tbody className="divide-y divide-gray-200 bg-white">
                       {clients.map(client => (
                         <ClientRowDashboard
                           key={client.id}
@@ -358,7 +398,7 @@ export default async function DashboardPage() {
               </div>
             </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   )

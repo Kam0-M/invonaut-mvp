@@ -16,6 +16,14 @@ Flowance is an intelligent financial assistant that predicts client payment beha
 - **Smart Follow-Ups**: Automated reminder timing with 48-hour rate limiting
 - **Natural Language Insights**: Human-readable explanations for all predictions
 
+### 🎨 White Label Branding (Professional & Business Plans)
+- **Custom Logo Upload**: Add your business logo (PNG/JPG/SVG/WebP, max 10MB)
+- **Brand Colors**: Customize primary and secondary brand colors
+- **PDF Branding**: Your logo and colors automatically applied to all invoice PDFs
+- **Email Branding**: Professional branded emails with your logo and color scheme
+- **Settings Management**: Easy-to-use settings page with real-time preview
+- **Tier Gating**: White label features exclusive to Professional ($59/mo) and Business ($79/mo) plans
+
 ### 📊 Financial Management
 - **Invoice Creation**: Clean, intuitive invoice builder with real-time previews
 - **Client Management**: Complete CRM for tracking client relationships
@@ -43,17 +51,18 @@ Flowance is an intelligent financial assistant that predicts client payment beha
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui + Radix UI
 - **Charts**: Recharts
+- **Color Picker**: react-colorful (for white label)
 
 ### Backend
 - **API**: Next.js API Routes (serverless)
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **Storage**: Supabase Storage
+- **Storage**: Supabase Storage (logo uploads)
 
 ### AI & Integrations
 - **AI Model**: OpenAI GPT-4o-mini
 - **Email Service**: Resend API
-- **PDF Generation**: Custom PDF library
+- **PDF Generation**: Custom PDF library with white label support
 
 ### DevOps
 - **Hosting**: Vercel (serverless deployment)
@@ -115,6 +124,10 @@ CREATE TABLE user_profiles (
   email TEXT,
   business_name TEXT,
   address TEXT,
+  logo_url TEXT,
+  brand_color TEXT DEFAULT '#0066FF',
+  secondary_brand_color TEXT DEFAULT '#00D4AA',
+  subscription_tier TEXT DEFAULT 'starter' CHECK (subscription_tier IN ('starter', 'professional', 'business')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -195,14 +208,21 @@ CREATE POLICY "Users can delete own invoice items" ON invoice_items FOR DELETE U
 );
 ```
 
-5. **Configure Supabase Auth**
+5. **Set up Supabase Storage (for logo uploads)**
+
+In Supabase Dashboard → Storage:
+- Create a new bucket called `logos`
+- Set it to **Public** access
+- Set file size limit to 10MB
+
+6. **Configure Supabase Auth**
 
 In Supabase Dashboard → Authentication → Email Templates:
 - Enable "Confirm signup" email template
 - Set Site URL to `http://localhost:3000` (development) or your production domain
 - Set Redirect URLs to include your auth callback: `http://localhost:3000/auth/callback`
 
-6. **Run the development server**
+7. **Run the development server**
 ```bash
 npm run dev
 ```
@@ -221,21 +241,24 @@ flowance-saas/
 │   │   ├── dashboard/           # Protected dashboard routes
 │   │   │   ├── clients/         # Client management pages
 │   │   │   ├── invoices/        # Invoice management pages
+│   │   │   ├── settings/        # White label settings page
 │   │   │   └── page.tsx         # Main dashboard (analytics)
 │   │   ├── api/                 # API routes
 │   │   │   ├── predict-payment/ # AI payment prediction endpoint
 │   │   │   ├── send-invoice/    # Email sending endpoint
 │   │   │   └── follow-up-invoice/ # Follow-up reminder endpoint
+│   │   ├── help/                # Help center page
 │   │   └── auth/                # Auth callback handler
 │   ├── components/              # React components
 │   │   ├── ui/                  # shadcn/ui base components
 │   │   ├── clients/             # Client-specific components
-│   │   └── invoices/            # Invoice-specific components
+│   │   ├── invoices/            # Invoice-specific components
+│   │   └── settings/            # White label settings components
 │   ├── lib/                     # Utility functions
 │   │   ├── supabase/            # Supabase client configs
 │   │   ├── ai/                  # AI prediction logic
-│   │   ├── email/               # Email templates
-│   │   └── pdf/                 # PDF generation
+│   │   ├── email/               # Email templates (white label support)
+│   │   └── pdf/                 # PDF generation (white label support)
 │   └── middleware.ts            # Route protection middleware
 ├── public/                      # Static assets
 ├── .env.local                   # Environment variables (not committed)
@@ -256,6 +279,16 @@ npm run dev          # Start development server
 npm run build        # Build for production
 npm run start        # Start production server
 npm run lint         # Run ESLint
+```
+
+### Testing White Label Features
+To test white label features without Stripe billing:
+
+```sql
+-- Manually upgrade user to Professional tier in Supabase SQL Editor
+UPDATE user_profiles 
+SET subscription_tier = 'professional' 
+WHERE email = 'your-email@example.com';
 ```
 
 ### Database Migrations
@@ -285,6 +318,19 @@ Never commit `.env.local` to Git. Always use `.env.example` as a template.
 - Check `OPENAI_API_KEY` is valid
 - Ensure you have API credits
 - Check API route logs for errors
+
+### Issue: "Logo not uploading"
+**Solution**:
+- Check that `logos` bucket exists in Supabase Storage
+- Verify bucket is set to Public access
+- Ensure file is under 10MB and is PNG/JPG/SVG/WebP
+- Check browser console for errors
+
+### Issue: "White label settings not showing"
+**Solution**:
+- Verify subscription tier is 'professional' or 'business' in database
+- Check `subscription_tier` column exists in `user_profiles` table
+- Clear browser cache and refresh
 
 ### Issue: "Invoice numbers not incrementing"
 **Solution**:
@@ -316,6 +362,7 @@ All database tables have RLS enabled. Users can only access their own data throu
 - Client names: 200 character limit
 - Invoice quantities: Must be > 0
 - Invoice prices: Must be >= 0
+- Logo files: Max 10MB, allowed formats: PNG/JPG/SVG/WebP
 - XSS prevention: HTML entities escaped
 - SQL injection prevention: Parameterized queries
 
@@ -324,7 +371,7 @@ All database tables have RLS enabled. Users can only access their own data throu
 ## 📊 Database Schema
 
 ### Tables
-- **user_profiles** - Extends Supabase auth.users with business info
+- **user_profiles** - Extends Supabase auth.users with business info + white label settings
 - **clients** - Customer contact information and payment terms
 - **invoices** - Invoice headers with status tracking
 - **invoice_items** - Individual line items for each invoice
@@ -336,10 +383,17 @@ All database tables have RLS enabled. Users can only access their own data throu
 - `invoices.client_id` → `clients.id` (many:1)
 - `invoice_items.invoice_id` → `invoices.id` (many:1)
 
+### White Label Columns
+- `logo_url` - Path to uploaded logo in Supabase Storage
+- `brand_color` - Primary brand color (hex code)
+- `secondary_brand_color` - Secondary brand color (hex code)
+- `subscription_tier` - User's plan (starter/professional/business)
+
 ### Constraints
 - Unique invoice numbers per user: `(user_id, invoice_number)`
 - Cannot delete clients with existing invoices
 - Cannot delete users with existing data (cascade delete)
+- Subscription tier must be one of: starter, professional, business
 
 ---
 
@@ -353,7 +407,7 @@ All database tables have RLS enabled. Users can only access their own data throu
 
 ## 🗺️ Roadmap
 
-### Completed (Week 1-11)
+### Completed (Week 1-14)
 - ✅ Authentication system with email verification
 - ✅ Client management (CRUD operations)
 - ✅ Invoice creation and management
@@ -362,25 +416,39 @@ All database tables have RLS enabled. Users can only access their own data throu
 - ✅ Payment tracking and follow-ups
 - ✅ Analytics dashboard
 - ✅ Row-level security implementation
+- ✅ **White Label Feature (Professional & Business plans)**
+  - Logo upload with file validation
+  - Dual color picker (primary + secondary)
+  - PDF branding with logo and colors
+  - Email branding with logo and colors
+  - Settings page with tier gating
+  - Auto-save with unsaved changes warning
 
-### In Progress (Week 12)
-- 🔄 Comprehensive testing (edge cases, cross-browser)
-- 🔄 Documentation completion
-- 🔄 Performance optimization
+### In Progress (Week 14-15)
+- 🔄 **Stripe Billing Integration**
+  - Pricing page design
+  - Stripe product creation ($29/$59/$79 plans)
+  - Checkout session API
+  - Webhook handler
+  - Billing management page
+  - Plan upgrade/downgrade flow
+  - Cancel subscription flow
 
-### Upcoming (Week 13-16)
+### Upcoming (Week 16)
 - ⏳ Production deployment
 - ⏳ Domain configuration
 - ⏳ Monitoring and analytics setup
 - ⏳ User feedback collection
 
-### Future Features
+### Future Features (Phase 2-3)
 - 💡 Expense tracking
 - 💡 Tax calculations and reports
 - 💡 Recurring invoices
 - 💡 Multi-currency support
 - 💡 Smart contract templates
 - 💡 Platform integrations (Upwork, Fiverr)
+- 💡 Team collaboration (Business plan)
+- 💡 API access (Business plan)
 
 ---
 
@@ -417,6 +485,7 @@ This project is private and not licensed for public use.
 - Powered by [Supabase](https://supabase.com/)
 - AI by [OpenAI](https://openai.com/)
 - UI components from [shadcn/ui](https://ui.shadcn.com/)
+- Color picker by [react-colorful](https://github.com/omgovich/react-colorful)
 - Developed with [Cursor IDE](https://cursor.sh/)
 
 ---
@@ -430,8 +499,4 @@ For issues or questions:
 
 ---
 
-<<<<<<< HEAD
-**Built with ❤️ by a freelancer, for freelancers.**
-=======
-**Built with ❤️ by a freelancer, for freelancers.**
->>>>>>> 170c82c496b37e6f921140b9f6da6c632dea059a
+**Built with ❤️, for freelancers.**

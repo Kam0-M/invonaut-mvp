@@ -1,22 +1,22 @@
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
-import EditInvoiceForm from '@/components/invoices/edit-invoice-form';
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import EditInvoiceForm from '@/components/invoices/edit-invoice-form'
+import Link from 'next/link'
+import { ArrowLeft } from 'lucide-react'
 
 export default async function EditInvoicePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string }>
 }) {
-  const { id } = await params;
-  const supabase = await createClient();
+  const { id } = await params
+  const supabase = await createClient()
 
-  // Get user
   const {
     data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
 
-  // Fetch invoice with items and client info
   const { data: invoice, error: invoiceError } = await supabase
     .from('invoices')
     .select(
@@ -28,34 +28,46 @@ export default async function EditInvoicePage({
     )
     .eq('id', id)
     .eq('user_id', user.id)
-    .single();
+    .single()
 
   if (invoiceError || !invoice) {
-    redirect('/dashboard/invoices');
+    redirect('/dashboard/invoices')
   }
 
-  // Only allow editing draft invoices
   if (invoice.status !== 'draft') {
-    redirect(`/dashboard/invoices/${id}`);
+    redirect(`/dashboard/invoices/${id}`)
   }
 
-  // Fetch all clients for dropdown
   const { data: clients } = await supabase
     .from('clients')
     .select('id, name, company')
     .eq('user_id', user.id)
-    .order('name');
+    .order('name')
 
   return (
-    <div className="p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Edit Invoice</h1>
-          <p className="text-gray-600 mt-1">
-            Update invoice details and line items
-          </p>
+    <div className="space-y-8">
+      {/* Premium Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Link 
+            href={`/dashboard/invoices/${id}`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Invoice</span>
+            <span className="sm:hidden">Back</span>
+          </Link>
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Edit Invoice</h1>
+            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
+              Update invoice {invoice.invoice_number}
+            </p>
+          </div>
         </div>
+      </div>
 
+      {/* Premium Form Card */}
+      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
         <EditInvoiceForm
           invoice={invoice}
           invoiceItems={invoice.invoice_items || []}
@@ -63,5 +75,5 @@ export default async function EditInvoicePage({
         />
       </div>
     </div>
-  );
+  )
 }
