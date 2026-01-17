@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Bell, Clock, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 
 type FollowUpButtonProps = {
@@ -80,7 +79,6 @@ export function FollowUpButton({
       toast.success('Reminder sent successfully!', { id: loadingToast, duration: 3000 })
       setIsSending(false)
       
-      // Refresh page after 1 second
       setTimeout(() => {
         window.location.reload()
       }, 1000)
@@ -95,42 +93,26 @@ export function FollowUpButton({
   const allowedToFollowUp = canFollowUp()
 
   return (
-    <div className="flex flex-col gap-2">
-      <Button
-        onClick={handleFollowUp}
-        disabled={isSending || !allowedToFollowUp}
-        size="sm"
-        variant={allowedToFollowUp ? "default" : "outline"}
-        className={allowedToFollowUp 
-          ? "bg-orange-500 hover:bg-orange-600 text-white" 
-          : "opacity-50 cursor-not-allowed"
-        }
-      >
-        {isSending ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Sending...
-          </>
-        ) : (
-          <>
-            <Bell className="w-4 h-4 mr-2" />
-            Send Reminder
-          </>
-        )}
-      </Button>
-
-      {timeSince && (
-        <p className="text-xs text-slate-500 flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          Last followed up {timeSince}
-        </p>
+    <button
+      onClick={handleFollowUp}
+      disabled={isSending || !allowedToFollowUp}
+      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 font-bold text-sm whitespace-nowrap transition-all duration-200 ${
+        allowedToFollowUp 
+          ? 'border-orange-300 bg-orange-500 hover:bg-orange-600 hover:border-orange-400 hover:shadow-lg text-white' 
+          : 'border-gray-300 bg-gray-100 text-gray-400 cursor-not-allowed opacity-50'
+      }`}
+    >
+      {isSending ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Sending...
+        </>
+      ) : (
+        <>
+          <Bell className="w-4 h-4" />
+          Send Reminder
+        </>
       )}
-
-      {!allowedToFollowUp && timeSince && (
-        <p className="text-xs text-orange-600">
-          Wait 48 hours between reminders
-        </p>
-      )}
-    </div>
+    </button>
   )
 }

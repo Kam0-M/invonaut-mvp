@@ -73,16 +73,16 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Fetch user profile for business info
+    // Fetch user profile for business info AND white label branding
     const { data: userProfile } = await supabase
       .from('user_profiles')
-      .select('full_name, email, business_name, address')
+      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color')
       .eq('id', user.id)
       .single()
 
     const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients
 
-    // Generate PDF
+    // Generate PDF with white label branding
     const pdfArrayBuffer = await generateInvoicePDF({
       invoice_number: invoice.invoice_number,
       issue_date: invoice.issue_date,
@@ -103,7 +103,10 @@ export async function GET(request: NextRequest) {
         business_name: userProfile?.business_name || null,
         full_name: userProfile?.full_name || null,
         email: userProfile?.email || null,
-        address: userProfile?.address || null
+        address: userProfile?.address || null,
+        logo_url: userProfile?.logo_url || null,
+        brand_color: userProfile?.brand_color || null,
+        secondary_brand_color: userProfile?.secondary_brand_color || null
       },
       items: (items || []).map((item) => ({
         description: item.description,
@@ -113,16 +116,15 @@ export async function GET(request: NextRequest) {
       }))
     })
 
-    // Convert ArrayBuffer to Buffer
-    const pdfBuffer = Buffer.from(pdfArrayBuffer)
+    // Convert ArrayBuffer to Uint8Array for NextResponse
+    const pdfData = new Uint8Array(pdfArrayBuffer)
 
-    // Return PDF as response
-    return new NextResponse(pdfBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="invoice-${invoice.invoice_number}.pdf"`,
-      },
-    })
+    // Return PDF as response with proper headers
+    const headers = new Headers()
+    headers.set('Content-Type', 'application/pdf')
+    headers.set('Content-Disposition', `attachment; filename="invoice-${invoice.invoice_number}.pdf"`)
+
+    return new NextResponse(pdfData, { headers })
   } catch (error: any) {
     console.error('Download invoice error:', error)
     return NextResponse.json(
@@ -131,4 +133,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

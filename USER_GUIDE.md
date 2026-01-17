@@ -12,6 +12,7 @@ Flowance is an AI-powered invoicing platform designed specifically for freelance
 - Predict when clients will pay (using AI)
 - Follow up on overdue payments
 - Analyze your revenue trends
+- **Brand your invoices with your logo and colors (Professional & Business plans)**
 
 ---
 
@@ -31,6 +32,7 @@ Flowance is an AI-powered invoicing platform designed specifically for freelance
    - You'll be automatically redirected to your dashboard
 
 3. **Complete Your Profile** (Optional but Recommended)
+   - Go to **Settings** in the sidebar
    - Add your business name
    - Add your business address
    - This information will appear on your invoices
@@ -38,9 +40,80 @@ Flowance is an AI-powered invoicing platform designed specifically for freelance
 ### First-Time Setup Checklist
 
 - ✅ Verify your email address
+- ✅ Complete your profile in Settings
 - ✅ Add at least one client
 - ✅ Create your first invoice
 - ✅ Explore the dashboard
+- ✅ (Optional) Upgrade to Professional plan for white label branding
+
+---
+
+## 🎨 White Label Branding (Professional & Business Plans)
+
+### What is White Label?
+
+White label branding allows you to customize your invoices and emails with your own logo and brand colors, making all communications look like they come directly from your business (not Flowance).
+
+**Available on:** Professional ($59/mo) and Business ($79/mo) plans only
+
+### Setting Up Your Brand
+
+1. **Go to Settings**
+   - Click **"Settings"** in the sidebar menu
+   - You'll see the White Label Branding section
+
+2. **Upload Your Logo**
+   - Click **"Upload Logo"** or drag and drop your logo file
+   - Supported formats: PNG, JPG, SVG, WebP
+   - Maximum file size: 10MB
+   - Recommended size: 200x200px to 400x400px for best quality
+   - Logo appears on all PDFs and emails
+
+3. **Choose Your Brand Colors**
+   - **Primary Color**: Your main brand color (used for headers, buttons)
+   - **Secondary Color**: Accent color (used for highlights, accents)
+   - Click the color picker to choose your colors
+   - You'll see a live preview of how it looks
+   - Colors are automatically applied to all invoices
+
+4. **Save Your Changes**
+   - Click **"Save Changes"** button
+   - Your branding will be applied to all new invoices and emails
+   - Existing sent invoices keep their original branding
+
+### Viewing Your Logo
+
+- Click on your uploaded logo to see it full-size in a lightbox modal
+- This helps verify the logo looks good before sending invoices
+
+### What Gets Branded?
+
+**Invoice PDFs:**
+- Your logo appears at the top
+- Primary color used for headers and titles
+- Secondary color used for accents and highlights
+- Professional, polished look
+
+**Invoice Emails:**
+- Your logo appears in the email header
+- Brand colors applied to email design
+- Consistent with your PDF branding
+- Looks like it comes directly from your business
+
+### Unsaved Changes Warning
+
+If you make changes and try to leave the Settings page without saving, you'll get a warning:
+- Browser will ask: "You have unsaved changes. Are you sure you want to leave?"
+- This prevents accidentally losing your work
+
+### Upgrading to Access White Label
+
+If you're on the Starter plan ($29/mo):
+1. You'll see a message: **"Upgrade to Professional or Business plan to customize your branding"**
+2. Click the upgrade prompt
+3. Choose Professional ($59/mo) or Business ($79/mo)
+4. Complete payment setup
+5. White label features unlock immediately
 
 ---
 
@@ -153,6 +226,7 @@ Each user has their own independent invoice numbering.
 
 **What Your Client Receives**:
 - Professional email with your business details
+- **If you have white label enabled**: Your logo and brand colors
 - Invoice summary
 - PDF attachment of complete invoice
 - Payment instructions
@@ -165,6 +239,7 @@ Each user has their own independent invoice numbering.
 
 **PDF Includes**:
 - Your business information
+- **Your logo and brand colors** (if white label enabled)
 - Client information
 - Invoice number and dates
 - All line items with calculations
@@ -236,16 +311,27 @@ Follow-up reminders are useful for:
 
 **Features**:
 - Professional, friendly reminder email
+- **Branded with your logo and colors** (if white label enabled)
 - Includes invoice details and amount due
 - Reminds client of overdue status
 - **Rate Limited**: Can only send one reminder per 48 hours (prevents spam)
+- Shows "Next reminder in Xh" badge when rate limited
 
 **What the Email Includes**:
+- Your logo and brand colors (if white label enabled)
 - Invoice number and amount
 - Original due date
 - Number of days overdue
 - Payment instructions
 - Link to original invoice
+
+### 48-Hour Rate Limit
+
+To maintain professionalism and avoid spam:
+- You can only send one reminder per invoice every 48 hours
+- After sending a reminder, you'll see "Next reminder in Xh" badge
+- The "Send Reminder" button will be disabled until 48 hours have passed
+- Hover over the button to see when you can send the next reminder
 
 ---
 
@@ -324,7 +410,7 @@ Your dashboard shows key metrics at a glance:
 **Pie Chart of Invoice Statuses**
 - Visual split of Draft/Sent/Paid/Overdue
 - Quick health check of business
-- Click segments for details (coming soon)
+- Shows total invoice count in center
 
 ### Recent Activity
 
@@ -337,6 +423,38 @@ Your dashboard shows key metrics at a glance:
 - Last 10 clients added
 - Quick access to client profiles
 - Click any client to view details
+
+---
+
+## ⚙️ Settings & Account Management
+
+### Account Information
+
+In the Settings page, you can:
+- View and update your full name
+- Update your email address
+- Add/edit business name
+- Add/edit business address
+
+### White Label Branding (Professional & Business Only)
+
+See the **White Label Branding** section above for complete instructions on:
+- Uploading your logo
+- Choosing brand colors
+- Applying branding to invoices and emails
+- Upgrading your plan
+
+### Subscription Management
+
+**Current Plans:**
+- **Starter** ($29/mo): 25 invoices/month, basic features, Flowance branding
+- **Professional** ($59/mo): Unlimited invoices, white label branding, advanced AI
+- **Business** ($79/mo): Everything + team features (coming soon)
+
+**To upgrade or manage your subscription:**
+- Go to Settings page
+- Click upgrade prompts (if on Starter plan)
+- Or manage billing in Billing section (coming soon)
 
 ---
 
@@ -400,7 +518,7 @@ On the Invoices page:
 
 **When NOT to Delete**:
 - Sent or paid invoices (keep for records)
-- Consider marking as "Cancelled" instead (coming soon)
+- Consider creating a credit note instead (coming soon)
 
 ---
 
@@ -412,6 +530,7 @@ On the Invoices page:
 - ✅ Set realistic payment terms (30 days is standard)
 - ✅ Follow up on overdue invoices within 7 days
 - ✅ Keep invoice notes professional and brief
+- ✅ Use white label branding for professional appearance (Professional plan)
 
 ### Client Management
 - ✅ Add client email addresses for easy sending
@@ -425,6 +544,7 @@ On the Invoices page:
 - ✅ Review overdue invoices daily
 - ✅ Use AI predictions to plan cash flow
 - ✅ Follow up proactively on high-risk invoices
+- ✅ Respect the 48-hour rate limit between reminders
 
 ### Using AI Predictions
 - ✅ Check predictions after sending invoices
@@ -432,6 +552,13 @@ On the Invoices page:
 - ✅ Monitor confidence scores over time
 - ✅ Provide feedback (coming soon) to improve predictions
 - ❌ Don't rely solely on AI for critical decisions
+
+### White Label Branding
+- ✅ Upload a high-quality logo (200x200px minimum)
+- ✅ Choose colors that match your brand identity
+- ✅ Test by sending yourself a sample invoice
+- ✅ Preview PDFs before sending to clients
+- ✅ Keep your branding consistent across all platforms
 
 ---
 
@@ -444,6 +571,7 @@ On the Invoices page:
 - **Isolation**: Each user's data is completely separate
 - **Backups**: Automatic daily backups
 - **Access Control**: Secure login with email verification
+- **Logo Security**: Your uploaded logos are stored securely in isolated storage
 
 ### Best Security Practices
 
@@ -452,6 +580,7 @@ On the Invoices page:
 - ✅ Log out on shared computers
 - ✅ Verify email addresses before sending invoices
 - ✅ Review invoice details before sending
+- ✅ Protect your logo files (use originals, not copies)
 
 ---
 
@@ -475,8 +604,22 @@ Not yet. CSV/Excel export functionality is coming soon.
 ### Can I use multiple currencies?
 Not yet. Currently, only USD is supported.
 
+### How do I access white label features?
+Upgrade to Professional ($59/mo) or Business ($79/mo) plan. Go to Settings → see upgrade prompt → complete payment.
+
+### Can I use my own domain for emails?
+Not yet, but this is planned for Business plan users in the future.
+
+### What logo formats are supported?
+PNG, JPG, SVG, and WebP files up to 10MB.
+
+### Will my old invoices update with new branding?
+No. When you change your logo or colors, only new invoices will use the updated branding. Previously sent invoices keep their original branding for record-keeping purposes.
+
 ### How much does Flowance cost?
-Pricing information will be announced at public launch.
+- **Starter**: $29/month (25 invoices, Flowance branding)
+- **Professional**: $59/month (unlimited invoices, white label)
+- **Business**: $79/month (everything + team features coming soon)
 
 ### Is there a mobile app?
 Not yet, but the web interface is mobile-responsive and works on all devices.
@@ -515,12 +658,28 @@ Not yet, but the web interface is mobile-responsive and works on all devices.
 - New clients may have lower confidence
 - Refresh page if prediction doesn't appear
 
+**"Logo upload failed"**
+- Check file size is under 10MB
+- Verify file format (PNG/JPG/SVG/WebP only)
+- Try a different browser
+- Check Supabase Storage bucket exists and is public
+
+**"White label settings not visible"**
+- Verify you're on Professional or Business plan
+- Check your subscription tier in database
+- Contact support if you've upgraded but can't access features
+
+**"Can't send reminder (rate limited)"**
+- You can only send one reminder per 48 hours
+- Check the "Next reminder in Xh" badge
+- Wait until the time limit expires
+
 ---
 
 ## 📞 Support Contact
 
 For additional help:
-- Email: support@flowance.com (coming soon)
+- Email: kamohelo.thakhisi@gmail.com
 - Documentation: Check README.md for technical details
 - GitHub: Report bugs at repository issues page
 
@@ -533,13 +692,15 @@ For additional help:
 - Send 3 invoices
 - Mark 1 invoice as paid
 - Explore all dashboard features
+- Upload your logo (if on Professional/Business plan)
 
 ### First Month Goals
 - Build complete client list
 - Send all outstanding invoices
 - Review AI predictions weekly
-- Follow up on overdue invoices promptly
+- Follow up on overdue invoices promptly (respecting 48-hour limit)
 - Analyze revenue trends
+- Customize your branding (Professional/Business plan)
 
 ### Long-Term Success
 - Maintain consistent invoicing schedule
@@ -547,6 +708,8 @@ For additional help:
 - Use AI insights for cash flow planning
 - Keep client information updated
 - Respond to payment delays quickly
+- Maintain professional branded communications
+- Consider upgrading to Professional for better client impression
 
 ---
 

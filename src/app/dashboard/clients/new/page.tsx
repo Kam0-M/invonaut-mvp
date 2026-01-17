@@ -3,232 +3,225 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft, UserPlus, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
 
 export default function NewClientPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  
+  const [error, setError] = useState('')
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     company: '',
     address: '',
-    payment_terms: 30
+    payment_terms: '30'
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
 
-    try {
-      const supabase = createClient()
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login')
-        return
-      }
+    if (!formData.name.trim()) {
+      setError('Client name is required')
+      setLoading(false)
+      return
+    }
 
-      // Validate required fields
-      if (!formData.name.trim()) {
-        toast.error('Client name is required. Please enter a name for this client.', { duration: 3000 })
-        setLoading(false)
-        return
-      }
+    if (formData.name.length > 200) {
+      setError('Client name must be 200 characters or less')
+      setLoading(false)
+      return
+    }
 
-      // Validate client name length
-      const MAX_CLIENT_NAME_LENGTH = 200
-      if (formData.name.trim().length > MAX_CLIENT_NAME_LENGTH) {
-        toast.error(`Client name cannot exceed ${MAX_CLIENT_NAME_LENGTH} characters. Please use a shorter name.`, { duration: 3000 })
-        setLoading(false)
-        return
-      }
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
 
-      // Validate email format if provided
-      if (formData.email && !formData.email.includes('@')) {
-        toast.error('Please enter a valid email address. Make sure it includes an @ symbol.', { duration: 3000 })
-        setLoading(false)
-        return
-      }
+    if (!user) {
+      router.push('/login')
+      return
+    }
 
-      const loadingToast = toast.loading('Adding client...')
-
-      // Insert client
-      const { error: insertError } = await supabase
-        .from('clients')
-        .insert({
+    const { error: insertError } = await supabase
+      .from('clients')
+      .insert([
+        {
           user_id: user.id,
           name: formData.name.trim(),
           email: formData.email.trim() || null,
           phone: formData.phone.trim() || null,
           company: formData.company.trim() || null,
           address: formData.address.trim() || null,
-          payment_terms: formData.payment_terms
-        })
-
-      if (insertError) {
-        throw insertError
-      }
-
-      toast.success('Client created successfully!', { id: loadingToast, duration: 3000 })
-      
-      // Redirect after 0.5 seconds
-      setTimeout(() => {
-        router.push('/dashboard/clients')
-        router.refresh()
-      }, 500)
-
-    } catch (err: any) {
-      // Format user-friendly error messages
-      let errorMessage = 'Could not create client. Please check your internet connection and try again.'
-      
-      if (err?.code === '23505' || err?.message?.includes('duplicate') || err?.message?.includes('unique')) {
-        errorMessage = 'This client already exists. Try searching for them instead or use a different name.'
-      } else if (err?.code === 'PGRST116') {
-        errorMessage = 'Could not create client. The database connection was interrupted. Please check your internet connection and try again.'
-      } else if (err?.message) {
-        if (err.message.includes('network') || err.message.includes('connection') || err.message.includes('timeout')) {
-          errorMessage = 'Could not create client. Please check your internet connection and try again.'
-        } else if (err.message.length < 100 && !err.message.includes('PGRST')) {
-          errorMessage = err.message
+          payment_terms: parseInt(formData.payment_terms) || 30
         }
-      }
-      
-      toast.error('' + errorMessage, { duration: 3000 })
+      ])
+
+    if (insertError) {
+      setError(insertError.message)
       setLoading(false)
+      return
     }
+
+    router.push('/dashboard/clients')
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">Add New Client</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Add a new client to your Flowance account
-        </p>
+    <div className="space-y-8">
+      {/* Premium Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <Link 
+            href="/dashboard/clients"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="hidden sm:inline">Back to Clients</span>
+            <span className="sm:hidden">Back</span>
+          </Link>
+          <div>
+            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Add New Client</h1>
+            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
+              Create a new client profile for invoicing
+            </p>
+          </div>
+        </div>
       </div>
 
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Name <span className="text-red-500">*</span>
-            </label>
+      {/* Premium Form Card */}
+      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Error Alert */}
+          {error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm font-medium text-red-800">{error}</p>
+            </div>
+          )}
+
+          {/* Client Name (Required) */}
+          <div className="space-y-3">
+            <Label htmlFor="name" className="text-sm font-bold uppercase tracking-wide text-gray-700">
+              Client Name <span className="text-red-500">*</span>
+            </Label>
             <Input
+              id="name"
               type="text"
+              placeholder="John Doe or Company Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="John Doe"
               required
-              disabled={loading}
+              maxLength={200}
+              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
+            <p className="text-xs text-gray-500 font-medium">
+              {formData.name.length}/200 characters
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+          {/* Email */}
+          <div className="space-y-3">
+            <Label htmlFor="email" className="text-sm font-bold uppercase tracking-wide text-gray-700">
               Email
-            </label>
+            </Label>
             <Input
+              id="email"
               type="email"
+              placeholder="client@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="john@example.com"
-              disabled={loading}
+              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+          {/* Phone */}
+          <div className="space-y-3">
+            <Label htmlFor="phone" className="text-sm font-bold uppercase tracking-wide text-gray-700">
               Phone
-            </label>
+            </Label>
             <Input
+              id="phone"
               type="tel"
+              placeholder="+1 (555) 123-4567"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="555-0123"
-              disabled={loading}
+              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+          {/* Company */}
+          <div className="space-y-3">
+            <Label htmlFor="company" className="text-sm font-bold uppercase tracking-wide text-gray-700">
               Company
-            </label>
+            </Label>
             <Input
+              id="company"
               type="text"
+              placeholder="Acme Corporation"
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              placeholder="Acme Corporation"
-              disabled={loading}
+              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+          {/* Address */}
+          <div className="space-y-3">
+            <Label htmlFor="address" className="text-sm font-bold uppercase tracking-wide text-gray-700">
               Address
-            </label>
+            </Label>
             <textarea
+              id="address"
+              placeholder="123 Main St, Suite 100, City, State, ZIP"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="123 Main Street, City, State, ZIP"
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 placeholder:text-gray-500"
               rows={3}
-              disabled={loading}
+              className="w-full text-base text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Payment Terms
-            </label>
-            <select
+          {/* Payment Terms */}
+          <div className="space-y-3">
+            <Label htmlFor="payment_terms" className="text-sm font-bold uppercase tracking-wide text-gray-700">
+              Payment Terms (Days)
+            </Label>
+            <Input
+              id="payment_terms"
+              type="number"
+              placeholder="30"
               value={formData.payment_terms}
-              onChange={(e) => setFormData({ ...formData, payment_terms: Number(e.target.value) })}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-gray-900 bg-white"
-              disabled={loading}
-            >
-              <option value={7}>7 days</option>
-              <option value={15}>15 days</option>
-              <option value={30}>30 days</option>
-              <option value={45}>45 days</option>
-              <option value={60}>60 days</option>
-            </select>
+              onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
+              min="1"
+              max="365"
+              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+            />
+            <p className="text-xs text-gray-500 font-medium">
+              Default number of days until invoice payment is due
+            </p>
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-100">
+            <button
               type="submit"
               disabled={loading}
-              className="bg-primary text-white hover:bg-primary/90"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Client'
-              )}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => router.push('/dashboard/clients')}
-              disabled={loading}
-              variant="outline"
+              <UserPlus className="w-5 h-5" />
+              {loading ? 'Creating Client...' : 'Create Client'}
+            </button>
+            <Link 
+              href="/dashboard/clients"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200"
             >
               Cancel
-            </Button>
+            </Link>
           </div>
         </form>
-      </Card>
+      </div>
     </div>
   )
 }

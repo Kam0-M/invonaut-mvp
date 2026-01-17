@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Send, CheckCircle } from 'lucide-react'
+import { Send, CheckCircle, AlertCircle } from 'lucide-react'
 
 type InvoiceActionsProps = {
   invoiceId: string
@@ -39,31 +38,33 @@ export function InvoiceActions({ invoiceId, currentStatus }: InvoiceActionsProps
   }
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 flex items-start gap-2 w-full sm:w-auto">
+          <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+          <p className="text-sm font-medium text-red-800">{error}</p>
+        </div>
       )}
       {currentStatus === 'draft' && (
-        <Button
+        <button
           onClick={() => updateStatus('sent')}
           disabled={isUpdating}
-          className="bg-primary hover:bg-primary/90"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[160px]"
         >
-          <Send className="w-4 h-4 mr-2" />
+          <Send className="w-4 h-4" />
           {isUpdating ? 'Updating...' : 'Mark as Sent'}
-        </Button>
+        </button>
       )}
       {currentStatus === 'sent' && (
-        <Button
+        <button
           onClick={() => updateStatus('paid')}
           disabled={isUpdating}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 text-white font-bold hover:from-green-700 hover:to-green-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[160px]"
         >
-          <CheckCircle className="w-4 h-4 mr-2" />
+          <CheckCircle className="w-4 h-4" />
           {isUpdating ? 'Updating...' : 'Mark as Paid'}
-        </Button>
+        </button>
       )}
     </div>
   )
 }
-

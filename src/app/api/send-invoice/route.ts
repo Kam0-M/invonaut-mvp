@@ -76,16 +76,16 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    // Fetch user profile for business info
+    // Fetch user profile for business info AND white label branding
     const { data: userProfile } = await supabase
       .from('user_profiles')
-      .select('full_name, email, business_name, address')
+      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color')
       .eq('id', user.id)
       .single()
 
     const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients
 
-    // Generate PDF
+    // Generate PDF with white label branding
     const pdfArrayBuffer = await generateInvoicePDF({
       invoice_number: invoice.invoice_number,
       issue_date: invoice.issue_date,
@@ -106,7 +106,10 @@ export async function POST(request: NextRequest) {
         business_name: userProfile?.business_name || null,
         full_name: userProfile?.full_name || null,
         email: userProfile?.email || null,
-        address: userProfile?.address || null
+        address: userProfile?.address || null,
+        logo_url: userProfile?.logo_url || null,
+        brand_color: userProfile?.brand_color || null,
+        secondary_brand_color: userProfile?.secondary_brand_color || null
       },
       items: (items || []).map((item) => ({
         description: item.description,
@@ -121,19 +124,28 @@ export async function POST(request: NextRequest) {
 
     const businessName = userProfile?.business_name || userProfile?.full_name || 'Flowance'
     const subject = `Invoice ${invoice.invoice_number} from ${businessName}`
+    
+    // Generate email with white label branding
     const html = generateInvoiceEmailHTML({
       invoice_number: invoice.invoice_number,
       client_name: clientData?.name || 'Client',
       due_date: invoice.due_date,
       total_amount: invoice.total_amount,
-      business_name: businessName
+      business_name: businessName,
+      logo_url: userProfile?.logo_url || null,
+      brand_color: userProfile?.brand_color || null,
+      secondary_brand_color: userProfile?.secondary_brand_color || null
     })
+    
     const text = generateInvoiceEmailText({
       invoice_number: invoice.invoice_number,
       client_name: clientData?.name || 'Client',
       due_date: invoice.due_date,
       total_amount: invoice.total_amount,
-      business_name: businessName
+      business_name: businessName,
+      logo_url: userProfile?.logo_url || null,
+      brand_color: userProfile?.brand_color || null,
+      secondary_brand_color: userProfile?.secondary_brand_color || null
     })
 
     // Resend free tier restriction: can only send to verified email
@@ -175,7 +187,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ success: true, message: 'Invoice sent successfully' })
+    // Update invoice status to 'sent' after successful email
+    await supabase
+      .from('invoices')
+      .update({ status: 'sent' })
+      .eq('id', invoiceId)
+
+    return NextResponse.json({ success: true, message: 'Invoice sent successfully with your branding!' })
   } catch (error: any) {
     console.error('Send invoice error:', error)
     const errorMessage = error?.message?.includes('network') || error?.message?.includes('connection')

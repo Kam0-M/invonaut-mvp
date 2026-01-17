@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { CheckCircle, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -28,7 +27,6 @@ export function MarkAsPaidButton({
     try {
       const supabase = createClient()
       
-      // Verify user is authenticated
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         toast.error('Please log in to continue', { id: loadingToast })
@@ -36,18 +34,16 @@ export function MarkAsPaidButton({
         return
       }
 
-      // Update invoice status to 'paid'
       const { error } = await supabase
         .from('invoices')
         .update({ status: 'paid' })
         .eq('id', invoiceId)
-        .eq('user_id', user.id) // Security: ensure user owns this invoice
+        .eq('user_id', user.id)
 
       if (error) throw error
 
       toast.success(`Invoice ${invoiceNumber} marked as paid!`, { id: loadingToast, duration: 3000 })
       
-      // Refresh the page to show updated status
       router.refresh()
     } catch (error: any) {
       console.error('Error marking invoice as paid:', error)
@@ -61,23 +57,22 @@ export function MarkAsPaidButton({
   }
 
   return (
-    <Button
+    <button
       onClick={handleMarkAsPaid}
       disabled={isMarking}
-      className={`bg-green-600 hover:bg-green-700 text-white ${fullWidth ? 'w-full justify-start' : ''}`}
-      size="sm"
+      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-green-300 bg-green-600 hover:bg-green-700 hover:border-green-400 hover:shadow-lg transition-all duration-200 font-bold text-white text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? 'w-full' : ''}`}
     >
       {isMarking ? (
         <>
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
           Marking...
         </>
       ) : (
         <>
-          <CheckCircle className="w-4 h-4 mr-2" />
+          <CheckCircle className="w-4 h-4" />
           Mark as Paid
         </>
       )}
-    </Button>
+    </button>
   )
 }

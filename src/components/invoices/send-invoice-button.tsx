@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import { Mail, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog } from '@/components/ui/dialog'
-import { Card } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 
@@ -33,7 +31,6 @@ export function SendInvoiceButton({
     const loadingToast = toast.loading('Sending invoice...')
   
     try {
-      // Send the invoice email
       const response = await fetch('/api/send-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,7 +55,6 @@ export function SendInvoiceButton({
         return
       }
 
-      // ✨ AUTO-MARK AS SENT: Update invoice status to "sent"
       const supabase = createClient()
       const { error: updateError } = await supabase
         .from('invoices')
@@ -74,7 +70,6 @@ export function SendInvoiceButton({
   
       setIsSending(false)
       
-      // Close modal and refresh page after 1 second
       setTimeout(() => {
         setIsOpen(false)
         window.location.reload()
@@ -96,16 +91,16 @@ export function SendInvoiceButton({
 
   return (
     <>
-      <Button
+      <button
         onClick={() => {
           setIsOpen(true)
           setEmail(clientEmail)
         }}
-        className="bg-primary hover:bg-primary/90 text-white"
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-blue-300 bg-blue-600 hover:bg-blue-700 hover:border-blue-400 hover:shadow-lg transition-all duration-200 font-bold text-white text-sm whitespace-nowrap"
       >
-        <Mail className="w-4 h-4 mr-2" />
+        <Mail className="w-4 h-4" />
         Send Invoice
-      </Button>
+      </button>
 
       <Dialog
         isOpen={isOpen}
@@ -113,9 +108,8 @@ export function SendInvoiceButton({
         title="Send Invoice"
       >
         <div className="space-y-6">
-          {/* Email Input */}
           <div>
-            <label htmlFor="recipient-email" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="recipient-email" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">
               Recipient Email
             </label>
             <Input
@@ -125,69 +119,67 @@ export function SendInvoiceButton({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="client@example.com"
               disabled={isSending}
-              className="w-full"
+              className="w-full h-12 text-base border-2"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-2 font-medium">
               Invoice will be sent to this email address
             </p>
           </div>
 
-          {/* Email Preview */}
-          <Card className="p-4 bg-gray-50 border-gray-200">
-            <div className="space-y-3">
+          <div className="bg-gray-50 rounded-xl border-2 border-gray-200 p-6">
+            <div className="space-y-4">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase mb-1">
+                <p className="text-xs font-black uppercase tracking-wide text-gray-500 mb-2">
                   Subject Line
                 </p>
-                <p className="text-sm text-gray-900 font-medium">
+                <p className="text-sm text-gray-900 font-bold">
                   {subjectLine}
                 </p>
               </div>
-              <div className="pt-3 border-t border-gray-200">
-                <p className="text-xs font-medium text-gray-500 uppercase mb-1">
+              <div className="pt-4 border-t-2 border-gray-200">
+                <p className="text-xs font-black uppercase tracking-wide text-gray-500 mb-2">
                   Recipient
                 </p>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-gray-900 font-bold">
                   {clientName}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 font-medium">
                   {email || clientEmail}
                 </p>
               </div>
-              <div className="pt-3 border-t border-gray-200">
-                <p className="text-xs text-gray-600">
-                  <span className="font-medium">Note:</span> A PDF copy of invoice {invoiceNumber} will be attached to this email.
+              <div className="pt-4 border-t-2 border-gray-200">
+                <p className="text-xs text-gray-600 font-medium">
+                  <span className="font-bold">Note:</span> A PDF copy of invoice {invoiceNumber} will be attached to this email.
                 </p>
               </div>
             </div>
-          </Card>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
-            <Button
-              variant="outline"
+          <div className="flex gap-3 justify-end pt-6 border-t-2 border-gray-200">
+            <button
               onClick={handleClose}
               disabled={isSending}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
-            </Button>
-            <Button
+            </button>
+            <button
               onClick={handleSend}
               disabled={isSending || !email.trim()}
-              className="bg-primary hover:bg-primary/90 text-white"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isSending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Sending...
                 </>
               ) : (
                 <>
-                  <Mail className="w-4 h-4 mr-2" />
+                  <Mail className="w-4 h-4" />
                   Send Invoice
                 </>
               )}
-            </Button>
+            </button>
           </div>
         </div>
       </Dialog>
