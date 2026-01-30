@@ -46,9 +46,9 @@ export function SendInvoiceButton({
         const errorMessage = data.error || 'Failed to send invoice'
         
         if (errorMessage.includes('Demo mode')) {
-          toast.error('⚠️ Demo Mode: Can only send to kamohelo.thakhisi@gmail.com', { id: loadingToast, duration: 3000 })
+          toast.error('Demo Mode: Can only send to kamohelo.thakhisi@gmail.com', { id: loadingToast, duration: 3000 })
         } else {
-          toast.error('⚠️ ' + errorMessage, { id: loadingToast, duration: 3000 })
+          toast.error(errorMessage, { id: loadingToast, duration: 3000 })
         }
         
         setIsSending(false)
@@ -76,7 +76,7 @@ export function SendInvoiceButton({
       }, 1000)
       
     } catch (error) {
-      toast.error('⚠️ Failed to send invoice', { id: loadingToast, duration: 3000 })
+      toast.error('Failed to send invoice', { id: loadingToast, duration: 3000 })
       setIsSending(false)
     }
   }

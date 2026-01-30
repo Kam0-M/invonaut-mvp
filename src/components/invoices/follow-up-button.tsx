@@ -47,7 +47,7 @@ export function FollowUpButton({
 
   const handleFollowUp = async () => {
     if (!canFollowUp()) {
-      toast.warning('⚠️ Please wait 48 hours between follow-ups', { duration: 3000 })
+      toast.warning('Please wait 48 hours between follow-ups', { duration: 3000 })
       return
     }
 
@@ -67,9 +67,9 @@ export function FollowUpButton({
         const errorMessage = data.error || 'Failed to send follow-up'
         
         if (errorMessage.includes('Demo mode')) {
-          toast.error('⚠️ Demo Mode: Can only send to kamohelo.thakhisi@gmail.com', { id: loadingToast, duration: 3000 })
+          toast.error('Demo Mode: Can only send to kamohelo.thakhisi@gmail.com', { id: loadingToast, duration: 3000 })
         } else {
-          toast.error('⚠️ ' + errorMessage, { id: loadingToast, duration: 3000 })
+          toast.error(errorMessage, { id: loadingToast, duration: 3000 })
         }
         
         setIsSending(false)
@@ -84,7 +84,7 @@ export function FollowUpButton({
       }, 1000)
       
     } catch (error) {
-      toast.error('⚠️ Failed to send follow-up', { id: loadingToast, duration: 3000 })
+      toast.error('Failed to send follow-up', { id: loadingToast, duration: 3000 })
       setIsSending(false)
     }
   }
