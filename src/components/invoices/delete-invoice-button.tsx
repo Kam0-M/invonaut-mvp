@@ -52,7 +52,7 @@ export function DeleteInvoiceButton({
     } catch (err: any) {
       console.error('Error deleting invoice:', err)
       setError(err.message || 'Failed to delete invoice')
-      toast.error('⚠️ ' + (err.message || 'Failed to delete invoice'), { id: loadingToast, duration: 3000 })
+      toast.error(err.message || 'Failed to delete invoice', { id: loadingToast, duration: 3000 })
       setIsDeleting(false)
     }
   }
