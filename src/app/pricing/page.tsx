@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Check, ArrowLeft } from 'lucide-react'
@@ -35,7 +35,7 @@ export default async function PricingPage() {
         'Basic AI payment predictions',
         'Email invoicing with PDF',
         'Dashboard analytics',
-        'Flowance branding',
+        'Invonaut branding',
       ],
       cta: 'Get Started',
       highlighted: false,
@@ -52,7 +52,7 @@ export default async function PricingPage() {
         'Advanced AI predictions with confidence scoring',
         'White label branding (custom logo & colors)',
         'Priority email support',
-        'Remove Flowance branding',
+        'Remove Invonaut branding',
       ],
       cta: 'Upgrade Now',
       highlighted: true,
@@ -238,8 +238,8 @@ export default async function PricingPage() {
           </p>
           <p className="text-sm text-gray-500">
             Questions? Email us at{' '}
-            <a href="mailto:support@flowance.com" className="text-blue-600 hover:underline">
-              support@flowance.com
+            <a href="mailto:support@Invonaut.com" className="text-blue-600 hover:underline">
+              support@Invonaut.com
             </a>
           </p>
         </div>

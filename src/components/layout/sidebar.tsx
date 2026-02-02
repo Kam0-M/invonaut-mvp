@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -46,7 +46,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
         {/* Logo */}
         <div className="px-6 mb-8">
           <Link href="/dashboard" className="flex items-center">
-            <span className="text-2xl font-black text-gray-900 tracking-tight">Flowance</span>
+            <span className="text-2xl font-black text-gray-900 tracking-tight">Invonaut</span>
           </Link>
         </div>
 

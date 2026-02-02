@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -90,7 +90,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-blue-600" />
-            <span className="text-3xl font-black text-gray-900 tracking-tight">Flowance</span>
+            <span className="text-3xl font-black text-gray-900 tracking-tight">Invonaut</span>
           </Link>
           <p className="text-base text-gray-600 font-medium">
             AI-Powered Invoicing for Freelancers

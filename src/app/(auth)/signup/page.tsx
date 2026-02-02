@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -136,7 +136,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-blue-600" />
-            <span className="text-3xl font-black text-gray-900 tracking-tight">Flowance</span>
+            <span className="text-3xl font-black text-gray-900 tracking-tight">Invonaut</span>
           </Link>
           <p className="text-base text-gray-600 font-medium">
             Start your 14-day free trial

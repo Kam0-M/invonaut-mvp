@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowLeft, Plus, Users } from 'lucide-react'
@@ -83,7 +83,7 @@ export default async function ClientsPage() {
             No clients yet
           </h3>
           <p className="text-base text-gray-600 mb-8 font-medium max-w-md mx-auto">
-            Add your first client to start managing invoices and tracking payments with Flowance.
+            Add your first client to start managing invoices and tracking payments with Invonaut.
           </p>
           <Link 
             href="/dashboard/clients/new"

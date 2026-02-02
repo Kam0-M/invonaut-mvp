@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -141,7 +141,7 @@ export default function VerifyEmailPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-blue-600" />
-            <span className="text-3xl font-black text-gray-900 tracking-tight">Flowance</span>
+            <span className="text-3xl font-black text-gray-900 tracking-tight">Invonaut</span>
           </Link>
         </div>
 
@@ -195,7 +195,7 @@ export default function VerifyEmailPage() {
                   <div className="text-sm text-gray-700 space-y-3">
                     <p className="font-bold text-gray-900">To complete signup:</p>
                     <ol className="list-decimal list-inside space-y-2 ml-2 font-medium">
-                      <li>Check your email inbox for a message from Flowance</li>
+                      <li>Check your email inbox for a message from Invonaut</li>
                       <li>Click the "Confirm Your Email" button in the email</li>
                       <li>Return to this page</li>
                       <li>Click "Continue to Dashboard" below once confirmed</li>

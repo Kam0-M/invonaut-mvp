@@ -1,6 +1,6 @@
-# 🚀 Flowance Production Deployment Guide
+﻿# 🚀 Invonaut Production Deployment Guide
 
-This guide walks through deploying Flowance to production using Vercel and Supabase.
+This guide walks through deploying Invonaut to production using Vercel and Supabase.
 
 ---
 
@@ -86,7 +86,7 @@ Before deploying to production, ensure:
    - Click "New Project"
 
 2. **Configure Project**
-   - **Name**: flowance-production
+   - **Name**: Invonaut-production
    - **Database Password**: Generate strong password (save securely)
    - **Region**: Choose closest to your users (US East, EU West, etc.)
    - **Pricing Plan**: Start with Free tier
@@ -106,7 +106,7 @@ Copy and paste this complete schema:
 
 ```sql
 -- ================================================
--- FLOWANCE PRODUCTION DATABASE SCHEMA
+-- Invonaut PRODUCTION DATABASE SCHEMA
 -- ================================================
 
 -- Create user_profiles table with white label support
@@ -346,7 +346,7 @@ USING (
 
 3. **Configure Site URL**
    - Set to your production domain: `https://your-domain.com`
-   - Or Vercel URL: `https://flowance-mvp.vercel.app`
+   - Or Vercel URL: `https://Invonaut-mvp.vercel.app`
 
 4. **Configure Redirect URLs**
    - Add: `https://your-domain.com/auth/callback`
@@ -373,7 +373,7 @@ USING (
 
 1. **Push Code to GitHub**
 ```bash
-cd C:\Users\kamoh\Flowance-Project\flowance-saas
+cd C:\Users\kamoh\Invonaut-Project\Invonaut-saas
 git add .
 git commit -m "Prepare for production deployment"
 git push origin main
@@ -386,13 +386,13 @@ git push origin main
 
 3. **Connect GitHub Repository**
    - Authorize Vercel to access your GitHub
-   - Select `flowance-mvp` repository
+   - Select `Invonaut-mvp` repository
    - Click "Import"
 
 ### Configure Project
 
 1. **Project Settings**
-   - **Project Name**: flowance-mvp (or your preferred name)
+   - **Project Name**: Invonaut-mvp (or your preferred name)
    - **Framework Preset**: Next.js (auto-detected)
    - **Root Directory**: ./
    - **Build Command**: `npm run build` (default)
@@ -429,7 +429,7 @@ RESEND_API_KEY=your_resend_api_key
 ### Verify Deployment
 
 1. **Visit Your Live Site**
-   - Click the deployment URL (e.g., `flowance-mvp.vercel.app`)
+   - Click the deployment URL (e.g., `Invonaut-mvp.vercel.app`)
    - Test signup flow
    - Create test client and invoice
    - Verify database connection works
@@ -505,25 +505,25 @@ Update email sending code in `src/lib/email/` accordingly.
 ### Configure Custom Domain in Vercel
 
 1. **Go to Vercel Project Settings**
-   - Select your flowance-mvp project
+   - Select your Invonaut-mvp project
    - Click "Domains"
 
 2. **Add Domain**
-   - Enter your domain: `flowance.com` or `app.flowance.com`
+   - Enter your domain: `Invonaut.com` or `app.Invonaut.com`
    - Click "Add"
 
 3. **Configure DNS**
 
 Vercel will show DNS configuration:
 
-**Option A - Subdomain (app.flowance.com)**:
+**Option A - Subdomain (app.Invonaut.com)**:
 ```
 Type: CNAME
 Host: app
 Value: cname.vercel-dns.com
 ```
 
-**Option B - Root Domain (flowance.com)**:
+**Option B - Root Domain (Invonaut.com)**:
 ```
 Type: A
 Host: @
@@ -974,7 +974,7 @@ As logo uploads grow:
 
 ## ✅ Deployment Complete
 
-Congratulations! Flowance is now live in production with full white label support. 🎉
+Congratulations! Invonaut is now live in production with full white label support. 🎉
 
 ### Next Steps
 
@@ -999,4 +999,4 @@ Congratulations! Flowance is now live in production with full white label suppor
 
 ---
 
-**🎉 Congratulations on deploying Flowance to production!**
+**🎉 Congratulations on deploying Invonaut to production!**

@@ -1,8 +1,8 @@
-# 🚀 Flowance
+﻿# 🚀 Invonaut
 
 **AI-Powered Invoicing Platform for Freelancers**
 
-Flowance is an intelligent financial assistant that predicts client payment behavior and automates invoicing workflows. Unlike traditional invoicing tools that just digitize paper processes, Flowance uses AI to predict when clients will pay, automate follow-ups, and eliminate admin friction.
+Invonaut is an intelligent financial assistant that predicts client payment behavior and automates invoicing workflows. Unlike traditional invoicing tools that just digitize paper processes, Invonaut uses AI to predict when clients will pay, automate follow-ups, and eliminate admin friction.
 
 > **Core Value Proposition**: "Never chase another late payment again. AI that turns your invoicing chaos into cash flow predictability."
 
@@ -84,8 +84,8 @@ Flowance is an intelligent financial assistant that predicts client payment beha
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/Kam0-M/flowance-mvp.git
-cd flowance-mvp
+git clone https://github.com/Kam0-M/Invonaut-mvp.git
+cd Invonaut-mvp
 ```
 
 2. **Install dependencies**
@@ -234,7 +234,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📁 Project Structure
 
 ```
-flowance-saas/
+Invonaut-saas/
 ├── src/
 │   ├── app/                      # Next.js App Router
 │   │   ├── (auth)/              # Authentication routes (signup, login, verify)
@@ -475,7 +475,7 @@ This project is private and not licensed for public use.
 
 **Kamohelo Thakhisi**
 - GitHub: [@Kam0-M](https://github.com/Kam0-M)
-- Project: [flowance-mvp](https://github.com/Kam0-M/flowance-mvp)
+- Project: [Invonaut-mvp](https://github.com/Kam0-M/Invonaut-mvp)
 
 ---
 

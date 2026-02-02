@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { ArrowLeft, Book, HelpCircle, FileText, Users, Settings, Mail, Sparkles } from 'lucide-react'
 
 export default function HelpPage() {
@@ -18,7 +18,7 @@ export default function HelpPage() {
           <div>
             <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Help Center</h1>
             <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Everything you need to know about Flowance
+              Everything you need to know about Invonaut
             </p>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default function HelpPage() {
         </div>
         <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-4 tracking-tight">Need More Help?</h2>
         <p className="text-gray-700 text-base sm:text-lg font-medium mb-8 max-w-2xl mx-auto leading-relaxed">
-          Our support team is here to help you succeed with Flowance
+          Our support team is here to help you succeed with Invonaut
         </p>
         <a 
           href="mailto:kamohelo.thakhisi@gmail.com"

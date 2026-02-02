@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 export default function LandingPage() {
   return (
@@ -7,9 +7,14 @@ export default function LandingPage() {
       <nav className="bg-white/95 backdrop-blur-md border-b border-gray-200 fixed w-full top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
-            <div className="flex items-center">
-              <span className="text-2xl font-black tracking-tight text-gray-900">Flowance</span>
-            </div>
+            <Link href="/" className="flex items-center gap-3 cursor-pointer">
+              <img 
+                src="/invonaut-logo.png" 
+                alt="Invonaut Logo" 
+                className="w-10 h-10 rounded-full"
+              />
+              <span className="text-2xl font-black tracking-tight text-gray-900">Invonaut</span>
+            </Link>
             <div className="hidden md:flex items-center gap-8">
               <Link href="#features" className="text-gray-700 hover:text-gray-900 font-semibold text-sm transition-colors">
                 Features
@@ -219,7 +224,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">
-              How Flowance Works
+              How Invonaut Works
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto font-medium">
               Get started in minutes. No setup complexity.
@@ -253,7 +258,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-2xl font-black text-gray-900 mb-4">Sit Back & Relax</h3>
               <p className="text-gray-600 leading-relaxed">
-                Flowance automatically sends follow-ups for overdue invoices. You focus on your work while we handle payment admin.
+                Invonaut automatically sends follow-ups for overdue invoices. You focus on your work while we handle payment admin.
               </p>
             </div>
           </div>
@@ -318,7 +323,7 @@ export default function LandingPage() {
                   <svg className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd"/>
                   </svg>
-                  <span className="text-gray-500 font-medium">Flowance branding on invoices</span>
+                  <span className="text-gray-500 font-medium">Invonaut branding on invoices</span>
                 </li>
               </ul>
               <Link href="/signup" className="block w-full bg-gray-900 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-gray-800 transition-all">
@@ -461,7 +466,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
             <div>
-              <h3 className="text-white font-black text-xl mb-4 tracking-tight">Flowance</h3>
+              <h3 className="text-white font-black text-xl mb-4 tracking-tight">Invonaut</h3>
               <p className="text-sm leading-relaxed">
                 AI-powered invoice intelligence for freelancers who value their time.
               </p>
@@ -492,10 +497,11 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8">
-            <p className="text-center text-sm">&copy; 2026 Flowance. All rights reserved.</p>
+            <p className="text-center text-sm">&copy; 2026 Invonaut. All rights reserved.</p>
           </div>
         </div>
       </footer>
     </div>
   )
 }
+

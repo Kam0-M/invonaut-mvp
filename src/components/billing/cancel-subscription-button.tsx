@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
@@ -96,7 +96,7 @@ export default function CancelSubscriptionButton({ currentTier }: CancelSubscrip
 
               <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6">
                 <p className="text-sm text-yellow-900 font-medium">
-                  <strong>Note:</strong> This is different from downgrading. Cancelling ends your subscription completely. If you want to keep using Flowance with fewer features, choose "Switch to Professional" or "Switch to Starter" instead.
+                  <strong>Note:</strong> This is different from downgrading. Cancelling ends your subscription completely. If you want to keep using Invonaut with fewer features, choose "Switch to Professional" or "Switch to Starter" instead.
                 </p>
               </div>
 

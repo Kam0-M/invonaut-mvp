@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+﻿import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Check, CreditCard, AlertCircle } from 'lucide-react'
@@ -75,7 +75,7 @@ export default async function BillingPage({
         'Basic AI payment predictions',
         'Email invoicing with PDF',
         'Dashboard analytics',
-        'Flowance branding',
+        'Invonaut branding',
       ],
       priceId: process.env.STRIPE_PRICE_ID_STARTER,
     },

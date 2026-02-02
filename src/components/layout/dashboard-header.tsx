@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -40,7 +40,7 @@ export default function DashboardHeader({ user, logoUrl, subscriptionTier = 'sta
           {/* Logo (Mobile Only) */}
           <div className="flex items-center md:hidden">
             <Link href="/dashboard" className="flex items-center">
-              <span className="text-2xl font-black text-gray-900">Flowance</span>
+              <span className="text-2xl font-black text-gray-900">Invonaut</span>
             </Link>
           </div>
 

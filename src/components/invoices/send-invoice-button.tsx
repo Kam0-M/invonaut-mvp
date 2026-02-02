@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { Mail, Loader2 } from 'lucide-react'
@@ -87,7 +87,7 @@ export function SendInvoiceButton({
     }
   }
 
-  const subjectLine = `Invoice ${invoiceNumber} from Flowance`
+  const subjectLine = `Invoice ${invoiceNumber} from Invonaut`
 
   return (
     <>
