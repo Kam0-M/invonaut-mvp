@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 
@@ -94,7 +94,7 @@ function generateFollowUpEmailHTML({
   <!-- Footer -->
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
     <p style="margin: 0;">This is an automated payment reminder from ${business_name}</p>
-    <p style="margin: 8px 0 0 0;">Powered by Flowance</p>
+    <p style="margin: 8px 0 0 0;">Powered by Invonaut</p>
   </div>
 
 </body>
@@ -149,7 +149,7 @@ ${business_name}
 
 ---
 This is an automated payment reminder from ${business_name}
-Powered by Flowance
+Powered by Invonaut
   `
 }
 
@@ -257,7 +257,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const businessName = userProfile?.business_name || userProfile?.full_name || 'Flowance'
+    const businessName = userProfile?.business_name || userProfile?.full_name || 'Invonaut'
     const subject = `Payment Reminder: Invoice ${invoice.invoice_number} is overdue`
     
     const html = generateFollowUpEmailHTML({
@@ -294,7 +294,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const { error: emailError } = await resend.emails.send({
-      from: 'Flowance <onboarding@resend.dev>',
+      from: 'Invonaut <onboarding@resend.dev>',
       to: recipientEmail,
       subject,
       html,

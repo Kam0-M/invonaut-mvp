@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 
 export function Footer() {
   return (
@@ -7,7 +7,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="text-2xl font-bold text-primary">
-              Flowance
+              Invonaut
             </Link>
             <p className="mt-4 text-gray-600 max-w-md">
               Streamline your business operations with our comprehensive SaaS platform. 
@@ -64,7 +64,7 @@ export function Footer() {
         
         <div className="mt-8 pt-8 border-t border-gray-200">
           <p className="text-center text-gray-600">
-            © 2024 Flowance. All rights reserved.
+            © 2024 Invonaut. All rights reserved.
           </p>
         </div>
       </div>

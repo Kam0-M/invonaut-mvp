@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+﻿import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     // Convert ArrayBuffer to Buffer for Resend
     const pdfBuffer = Buffer.from(pdfArrayBuffer)
 
-    const businessName = userProfile?.business_name || userProfile?.full_name || 'Flowance'
+    const businessName = userProfile?.business_name || userProfile?.full_name || 'Invonaut'
     const subject = `Invoice ${invoice.invoice_number} from ${businessName}`
     
     // Generate email with white label branding
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     // Send email via Resend
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: 'Flowance <onboarding@resend.dev>',
+      from: 'Invonaut <onboarding@resend.dev>',
       to: recipientEmail,
       subject,
       html,

@@ -1,6 +1,6 @@
-# 🤝 Contributing to Flowance
+﻿# 🤝 Contributing to Invonaut
 
-Thank you for your interest in contributing to Flowance! While this is currently a solo project, contributions, suggestions, and feedback are welcome.
+Thank you for your interest in contributing to Invonaut! While this is currently a solo project, contributions, suggestions, and feedback are welcome.
 
 ---
 
@@ -71,7 +71,7 @@ TypeError: Cannot read property 'url' of undefined
 **Environment**:
 - Browser: Chrome 120
 - OS: Windows 11
-- Flowance Version: 0.95.0
+- Invonaut Version: 0.95.0
 ```
 
 ### Suggesting Features
@@ -137,8 +137,8 @@ Submit changes via Pull Request with clear descriptions.
 1. **Fork the repository**
    ```bash
    # Click "Fork" on GitHub, then clone your fork
-   git clone https://github.com/YOUR_USERNAME/flowance-mvp.git
-   cd flowance-mvp
+   git clone https://github.com/YOUR_USERNAME/Invonaut-mvp.git
+   cd Invonaut-mvp
    ```
 
 2. **Install dependencies**
@@ -669,7 +669,7 @@ When adding a new feature:
 
 ## 🎉 Thank You!
 
-Thank you for contributing to Flowance! Every contribution, no matter how small, helps make this project better.
+Thank you for contributing to Invonaut! Every contribution, no matter how small, helps make this project better.
 
 **Happy coding!** 🚀
 

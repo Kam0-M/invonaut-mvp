@@ -1,12 +1,12 @@
-# 📘 Flowance User Guide
+﻿# 📘 Invonaut User Guide
 
-Welcome to Flowance! This guide will help you get started with managing your freelance invoicing and payments.
+Welcome to Invonaut! This guide will help you get started with managing your freelance invoicing and payments.
 
 ---
 
-## 🎯 What is Flowance?
+## 🎯 What is Invonaut?
 
-Flowance is an AI-powered invoicing platform designed specifically for freelancers. It helps you:
+Invonaut is an AI-powered invoicing platform designed specifically for freelancers. It helps you:
 - Create and send professional invoices
 - Track payments automatically
 - Predict when clients will pay (using AI)
@@ -21,7 +21,7 @@ Flowance is an AI-powered invoicing platform designed specifically for freelance
 ### Creating Your Account
 
 1. **Sign Up**
-   - Go to the Flowance homepage
+   - Go to the Invonaut homepage
    - Click "Sign Up" or "Get Started"
    - Enter your email and create a password
    - Click "Create Account"
@@ -52,7 +52,7 @@ Flowance is an AI-powered invoicing platform designed specifically for freelance
 
 ### What is White Label?
 
-White label branding allows you to customize your invoices and emails with your own logo and brand colors, making all communications look like they come directly from your business (not Flowance).
+White label branding allows you to customize your invoices and emails with your own logo and brand colors, making all communications look like they come directly from your business (not Invonaut).
 
 **Available on:** Professional ($59/mo) and Business ($79/mo) plans only
 
@@ -281,7 +281,7 @@ When your client pays:
 4. Status changes to "Paid"
 5. Dashboard metrics update automatically
 
-**Note**: Flowance doesn't integrate with payment processors yet. You must manually mark invoices as paid.
+**Note**: Invonaut doesn't integrate with payment processors yet. You must manually mark invoices as paid.
 
 ### Filtering Invoices
 
@@ -339,7 +339,7 @@ To maintain professionalism and avoid spam:
 
 ### Understanding AI Predictions
 
-For invoices with "Sent" status, Flowance uses AI to predict:
+For invoices with "Sent" status, Invonaut uses AI to predict:
 - **When the client will likely pay**
 - **Confidence score** (how certain the AI is)
 - **Risk level** (Low, Medium, or High risk of late payment)
@@ -447,7 +447,7 @@ See the **White Label Branding** section above for complete instructions on:
 ### Subscription Management
 
 **Current Plans:**
-- **Starter** ($29/mo): 25 invoices/month, basic features, Flowance branding
+- **Starter** ($29/mo): 25 invoices/month, basic features, Invonaut branding
 - **Professional** ($59/mo): Unlimited invoices, white label branding, advanced AI
 - **Business** ($79/mo): Everything + team features (coming soon)
 
@@ -616,8 +616,8 @@ PNG, JPG, SVG, and WebP files up to 10MB.
 ### Will my old invoices update with new branding?
 No. When you change your logo or colors, only new invoices will use the updated branding. Previously sent invoices keep their original branding for record-keeping purposes.
 
-### How much does Flowance cost?
-- **Starter**: $29/month (25 invoices, Flowance branding)
+### How much does Invonaut cost?
+- **Starter**: $29/month (25 invoices, Invonaut branding)
 - **Professional**: $59/month (unlimited invoices, white label)
 - **Business**: $79/month (everything + team features coming soon)
 
