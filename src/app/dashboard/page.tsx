@@ -5,8 +5,10 @@ import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
 import { ClientRowDashboard } from '@/components/dashboard/client-row-dashboard'
 import { InvoiceRowDashboard } from '@/components/dashboard/invoice-row-dashboard'
-import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles } from 'lucide-react'
+import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles, Lock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
+import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
+import ViewOnlyBanner from '@/components/view-only-banner'
 
 type InvoiceRaw = {
   id: string
@@ -51,6 +53,16 @@ export default async function DashboardPage() {
   if (userError || !user) {
     redirect('/login')
   }
+
+  // ⬅️ CHECK SUBSCRIPTION STATUS
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('stripe_subscription_id, subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   // Fetch invoices
   const { data: invoiceData } = await supabase
@@ -152,6 +164,9 @@ export default async function DashboardPage() {
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
 
+  // Get random welcome message
+  const welcomeMessage = getWelcomeMessage()
+
   return (
     <div className="space-y-8 max-w-7xl">
       {/* Header with Gradient - Matches Landing Page */}
@@ -164,25 +179,55 @@ export default async function DashboardPage() {
               <Sparkles className="w-6 h-6 text-teal-300" />
               <span className="text-teal-300 font-bold text-sm uppercase tracking-wider">Dashboard</span>
             </div>
-            <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 tracking-tight">Welcome back!</h1>
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 tracking-tight">{welcomeMessage}</h1>
             <p className="text-blue-100 text-lg font-medium">Track your invoices, revenue, and client activity in real-time.</p>
           </div>
+          
+          {/* ⬅️ LOCKED/UNLOCKED BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Link href="/dashboard/invoices/new" className="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-center hover:shadow-2xl transition-all hover:scale-105">
-              <div className="flex items-center justify-center gap-2">
-                <FileText className="w-5 h-5" />
-                Create Invoice
-              </div>
-            </Link>
-            <Link href="/dashboard/clients/new" className="inline-block bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center">
-              <div className="flex items-center justify-center gap-2">
-                <Users className="w-5 h-5" />
-                Add Client
-              </div>
-            </Link>
+            {/* Create Invoice Button */}
+            {hasActiveSubscription ? (
+              <Link href="/dashboard/invoices/new" className="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-center hover:shadow-2xl transition-all hover:scale-105">
+                <div className="flex items-center justify-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Create Invoice
+                </div>
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/20 text-white/50 font-bold cursor-not-allowed border-2 border-white/20"
+                title="Subscribe to create invoices"
+              >
+                <Lock className="w-5 h-5" />
+                Create Invoice (Locked)
+              </button>
+            )}
+
+            {/* Add Client Button */}
+            {hasActiveSubscription ? (
+              <Link href="/dashboard/clients/new" className="inline-block bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Add Client
+                </div>
+              </Link>
+            ) : (
+              <button
+                disabled
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 text-white/50 border-2 border-white/20 font-bold cursor-not-allowed"
+                title="Subscribe to add clients"
+              >
+                <Lock className="w-5 h-5" />
+                Add Client (Locked)
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ⬅️ VIEW-ONLY BANNER (if no subscription) */}
+      {!hasActiveSubscription && <ViewOnlyBanner />}
 
       {/* Metrics - Premium Cards with Hover Effects */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -252,10 +297,20 @@ export default async function DashboardPage() {
                 <TrendingUp className="w-10 h-10 text-blue-600" />
               </div>
               <h3 className="text-lg font-black text-gray-900 mb-2">No revenue data yet</h3>
-              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">Create and send invoices to start tracking your revenue growth</p>
-              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                Create First Invoice
-              </Link>
+              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">
+                {hasActiveSubscription 
+                  ? 'Create and send invoices to start tracking your revenue growth'
+                  : 'Subscribe to start creating invoices and tracking revenue'}
+              </p>
+              {hasActiveSubscription ? (
+                <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Create First Invoice
+                </Link>
+              ) : (
+                <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Start Free Trial
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -275,10 +330,20 @@ export default async function DashboardPage() {
                 <FileText className="w-10 h-10 text-blue-600" />
               </div>
               <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
-              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">Create your first invoice to start tracking payments</p>
-              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                Create First Invoice
-              </Link>
+              <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">
+                {hasActiveSubscription
+                  ? 'Create your first invoice to start tracking payments'
+                  : 'Subscribe to start creating and tracking invoices'}
+              </p>
+              {hasActiveSubscription ? (
+                <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Create First Invoice
+                </Link>
+              ) : (
+                <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Start Free Trial
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -306,10 +371,20 @@ export default async function DashboardPage() {
                 <FileText className="w-8 h-8 text-blue-600" />
               </div>
               <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
-              <p className="text-sm text-gray-600 mb-6 font-medium">Start creating invoices to track payments</p>
-              <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                Create Invoice
-              </Link>
+              <p className="text-sm text-gray-600 mb-6 font-medium">
+                {hasActiveSubscription
+                  ? 'Start creating invoices to track payments'
+                  : 'Subscribe to start creating invoices'}
+              </p>
+              {hasActiveSubscription ? (
+                <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Create Invoice
+                </Link>
+              ) : (
+                <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                  Start Free Trial
+                </Link>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">
@@ -365,10 +440,20 @@ export default async function DashboardPage() {
                 <Users className="w-8 h-8 text-teal-600" />
               </div>
               <h3 className="text-lg font-black text-gray-900 mb-2">No clients yet</h3>
-              <p className="text-sm text-gray-600 mb-6 font-medium">Add your first client to start creating invoices</p>
-              <Link href="/dashboard/clients/new" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
-                Add Client
-              </Link>
+              <p className="text-sm text-gray-600 mb-6 font-medium">
+                {hasActiveSubscription
+                  ? 'Add your first client to start creating invoices'
+                  : 'Subscribe to start adding clients'}
+              </p>
+              {hasActiveSubscription ? (
+                <Link href="/dashboard/clients/new" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
+                  Add Client
+                </Link>
+              ) : (
+                <Link href="/pricing" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
+                  Start Free Trial
+                </Link>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto -mx-4 sm:mx-0">

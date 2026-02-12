@@ -20,7 +20,7 @@ export async function POST() {
     // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('stripe_subscription_id')
+      .select('stripe_subscription_id, subscription_status, subscription_tier')
       .eq('id', user.id)
       .single()
 
@@ -31,20 +31,36 @@ export async function POST() {
       )
     }
 
-    // Cancel subscription in Stripe (at period end)
-    const subscription = await stripe.subscriptions.update(
-      profile.stripe_subscription_id,
-      {
-        cancel_at_period_end: true,
-      }
-    )
+    const isOnTrial = profile.subscription_status === 'trialing'
 
-    console.log(`✅ Subscription ${subscription.id} will be canceled at period end`)
+    if (isOnTrial) {
+      // IMMEDIATE CANCELLATION for trials
+      await stripe.subscriptions.cancel(profile.stripe_subscription_id)
+      
+      console.log(`✅ Trial subscription ${profile.stripe_subscription_id} canceled immediately (no charge)`)
 
-    return NextResponse.json({
-      message: 'Subscription will be canceled at the end of the billing period',
-      subscription,
-    })
+      return NextResponse.json({
+        message: 'Trial canceled immediately',
+        immediate: true,
+        redirect: '/dashboard/billing?trial_canceled=true'
+      })
+    } else {
+      // CANCEL AT PERIOD END for paid subscriptions
+      const subscription = await stripe.subscriptions.update(
+        profile.stripe_subscription_id,
+        {
+          cancel_at_period_end: true,
+        }
+      )
+
+      console.log(`✅ Subscription ${subscription.id} will be canceled at period end`)
+
+      return NextResponse.json({
+        message: 'Subscription will be canceled at the end of the billing period',
+        immediate: false,
+        redirect: '/cancellation-pending'
+      })
+    }
 
   } catch (error: any) {
     console.error('Cancel subscription error:', error)

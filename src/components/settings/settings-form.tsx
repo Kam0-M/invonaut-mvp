@@ -293,8 +293,8 @@ export default function SettingsForm({
           <div>
             <p className="text-lg font-bold text-gray-900 capitalize">{subscriptionTier} Plan</p>
             <p className="text-sm text-gray-600">
-              {subscriptionTier === 'starter' && '$29/month • 25 invoices'}
-              {subscriptionTier === 'professional' && '$59/month • Unlimited invoices + White label'}
+              {subscriptionTier === 'starter' && '$30/month • 25 invoices'}
+              {subscriptionTier === 'professional' && '$60/month • Unlimited invoices + White label'}
               {subscriptionTier === 'business' && '$79/month • Everything + Team features'}
             </p>
           </div>

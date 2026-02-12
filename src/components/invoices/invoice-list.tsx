@@ -3,6 +3,8 @@
 import { useState, useMemo } from 'react'
 import { InvoiceFilters } from './invoice-filters'
 import { FollowUpButton } from './follow-up-button'
+import Link from 'next/link'
+import { Edit, Lock } from 'lucide-react'
 
 type Invoice = {
   id: string
@@ -19,9 +21,10 @@ type Invoice = {
 
 type InvoiceListProps = {
   invoices: Invoice[]
+  hasActiveSubscription: boolean // ⬅️ NEW PROP
 }
 
-export function InvoiceList({ invoices }: InvoiceListProps) {
+export function InvoiceList({ invoices, hasActiveSubscription }: InvoiceListProps) {
   const [filters, setFilters] = useState({ status: 'all', search: '' })
 
   // Calculate days overdue for an invoice
@@ -144,105 +147,134 @@ export function InvoiceList({ invoices }: InvoiceListProps) {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 w-[200px]">
                       Client
                     </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Issue Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Due Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Amount
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 bg-white">
-              {filteredInvoices.map((invoice) => {
-                const daysOverdue = getDaysOverdue(invoice.due_date, invoice.status)
-                const isOverdue = daysOverdue > 0 && invoice.status === 'sent'
-
-                return (
-                  <tr
-                    key={invoice.id}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td 
-                      className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900 cursor-pointer"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      {invoice.invoice_number}
-                    </td>
-                    <td 
-                      className="px-6 py-4 text-sm text-slate-600 cursor-pointer max-w-[200px]"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      <div className="truncate" title={invoice.clients?.name || undefined}>
-                        {invoice.clients?.name || '—'}
-                      </div>
-                    </td>
-                    <td 
-                      className="whitespace-nowrap px-6 py-4 text-sm text-slate-600 cursor-pointer"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      {formatDate(invoice.issue_date)}
-                    </td>
-                    <td 
-                      className="whitespace-nowrap px-6 py-4 text-sm cursor-pointer"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className={isOverdue ? 'text-red-600 font-medium' : 'text-slate-600'}>
-                          {formatDate(invoice.due_date)}
-                        </span>
-                        {isOverdue && (
-                          <span className="text-xs text-red-500">
-                            {daysOverdue} day{daysOverdue !== 1 ? 's' : ''} overdue
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td 
-                      className="whitespace-nowrap px-6 py-4 text-sm text-slate-600 cursor-pointer"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      {formatCurrency(invoice.total_amount)}
-                    </td>
-                    <td 
-                      className="whitespace-nowrap px-6 py-4 cursor-pointer"
-                      onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
-                    >
-                      <span
-                        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
-                          invoice.status,
-                          invoice.due_date
-                        )}`}
-                      >
-                        {getStatusLabel(invoice.status, invoice.due_date)}
-                      </span>
-                    </td>
-                    <td className="whitespace-nowrap px-6 py-4">
-                      {isOverdue ? (
-                        <FollowUpButton
-                          invoiceId={invoice.id}
-                          invoiceNumber={invoice.invoice_number}
-                          clientName={invoice.clients?.name || 'Client'}
-                          lastFollowedUp={invoice.last_followed_up || null}
-                          daysOverdue={daysOverdue}
-                        />
-                      ) : (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </td>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Issue Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Due Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Amount
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Actions
+                    </th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200 bg-white">
+                  {filteredInvoices.map((invoice) => {
+                    const daysOverdue = getDaysOverdue(invoice.due_date, invoice.status)
+                    const isOverdue = daysOverdue > 0 && invoice.status === 'sent'
+                    const isDraft = invoice.status === 'draft'
+
+                    return (
+                      <tr
+                        key={invoice.id}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td 
+                          className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900 cursor-pointer"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          {invoice.invoice_number}
+                        </td>
+                        <td 
+                          className="px-6 py-4 text-sm text-slate-600 cursor-pointer max-w-[200px]"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          <div className="truncate" title={invoice.clients?.name || undefined}>
+                            {invoice.clients?.name || '—'}
+                          </div>
+                        </td>
+                        <td 
+                          className="whitespace-nowrap px-6 py-4 text-sm text-slate-600 cursor-pointer"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          {formatDate(invoice.issue_date)}
+                        </td>
+                        <td 
+                          className="whitespace-nowrap px-6 py-4 text-sm cursor-pointer"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          <div className="flex flex-col gap-1">
+                            <span className={isOverdue ? 'text-red-600 font-medium' : 'text-slate-600'}>
+                              {formatDate(invoice.due_date)}
+                            </span>
+                            {isOverdue && (
+                              <span className="text-xs text-red-500">
+                                {daysOverdue} day{daysOverdue !== 1 ? 's' : ''} overdue
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td 
+                          className="whitespace-nowrap px-6 py-4 text-sm text-slate-600 cursor-pointer"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          {formatCurrency(invoice.total_amount)}
+                        </td>
+                        <td 
+                          className="whitespace-nowrap px-6 py-4 cursor-pointer"
+                          onClick={() => window.location.href = `/dashboard/invoices/${invoice.id}`}
+                        >
+                          <span
+                            className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getStatusColor(
+                              invoice.status,
+                              invoice.due_date
+                            )}`}
+                          >
+                            {getStatusLabel(invoice.status, invoice.due_date)}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {/* Edit Button (for draft invoices only) */}
+                            {isDraft && (
+                              hasActiveSubscription ? (
+                                <Link 
+                                  href={`/dashboard/invoices/${invoice.id}/edit`}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-xs font-bold text-gray-700"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                  Edit
+                                </Link>
+                              ) : (
+                                <button
+                                  disabled
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 border-2 border-gray-200 text-gray-400 text-xs font-bold cursor-not-allowed"
+                                  title="Subscribe to edit invoices"
+                                >
+                                  <Lock className="w-3.5 h-3.5" />
+                                  Edit
+                                </button>
+                              )
+                            )}
+
+                            {/* Follow-Up Button (for overdue invoices) */}
+                            {isOverdue && (
+                              <FollowUpButton
+                                invoiceId={invoice.id}
+                                invoiceNumber={invoice.invoice_number}
+                                clientName={invoice.clients?.name || 'Client'}
+                                lastFollowedUp={invoice.last_followed_up || null}
+                                daysOverdue={daysOverdue}
+                              />
+                            )}
+
+                            {/* Empty state (no actions available) */}
+                            {!isDraft && !isOverdue && (
+                              <span className="text-xs text-slate-400">—</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

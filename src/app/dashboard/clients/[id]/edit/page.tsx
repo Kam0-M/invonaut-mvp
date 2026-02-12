@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import EditClientForm from '@/components/clients/edit-client-form'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import SubscriptionRequired from '@/components/subscription-required'
 
 export default async function EditClientPage({
   params,
@@ -16,6 +17,21 @@ export default async function EditClientPage({
     data: { user },
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Check subscription status BEFORE loading client
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('stripe_subscription_id, subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  // GATE: Show subscription required if no active subscription
+  if (!hasActiveSubscription) {
+    return <SubscriptionRequired />
+  }
 
   const { data: client, error } = await supabase
     .from('clients')

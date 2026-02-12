@@ -16,9 +16,10 @@ type Client = {
 
 interface ClientsTableProps {
   clients: Client[]
+  hasActiveSubscription: boolean // ⬅️ NEW PROP
 }
 
-export default function ClientsTable({ clients }: ClientsTableProps) {
+export default function ClientsTable({ clients, hasActiveSubscription }: ClientsTableProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   // Filter clients based on search query
@@ -110,6 +111,9 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Payment terms
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
@@ -122,6 +126,7 @@ export default function ClientsTable({ clients }: ClientsTableProps) {
                       email={client.email}
                       phone={client.phone}
                       paymentTerms={client.payment_terms}
+                      hasActiveSubscription={hasActiveSubscription} // ⬅️ PASS PROP TO ClientRow
                     />
                   ))}
                 </tbody>

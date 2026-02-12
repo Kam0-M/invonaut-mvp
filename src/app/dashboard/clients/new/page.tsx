@@ -1,15 +1,18 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ArrowLeft, UserPlus, AlertCircle } from 'lucide-react'
+import { ArrowLeft, UserPlus, AlertCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import SubscriptionRequired from '@/components/subscription-required'
 
 export default function NewClientPage() {
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -21,6 +24,38 @@ export default function NewClientPage() {
     address: '',
     payment_terms: '30'
   })
+
+  useEffect(() => {
+    const checkSubscription = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (!user) {
+          router.push('/login')
+          return
+        }
+
+        // Check subscription status
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('stripe_subscription_id, subscription_status')
+          .eq('id', user.id)
+          .single()
+
+        const isSubscribed = !!profile?.stripe_subscription_id && 
+          (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+        
+        setHasActiveSubscription(isSubscribed)
+      } catch (err) {
+        console.error('Error checking subscription:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkSubscription()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,6 +103,22 @@ export default function NewClientPage() {
     }
 
     router.push('/dashboard/clients')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className="text-gray-600 font-medium">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // GATE: Show subscription required if no active subscription
+  if (!hasActiveSubscription) {
+    return <SubscriptionRequired />
   }
 
   return (

@@ -10,7 +10,7 @@ export const PLANS = {
   starter: {
     id: 'starter',
     name: 'Starter',
-    price: 29,
+    price: 30,
     priceId: process.env.STRIPE_PRICE_ID_STARTER!,
     features: {
       invoicesPerMonth: 25,
@@ -22,7 +22,7 @@ export const PLANS = {
   professional: {
     id: 'professional',
     name: 'Professional',
-    price: 59,
+    price: 60,
     priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL!,
     features: {
       invoicesPerMonth: 'unlimited',

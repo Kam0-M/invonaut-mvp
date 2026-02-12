@@ -122,24 +122,45 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     subscriptionId,
   })
 
+  // Fetch the subscription to check trial status
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+  
+  // Calculate trial end date if in trial
+  let trialEndDate = null
+  let subscriptionStatus = 'active'
+  
+  if (subscription.status === 'trialing' && subscription.trial_end) {
+    // Trial end timestamp from Stripe (Unix timestamp in seconds)
+    trialEndDate = new Date(subscription.trial_end * 1000).toISOString()
+    subscriptionStatus = 'trialing'
+  }
+
+  console.log('Trial info:', {
+    status: subscription.status,
+    trial_end: subscription.trial_end,
+    trialEndDate,
+  })
+
   // Update user profile with subscription info
   const { error } = await supabase
     .from('user_profiles')
     .update({
       stripe_subscription_id: subscriptionId,
       subscription_tier: planId,
-      subscription_status: 'active',
+      subscription_status: subscriptionStatus,
+      trial_end_date: trialEndDate,
+      trial_plan: planId,
     })
     .eq('id', userId)
 
   if (error) {
     console.error('Error updating user profile:', error)
   } else {
-    console.log(`User ${userId} upgraded to ${planId}`)
+    console.log(`User ${userId} ${subscriptionStatus === 'trialing' ? 'started trial for' : 'upgraded to'} ${planId}`)
   }
 }
 
-// Handle subscription updates (plan changes, renewals)
+// Handle subscription updates (plan changes, trial ending, renewals)
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.user_id
 
@@ -162,21 +183,44 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // Determine subscription status
   let status = 'active'
+  let trialEndDate = null
+  
   if (subscription.status === 'canceled') {
     status = 'canceled'
   } else if (subscription.status === 'past_due') {
     status = 'past_due'
   } else if (subscription.status === 'trialing') {
     status = 'trialing'
+    if (subscription.trial_end) {
+      trialEndDate = new Date(subscription.trial_end * 1000).toISOString()
+    }
   }
 
+  console.log('Subscription updated:', {
+    userId,
+    newPlan,
+    status,
+    trialEndDate,
+    cancel_at_period_end: subscription.cancel_at_period_end,
+  })
+
   // Update user profile
+  const updateData: any = {
+    subscription_tier: newPlan,
+    subscription_status: status,
+  }
+
+  // Only update trial_end_date if we have a value or need to clear it
+  if (status === 'trialing' && trialEndDate) {
+    updateData.trial_end_date = trialEndDate
+  } else if (status === 'active') {
+    // Trial ended, clear trial fields
+    updateData.trial_end_date = null
+  }
+
   const { error } = await supabase
     .from('user_profiles')
-    .update({
-      subscription_tier: newPlan,
-      subscription_status: status,
-    })
+    .update(updateData)
     .eq('id', userId)
 
   if (error) {
@@ -204,6 +248,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       subscription_tier: 'starter',
       subscription_status: 'canceled',
       stripe_subscription_id: null,
+      trial_end_date: null,
+      trial_plan: null,
     })
     .eq('id', userId)
 
@@ -230,12 +276,19 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
     const supabase = createAdminClient()
 
-    // Ensure subscription is active
+    // If this is the first payment after trial, clear trial fields
+    const updateData: any = {
+      subscription_status: 'active',
+    }
+
+    // If subscription was trialing and now active, clear trial data
+    if (subscription.status === 'active' && !subscription.trial_end) {
+      updateData.trial_end_date = null
+    }
+
     const { error } = await supabase
       .from('user_profiles')
-      .update({
-        subscription_status: 'active',
-      })
+      .update(updateData)
       .eq('id', userId)
 
     if (error) {

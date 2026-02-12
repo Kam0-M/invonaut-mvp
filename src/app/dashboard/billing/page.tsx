@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Check, CreditCard, AlertCircle } from 'lucide-react'
+import { ArrowLeft, Check, CreditCard, AlertCircle, Zap, TrendingUp, Shield } from 'lucide-react'
 import CancelSubscriptionButton from '@/components/billing/cancel-subscription-button'
 import DowngradeConfirmButton from '@/components/billing/downgrade-confirm-button'
 import CancellationCountdownBanner from '@/components/billing/cancellation-countdown-banner'
@@ -9,7 +9,7 @@ import CancellationCountdownBanner from '@/components/billing/cancellation-count
 export default async function BillingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>
+  searchParams: Promise<{ success?: string; trial_canceled?: string }>
 }) {
   const params = await searchParams
   const supabase = await createClient()
@@ -23,16 +23,24 @@ export default async function BillingPage({
   // Get user profile with subscription info
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('subscription_tier, stripe_customer_id, stripe_subscription_id, subscription_status')
+    .select('subscription_tier, stripe_customer_id, stripe_subscription_id, subscription_status, trial_end_date, trial_plan')
     .eq('id', user.id)
     .single()
 
   const currentTier = profile?.subscription_tier || 'starter'
-  const subscriptionStatus = profile?.subscription_status || 'active'
-  const hasActiveSubscription = profile?.stripe_subscription_id && subscriptionStatus === 'active'
+  const subscriptionStatus = profile?.subscription_status || 'inactive'
+  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+    (subscriptionStatus === 'active' || subscriptionStatus === 'trialing')
   
-  // Show cancel for paid tiers even if webhook hasn't fully processed yet
-  const showCancelButton = hasActiveSubscription || (currentTier === 'professional' || currentTier === 'business')
+  // ⬇️ NEW: Detect if user has EVER subscribed
+  const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
+  
+  // Trial variables
+  const isOnTrial = profile?.subscription_status === 'trialing'
+  const trialEndDate = profile?.trial_end_date ? new Date(profile.trial_end_date) : null
+  const daysLeftInTrial = trialEndDate 
+    ? Math.max(0, Math.ceil((trialEndDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
+    : 0
 
   // Check if subscription is set to cancel at period end
   let cancelAtPeriodEnd = false
@@ -45,19 +53,8 @@ export default async function BillingPage({
       const subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id)
       cancelAtPeriodEnd = subscription.cancel_at_period_end
       
-      console.log('=== BILLING PAGE DEBUG ===')
-      console.log('Subscription ID:', profile.stripe_subscription_id)
-      console.log('cancel_at_period_end:', subscription.cancel_at_period_end)
-      console.log('cancel_at:', subscription.cancel_at)
-      console.log('status:', subscription.status)
-      console.log('hasActiveSubscription:', hasActiveSubscription)
-      
-      // Get cancel_at timestamp ONLY if subscription is actually canceling
-      // When reactivated, cancel_at_period_end becomes false, so we shouldn't use stale cancel_at
       if (subscription.cancel_at_period_end && subscription.cancel_at) {
         cancelAtTimestamp = subscription.cancel_at
-      } else {
-        cancelAtTimestamp = null
       }
     } catch (error) {
       console.error('Error fetching subscription:', error)
@@ -68,7 +65,7 @@ export default async function BillingPage({
     {
       id: 'starter',
       name: 'Starter',
-      price: 29,
+      price: 30,
       features: [
         '25 invoices per month',
         'Unlimited clients',
@@ -82,7 +79,7 @@ export default async function BillingPage({
     {
       id: 'professional',
       name: 'Professional',
-      price: 59,
+      price: 60,
       features: [
         'Unlimited invoices',
         'Unlimited clients',
@@ -93,22 +90,10 @@ export default async function BillingPage({
       ],
       priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL,
     },
-    {
-      id: 'business',
-      name: 'Business',
-      price: 79,
-      features: [
-        'Everything in Professional',
-        'Team collaboration (coming soon)',
-        'Multi-user access (coming soon)',
-        'API access (coming soon)',
-        'Dedicated support (coming soon)',
-      ],
-      priceId: process.env.STRIPE_PRICE_ID_BUSINESS,
-    },
   ]
 
   const currentPlan = plans.find(p => p.id === currentTier)
+  const trialCanceled = params.trial_canceled === 'true'
 
   return (
     <div className="space-y-8">
@@ -131,25 +116,44 @@ export default async function BillingPage({
         </div>
       </div>
 
-      {/* Success Message (if redirected from checkout) */}
-      {params.success === 'true' && (
+      {/* Success Message */}
+      {params.success === 'true' && !trialCanceled && (
         <div className="bg-green-50 border-2 border-green-200 rounded-xl p-6">
           <div className="flex items-start gap-3">
             <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-lg font-bold text-green-900">
-                Subscription Activated!
+                {isOnTrial ? 'Free Trial Started!' : 'Subscription Activated!'}
               </h3>
               <p className="text-green-700 mt-1">
-                Your payment was successful. Your subscription is now active.
+                {isOnTrial 
+                  ? `Your 14-day free trial has started. You won't be charged until ${trialEndDate?.toLocaleDateString()}.`
+                  : 'Your payment was successful. Your subscription is now active.'
+                }
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Cancellation Pending Warning - Prominent Banner with Countdown */}
-      {/* Only show banner if subscription is actually set to cancel */}
+      {/* Trial Canceled Message */}
+      {trialCanceled && (
+        <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-6">
+          <div className="flex items-start gap-3">
+            <svg className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <h3 className="text-lg font-bold text-blue-900">Trial Canceled</h3>
+              <p className="text-blue-700 mt-1">
+                Your free trial has been canceled. You were not charged. You can start a new trial anytime.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancellation Pending Banner */}
       {cancelAtPeriodEnd && cancelAtTimestamp && (
         <CancellationCountdownBanner 
           cancelAt={cancelAtTimestamp}
@@ -157,160 +161,399 @@ export default async function BillingPage({
         />
       )}
 
-      {/* Current Plan Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-lg">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-black text-gray-900 mb-2">Current Plan</h2>
-            <p className="text-gray-600">Your active subscription details</p>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full">
-            <CreditCard className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-bold text-blue-900 uppercase tracking-wide">
-              {currentPlan?.name}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Plan Details */}
-          <div>
-            <div className="mb-6">
-              <div className="flex items-baseline gap-2 mb-4">
-                <span className="text-5xl font-black text-gray-900">
-                  ${currentPlan?.price}
-                </span>
-                <span className="text-gray-600 font-medium">/month</span>
-              </div>
-              <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${
-                subscriptionStatus === 'active' 
-                  ? 'bg-green-100 text-green-800'
-                  : subscriptionStatus === 'past_due'
-                  ? 'bg-red-100 text-red-800'
-                  : subscriptionStatus === 'canceled'
-                  ? 'bg-gray-100 text-gray-800'
-                  : 'bg-blue-100 text-blue-800'
-              }`}>
-                {subscriptionStatus === 'active' && '✓ Active'}
-                {subscriptionStatus === 'past_due' && '⚠ Past Due'}
-                {subscriptionStatus === 'canceled' && '✕ Canceled'}
-                {subscriptionStatus === 'trialing' && '⏱ Trial'}
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
-                Features Included
-              </h3>
-              <ul className="space-y-2">
-                {currentPlan?.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700 font-medium text-sm">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-4">
-            <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">
-                Manage Subscription
-              </h3>
-              
-              {/* Show Upgrade button only if not on Business tier */}
-              {currentTier !== 'business' && !cancelAtPeriodEnd && (
-                <Link
-                  href="/pricing"
-                  className="block w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center px-6 py-3 rounded-xl font-bold mb-3 hover:shadow-xl transition-all hover:scale-105"
-                >
-                  Upgrade Plan
-                </Link>
-              )}
-
-              {/* Show Cancel button if subscription is active and not pending cancellation */}
-              {(() => {
-                const shouldShowCancel = hasActiveSubscription && !cancelAtPeriodEnd
-                console.log('=== MANAGE SUBSCRIPTION SECTION ===')
-                console.log('hasActiveSubscription:', hasActiveSubscription)
-                console.log('cancelAtPeriodEnd:', cancelAtPeriodEnd)
-                console.log('Should show Cancel button:', shouldShowCancel)
-                console.log('currentTier:', currentTier)
-                console.log('subscriptionStatus:', subscriptionStatus)
-                return null
-              })()}
-              {hasActiveSubscription && !cancelAtPeriodEnd && (
-                <CancelSubscriptionButton currentTier={currentTier} />
-              )}
-
-              {/* Show helpful message if pending cancellation - button is in countdown banner */}
-              {cancelAtPeriodEnd && (
-                <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
-                  <p className="text-sm text-orange-900 font-medium text-center">
-                    Your subscription is set to cancel. Use the "Reactivate" button above to undo.
-                  </p>
+{/* ========== NEW USER (Never Subscribed) - Welcome Card ========== */}
+{!hasActiveSubscription && !hasEverSubscribed && (
+        <div className="relative rounded-2xl overflow-hidden shadow-2xl">
+          {/* Gradient Background - matching landing page */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600"></div>
+          
+          {/* Pattern overlay - matching landing page */}
+          <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
+          
+          {/* Content */}
+          <div className="relative z-10 p-10">
+            <div className="grid lg:grid-cols-2 gap-8 items-center">
+              {/* Left side - Text content */}
+              <div>
+                <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 text-white text-sm font-medium mb-6">
+                  Get Started with Invonaut
                 </div>
-              )}
+                
+                <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
+                  🎉 Welcome to<br />
+                  <span className="text-teal-300">Invonaut!</span>
+                </h2>
+                
+                <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                  Choose a plan below to start your 14-day free trial. No credit card required until your trial ends.
+                </p>
+                
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                  <a
+                    href="#available-plans"
+                    className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold hover:shadow-2xl transition-all hover:scale-105 text-center"
+                  >
+                    View Plans Below ↓
+                  </a>
+                  <Link
+                    href="/pricing"
+                    className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center"
+                  >
+                    Compare Features
+                  </Link>
+                </div>
 
-              {!hasActiveSubscription && currentTier === 'starter' && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-blue-900 font-medium">
-                        You're on the free Starter plan. Upgrade to unlock white label branding and advanced features!
-                      </p>
+                {/* Small stats inline */}
+                <p className="text-blue-200 text-sm font-medium">
+                  14-day free trial • $0 setup cost • 95% AI accuracy
+                </p>
+              </div>
+
+              {/* Right side - Visual card with stats */}
+              <div className="hidden lg:block">
+                {/* AI Prediction Card - similar to landing page */}
+                <div className="bg-white rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-500">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Why Invonaut?</span>
+                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Ready to Go</span>
+                  </div>
+                  
+                  {/* Feature highlights */}
+                  <div className="space-y-6 mb-6">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-black text-gray-900 mb-1">AI Predictions</h4>
+                        <p className="text-sm text-gray-600">Know exactly when clients will pay</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-black text-gray-900 mb-1">Auto Follow-ups</h4>
+                        <p className="text-sm text-gray-600">Never chase payments manually</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-black text-gray-900 mb-1">White Label</h4>
+                        <p className="text-sm text-gray-600">Professional branded invoices</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats at bottom */}
+                  <div className="pt-6 border-t border-gray-100">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center">
+                        <div className="text-3xl font-black text-gray-900 mb-1">10+</div>
+                        <div className="text-xs text-gray-600 font-medium">Hours Saved</div>
+                      </div>
+                      <div className="text-center border-l border-r border-gray-200">
+                        <div className="text-3xl font-black text-gray-900 mb-1">95%</div>
+                        <div className="text-xs text-gray-600 font-medium">Accuracy</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-3xl font-black text-gray-900 mb-1">40%</div>
+                        <div className="text-xs text-gray-600 font-medium">Faster Pay</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
-              <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
-                Billing Information
-              </h3>
-              {hasActiveSubscription ? (
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Subscription ID:</span>
-                    <span className="text-gray-900 font-mono text-xs">
-                      {profile?.stripe_subscription_id?.slice(0, 20)}...
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Customer ID:</span>
-                    <span className="text-gray-900 font-mono text-xs">
-                      {profile?.stripe_customer_id?.slice(0, 20)}...
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-600">
-                  No active subscription
-                </p>
-              )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Available Plans - NOW SHOWS FOR ALL TIERS INCLUDING BUSINESS */}
-      <div>
+      {/* ========== EXISTING USER (Has/Had Subscription) - Current Plan Card ========== */}
+      {(hasActiveSubscription || hasEverSubscribed) && (
+        <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-lg">
+          <div className="flex items-start justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-black text-gray-900 mb-2">Current Plan</h2>
+              <p className="text-gray-600">Your active subscription details</p>
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full">
+              <CreditCard className="w-4 h-4 text-blue-600" />
+              <span className="text-sm font-bold text-blue-900 uppercase tracking-wide">
+                {currentPlan?.name}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Plan Details */}
+            <div>
+              <div className="mb-6">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-5xl font-black text-gray-900">
+                    ${currentPlan?.price}
+                  </span>
+                  <span className="text-gray-600 font-medium">/month</span>
+                </div>
+                
+                {/* Status Badge */}
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-bold ${
+                  subscriptionStatus === 'active' 
+                    ? 'bg-green-100 text-green-800'
+                    : subscriptionStatus === 'past_due'
+                    ? 'bg-red-100 text-red-800'
+                    : subscriptionStatus === 'trialing'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {subscriptionStatus === 'active' && '✓ Active'}
+                  {subscriptionStatus === 'past_due' && '⚠ Past Due'}
+                  {subscriptionStatus === 'trialing' && '⏱ Trial'}
+                  {(subscriptionStatus === 'canceled' || !hasActiveSubscription) && '💤 Inactive'}
+                </div>
+
+                {/* Trial Status Info */}
+                {isOnTrial && trialEndDate && (
+                  <div className="bg-blue-100 border-2 border-blue-200 rounded-xl p-4 mt-4">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0">
+                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-blue-900 mb-1">🎁 Free Trial Active</h4>
+                        <p className="text-sm text-blue-700 font-semibold">
+                          {daysLeftInTrial} {daysLeftInTrial === 1 ? 'day' : 'days'} remaining in your free trial
+                        </p>
+                        <p className="text-xs text-blue-600 mt-2">
+                          You'll be charged <span className="font-bold">${currentPlan?.price}/month</span> starting {trialEndDate.toLocaleDateString('en-US', { 
+                            month: 'long', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
+                        </p>
+                        <p className="text-xs text-blue-500 mt-1 italic">
+                          Cancel anytime before then with no charge
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
+                  Features Included
+                </h3>
+                <ul className="space-y-2">
+                  {currentPlan?.features.map((feature, index) => (
+                    <li key={index} className="flex items-start gap-2">
+                      <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 font-medium text-sm">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-4">
+              {/* Manage Subscription Section */}
+              <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">
+                  Manage Subscription
+                </h3>
+                
+                {/* STARTER USERS */}
+                {currentTier === 'starter' && (
+                  <>
+                    {hasActiveSubscription && !cancelAtPeriodEnd ? (
+                      <div className="space-y-4">
+                        {/* Upgrade CTA */}
+                        <div className="bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 rounded-xl p-4 mb-3">
+                          <h4 className="text-sm font-bold text-blue-900 mb-2">✨ Unlock More Features</h4>
+                          <p className="text-sm text-blue-700 mb-3">
+                            Upgrade to Professional for unlimited invoices, white-label branding, and advanced AI predictions.
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="block w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white text-center px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
+                          >
+                            Upgrade to Professional
+                          </Link>
+                        </div>
+                        
+                        {/* Divider */}
+                        <div className="relative">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-xs">
+                            <span className="bg-gray-50 px-2 text-gray-500">or</span>
+                          </div>
+                        </div>
+                        
+                        {/* Cancel button */}
+                        <CancelSubscriptionButton currentTier={currentTier} />
+                        
+                        <p className="text-xs text-gray-600 text-center mt-2">
+                          Canceling ends your subscription but keeps your data safe. You can reactivate anytime.
+                        </p>
+                      </div>
+                    ) : (
+                      // No active subscription
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="text-sm font-bold text-blue-900 mb-1">No Active Subscription</h4>
+                            <p className="text-sm text-blue-700 mb-3">
+                              Start a 14-day free trial of Starter or Professional to unlock all features.
+                            </p>
+                            <Link
+                              href="/pricing"
+                              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all"
+                            >
+                              View Plans & Start Trial
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* PROFESSIONAL USERS */}
+                {currentTier === 'professional' && (
+                  <>
+                    {hasActiveSubscription && !cancelAtPeriodEnd ? (
+                      <div className="space-y-3">
+                        {/* Downgrade button */}
+                        <div>
+                          <DowngradeConfirmButton 
+                            currentTier={currentTier}
+                            targetTier="starter"
+                            buttonText="Downgrade to Starter"
+                            className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
+                          />
+                          <p className="text-xs text-gray-600 mt-1.5">
+                            Keep your invoices & clients, save money with Starter features
+                          </p>
+                        </div>
+                        
+                        {/* Divider */}
+                        <div className="relative py-2">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-xs">
+                            <span className="bg-gray-50 px-3 text-gray-500 font-medium">or cancel completely</span>
+                          </div>
+                        </div>
+                        
+                        {/* Cancel button */}
+                        <div>
+                          <CancelSubscriptionButton currentTier={currentTier} />
+                          <p className="text-xs text-gray-600 mt-1.5">
+                            End subscription (your data stays safe, locked until you resubscribe)
+                          </p>
+                        </div>
+                        
+                        {/* Explanation */}
+                        <div className="bg-gray-100 rounded-lg p-3 mt-3">
+                          <p className="text-xs text-gray-700">
+                            <strong className="text-gray-900">Downgrade:</strong> Keeps data, switches to Starter features ($30/mo)<br/>
+                            <strong className="text-gray-900">Cancel:</strong> Ends subscription, locks access (data saved, reactivate anytime)
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      // No active subscription
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="text-sm font-bold text-blue-900 mb-1">No Active Subscription</h4>
+                            <p className="text-sm text-blue-700 mb-3">
+                              Start a 14-day free trial to regain access to all your features.
+                            </p>
+                            <Link
+                              href="/pricing"
+                              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all"
+                            >
+                              View Plans & Start Trial
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Pending cancellation message */}
+                {cancelAtPeriodEnd && (
+                  <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4">
+                    <p className="text-sm text-orange-900 font-medium text-center">
+                      Your subscription is set to downgrade. Use the "Reactivate" button in the banner above to undo.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Billing Information */}
+              <div className="bg-gray-50 rounded-xl p-6 border-2 border-gray-100">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-3">
+                  Billing Information
+                </h3>
+                {hasActiveSubscription ? (
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subscription ID:</span>
+                      <span className="text-gray-900 font-mono text-xs">
+                        {profile?.stripe_subscription_id?.slice(0, 20)}...
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Customer ID:</span>
+                      <span className="text-gray-900 font-mono text-xs">
+                        {profile?.stripe_customer_id?.slice(0, 20)}...
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    No active subscription
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Available Plans */}
+      <div id="available-plans">
         <h2 className="text-2xl font-black text-gray-900 mb-6">
-          Available Plans
+          {!hasEverSubscribed ? 'Choose Your Plan' : 'Available Plans'}
         </h2>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
           {plans.map((plan) => {
-            const isCurrentPlan = plan.id === currentTier
-            const isUpgrade = 
-              (currentTier === 'starter' && plan.id !== 'starter') ||
-              (currentTier === 'professional' && plan.id === 'business')
-            const isDowngrade = 
-              (currentTier === 'professional' && plan.id === 'starter') ||
-              (currentTier === 'business' && (plan.id === 'starter' || plan.id === 'professional'))
+            const isCurrentPlan = plan.id === currentTier && hasActiveSubscription
+            const isUpgrade = plan.id === 'professional' && currentTier === 'starter' && hasActiveSubscription
 
             return (
               <div
@@ -318,6 +561,8 @@ export default async function BillingPage({
                 className={`rounded-2xl border-2 p-6 transition-all ${
                   isCurrentPlan
                     ? 'border-blue-500 bg-blue-50'
+                    : plan.id === 'professional'
+                    ? 'border-blue-300 bg-white hover:border-blue-400 hover:shadow-xl'
                     : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
                 }`}
               >
@@ -325,6 +570,14 @@ export default async function BillingPage({
                   <div className="mb-4">
                     <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">
                       Current Plan
+                    </span>
+                  </div>
+                )}
+
+                {!isCurrentPlan && plan.id === 'professional' && (
+                  <div className="mb-4">
+                    <span className="inline-block px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
+                      MOST POPULAR
                     </span>
                   </div>
                 )}
@@ -348,45 +601,48 @@ export default async function BillingPage({
                   ))}
                 </ul>
 
-                {!isCurrentPlan && isUpgrade && (
+                {/* Button Logic */}
+                {isCurrentPlan ? (
+                  <button
+                    disabled
+                    className="w-full bg-gray-300 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm cursor-not-allowed"
+                  >
+                    Current Plan
+                  </button>
+                ) : hasActiveSubscription ? (
+                  <>
+                    {isUpgrade && (
+                      <form action="/api/create-checkout-session" method="POST">
+                        <input type="hidden" name="priceId" value={plan.priceId} />
+                        <input type="hidden" name="planId" value={plan.id} />
+                        <button
+                          type="submit"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
+                        >
+                          Upgrade to {plan.name}
+                        </button>
+                      </form>
+                    )}
+                    {plan.id === 'starter' && currentTier === 'professional' && (
+                      <DowngradeConfirmButton 
+                        currentTier={currentTier}
+                        targetTier="starter"
+                        buttonText="Switch to Starter"
+                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
+                      />
+                    )}
+                  </>
+                ) : (
                   <form action="/api/create-checkout-session" method="POST">
                     <input type="hidden" name="priceId" value={plan.priceId} />
                     <input type="hidden" name="planId" value={plan.id} />
                     <button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all"
+                      className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
                     >
-                      Upgrade to {plan.name}
+                      Start 14-Day Free Trial
                     </button>
                   </form>
-                )}
-
-                {/* DOWNGRADE TO STARTER BUTTON - Shows confirmation modal */}
-                {!isCurrentPlan && isDowngrade && plan.id === 'starter' && (
-                  <DowngradeConfirmButton 
-                    currentTier={currentTier}
-                    targetTier="starter"
-                  />
-                )}
-
-                {/* DOWNGRADE TO PROFESSIONAL BUTTON - Shows confirmation modal */}
-                {!isCurrentPlan && isDowngrade && plan.id === 'professional' && (
-                  <DowngradeConfirmButton 
-                    currentTier={currentTier}
-                    targetTier="professional"
-                    buttonText="Switch to Professional"
-                    className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all"
-                  />
-                )}
-
-                {/* CURRENT PLAN BUTTON - Disabled */}
-                {isCurrentPlan && (
-                  <button
-                    disabled
-                    className="w-full bg-gray-200 text-gray-500 px-4 py-2 rounded-xl font-bold text-sm cursor-not-allowed"
-                  >
-                    Current Plan
-                  </button>
                 )}
               </div>
             )
