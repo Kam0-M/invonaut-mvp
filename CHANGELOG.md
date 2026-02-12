@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Planned Features
 - Stripe billing integration (Week 14-15)
-  - Pricing page with 3 tiers ($29/$59/$79)
+  - Pricing page with 3 tiers ($30/$60/$79)
   - Checkout session API
   - Webhook handler for subscription events
   - Billing management page
@@ -172,7 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI prediction showcase
 - Stats bar (time saved, accuracy, speed)
 - Feature highlights
-- Pricing display ($29/$59/$79)
+- Pricing display ($30/$60/$79)
 - Mobile-responsive
 
 #### Documentation

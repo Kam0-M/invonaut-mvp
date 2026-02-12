@@ -54,7 +54,7 @@ Invonaut is an AI-powered invoicing platform designed specifically for freelance
 
 White label branding allows you to customize your invoices and emails with your own logo and brand colors, making all communications look like they come directly from your business (not Invonaut).
 
-**Available on:** Professional ($59/mo) and Business ($79/mo) plans only
+**Available on:** Professional ($60/mo) and Business ($79/mo) plans only
 
 ### Setting Up Your Brand
 
@@ -108,10 +108,10 @@ If you make changes and try to leave the Settings page without saving, you'll ge
 
 ### Upgrading to Access White Label
 
-If you're on the Starter plan ($29/mo):
+If you're on the Starter plan ($30/mo):
 1. You'll see a message: **"Upgrade to Professional or Business plan to customize your branding"**
 2. Click the upgrade prompt
-3. Choose Professional ($59/mo) or Business ($79/mo)
+3. Choose Professional ($60/mo) or Business ($79/mo)
 4. Complete payment setup
 5. White label features unlock immediately
 
@@ -447,8 +447,8 @@ See the **White Label Branding** section above for complete instructions on:
 ### Subscription Management
 
 **Current Plans:**
-- **Starter** ($29/mo): 25 invoices/month, basic features, Invonaut branding
-- **Professional** ($59/mo): Unlimited invoices, white label branding, advanced AI
+- **Starter** ($30/mo): 25 invoices/month, basic features, Invonaut branding
+- **Professional** ($60/mo): Unlimited invoices, white label branding, advanced AI
 - **Business** ($79/mo): Everything + team features (coming soon)
 
 **To upgrade or manage your subscription:**
@@ -605,7 +605,7 @@ Not yet. CSV/Excel export functionality is coming soon.
 Not yet. Currently, only USD is supported.
 
 ### How do I access white label features?
-Upgrade to Professional ($59/mo) or Business ($79/mo) plan. Go to Settings → see upgrade prompt → complete payment.
+Upgrade to Professional ($60/mo) or Business ($79/mo) plan. Go to Settings → see upgrade prompt → complete payment.
 
 ### Can I use my own domain for emails?
 Not yet, but this is planned for Business plan users in the future.
@@ -617,8 +617,8 @@ PNG, JPG, SVG, and WebP files up to 10MB.
 No. When you change your logo or colors, only new invoices will use the updated branding. Previously sent invoices keep their original branding for record-keeping purposes.
 
 ### How much does Invonaut cost?
-- **Starter**: $29/month (25 invoices, Invonaut branding)
-- **Professional**: $59/month (unlimited invoices, white label)
+- **Starter**: $30/month (25 invoices, Invonaut branding)
+- **Professional**: $60/month (unlimited invoices, white label)
 - **Business**: $79/month (everything + team features coming soon)
 
 ### Is there a mobile app?

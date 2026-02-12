@@ -223,8 +223,8 @@ export default async function CancellationPendingPage() {
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• You'll keep all {currentTier} features until {cancelDate}</li>
                 <li>• {isDowngradingToStarter 
-                  ? `Your billing will switch to $29/month (${targetTierName} plan)` 
-                  : `Your billing will switch to $59/month (${targetTierName} plan)`}</li>
+                  ? `Your billing will switch to $30/month (${targetTierName} plan)` 
+                  : `Your billing will switch to $60/month (${targetTierName} plan)`}</li>
                 <li>• Your subscription will automatically switch to the {targetTierName} plan</li>
                 <li>• You can reactivate your {currentTier} plan anytime before {cancelDate}</li>
               </ul>

@@ -75,8 +75,8 @@ export default function DowngradeConfirmButton({
   }
 
   const getTargetPlanPrice = () => {
-    if (targetTier === 'starter') return '$29'
-    if (targetTier === 'professional') return '$59'
+    if (targetTier === 'starter') return '$30'
+    if (targetTier === 'professional') return '$60'
     return ''
   }
 

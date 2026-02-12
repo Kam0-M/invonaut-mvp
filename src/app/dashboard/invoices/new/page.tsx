@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import SubscriptionRequired from '@/components/subscription-required'
 
 type Client = {
   id: string
@@ -27,6 +28,7 @@ export default function NewInvoicePage() {
   const preSelectedClientId = searchParams.get('clientId')
   
   const [isLoading, setIsLoading] = useState(true)
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
   const [invoiceNumber, setInvoiceNumber] = useState('INV-00001')
@@ -66,7 +68,7 @@ export default function NewInvoicePage() {
   }
 
   useEffect(() => {
-    const fetchClients = async () => {
+    const checkSubscriptionAndFetchData = async () => {
       try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
@@ -75,6 +77,19 @@ export default function NewInvoicePage() {
           return
         }
 
+        // Check subscription status
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('stripe_subscription_id, subscription_status')
+          .eq('id', user.id)
+          .single()
+
+        const isSubscribed = !!profile?.stripe_subscription_id && 
+          (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+        
+        setHasActiveSubscription(isSubscribed)
+
+        // Fetch clients
         const { data, error } = await supabase
           .from('clients')
           .select('id, name, company')
@@ -88,14 +103,14 @@ export default function NewInvoicePage() {
           setClientId(preSelectedClientId)
         }
       } catch (err) {
-        console.error('Error fetching clients:', err)
-        toast.error('Failed to load clients. Please refresh the page.')
+        console.error('Error fetching data:', err)
+        toast.error('Failed to load data. Please refresh the page.')
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchClients()
+    checkSubscriptionAndFetchData()
   }, [router, preSelectedClientId])
 
   useEffect(() => {
@@ -295,6 +310,11 @@ export default function NewInvoicePage() {
         </div>
       </div>
     )
+  }
+
+  // GATE: Show subscription required if no active subscription
+  if (!hasActiveSubscription) {
+    return <SubscriptionRequired />
   }
 
   const isClientLocked = !!preSelectedClientId

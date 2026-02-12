@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { InvoiceList } from '@/components/invoices/invoice-list'
-import { ArrowLeft, Plus, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, FileText, Lock } from 'lucide-react'
+import ViewOnlyBanner from '@/components/view-only-banner'
 
 type Invoice = {
   id: string
@@ -27,6 +28,17 @@ export default async function InvoicesPage() {
   if (userError || !user) {
     redirect('/login')
   }
+
+  // Fetch user profile to check subscription status
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('stripe_subscription_id, subscription_status')
+    .eq('id', user.id)
+    .single()
+
+  // Check if user has active subscription (active OR trialing)
+  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const { data: allInvoices } = await supabase
     .from('invoices')
@@ -69,15 +81,32 @@ export default async function InvoicesPage() {
             </p>
           </div>
         </div>
-        <Link 
-          href="/dashboard/invoices/new"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 w-full sm:w-auto"
-        >
-          <Plus className="w-5 h-5" />
-          <span className="hidden sm:inline">Create Invoice</span>
-          <span className="sm:hidden">Create</span>
-        </Link>
+
+        {/* Create Invoice Button - Locked or Active */}
+        {hasActiveSubscription ? (
+          <Link 
+            href="/dashboard/invoices/new"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Create Invoice</span>
+            <span className="sm:hidden">Create</span>
+          </Link>
+        ) : (
+          <button
+            disabled
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gray-200 text-gray-500 font-bold cursor-not-allowed w-full sm:w-auto border-2 border-gray-300"
+            title="Subscribe to create invoices"
+          >
+            <Lock className="w-5 h-5" />
+            <span className="hidden sm:inline">Create Invoice (Locked)</span>
+            <span className="sm:hidden">Create (Locked)</span>
+          </button>
+        )}
       </div>
+
+      {/* View-Only Banner (if no subscription) */}
+      {!hasActiveSubscription && <ViewOnlyBanner />}
 
       {/* Empty State or Invoice List */}
       {invoices.length === 0 ? (
@@ -91,19 +120,31 @@ export default async function InvoicesPage() {
             No invoices yet
           </h3>
           <p className="text-base text-gray-600 mb-8 font-medium max-w-md mx-auto">
-            Create your first invoice to start tracking payments and managing your business.
+            {hasActiveSubscription 
+              ? 'Create your first invoice to start tracking payments and managing your business.'
+              : 'Subscribe to start creating invoices and managing your business.'}
           </p>
-          <Link 
-            href="/dashboard/invoices/new"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
-          >
-            <Plus className="w-5 h-5" />
-            Create Your First Invoice
-          </Link>
+          {hasActiveSubscription ? (
+            <Link 
+              href="/dashboard/invoices/new"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
+            >
+              <Plus className="w-5 h-5" />
+              Create Your First Invoice
+            </Link>
+          ) : (
+            <Link 
+              href="/pricing"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
+            >
+              <Lock className="w-5 h-5" />
+              Start 14-Day Free Trial
+            </Link>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-          <InvoiceList invoices={invoices} />
+          <InvoiceList invoices={invoices} hasActiveSubscription={hasActiveSubscription} />
         </div>
       )}
     </div>

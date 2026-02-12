@@ -31,7 +31,7 @@ export default function LandingPage() {
                 Sign In
               </Link>
               <Link href="/signup" className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:shadow-lg transition-all">
-                Get Started
+                Start Free Trial
               </Link>
             </div>
           </div>
@@ -65,7 +65,7 @@ export default function LandingPage() {
                 </Link>
               </div>
               <p className="text-blue-200 text-sm mt-6 font-medium">
-                No credit card • 14-day trial • Cancel anytime
+                14-day free trial • No credit card required • Cancel anytime
               </p>
             </div>
 
@@ -265,29 +265,38 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section - UPDATED */}
       <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight">
               Simple, Transparent Pricing
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-medium">
-              Start free, upgrade anytime. No hidden fees.
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-medium mb-6">
+              Start with a 14-day free trial. Upgrade or cancel anytime.
             </p>
+            {/* Trial Badge */}
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-6 py-3 rounded-full font-bold">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              14-Day Free Trial on All Plans
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {/* 2-Column Grid (Business removed) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {/* Starter Plan */}
             <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 hover:border-blue-300 transition-all">
               <div className="mb-6">
                 <h3 className="text-2xl font-black text-gray-900 mb-2">Starter</h3>
                 <p className="text-gray-600 font-medium">Perfect for new freelancers</p>
               </div>
-              <div className="mb-8">
-                <span className="text-5xl font-black text-gray-900">$29</span>
+              <div className="mb-2">
+                <span className="text-5xl font-black text-gray-900">$30</span>
                 <span className="text-gray-600 font-medium">/month</span>
               </div>
+              <p className="text-sm text-green-700 font-semibold mb-8">First 14 days free</p>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -340,10 +349,11 @@ export default function LandingPage() {
                 <h3 className="text-2xl font-black text-white mb-2">Professional</h3>
                 <p className="text-blue-100 font-medium">For established freelancers</p>
               </div>
-              <div className="mb-8">
-                <span className="text-5xl font-black text-white">$59</span>
+              <div className="mb-2">
+                <span className="text-5xl font-black text-white">$60</span>
                 <span className="text-blue-100 font-medium">/month</span>
               </div>
+              <p className="text-sm text-teal-200 font-semibold mb-8">First 14 days free</p>
               <ul className="space-y-4 mb-8">
                 <li className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-teal-300 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -380,57 +390,6 @@ export default function LandingPage() {
                 Start Free Trial
               </Link>
             </div>
-
-            {/* Business Plan - COMING SOON */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 border-2 border-gray-200 relative opacity-90">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-gray-900 px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-                COMING SOON
-              </div>
-              <div className="mb-6">
-                <h3 className="text-2xl font-black text-gray-900 mb-2">Business</h3>
-                <p className="text-gray-600 font-medium">For small agencies & teams</p>
-              </div>
-              <div className="mb-2">
-                <span className="text-5xl font-black text-gray-900">$79</span>
-                <span className="text-gray-600 font-medium">/month</span>
-              </div>
-              <p className="text-sm text-orange-600 font-bold mb-8">MVP pricing • Some features not yet available</p>
-              <ul className="space-y-4 mb-8">
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="text-gray-700 font-bold">Everything in Professional, plus:</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="text-gray-500 font-medium">Multi-user access (coming Q2 2026)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="text-gray-500 font-medium">Team collaboration (coming Q2 2026)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="text-gray-500 font-medium">API access (coming Q2 2026)</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-gray-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="text-gray-400 font-medium">Contract management (future)</span>
-                </li>
-              </ul>
-              <button disabled className="block w-full bg-gray-300 text-gray-500 text-center py-4 rounded-xl font-bold text-lg cursor-not-allowed">
-                Available Q2 2026
-              </button>
-            </div>
           </div>
 
           <p className="text-center text-gray-600 mt-12 text-sm font-medium">
@@ -456,7 +415,7 @@ export default function LandingPage() {
             Start Free Trial →
           </Link>
           <p className="text-blue-200 text-sm mt-6 font-medium">
-            14-day free trial • No credit card • Cancel anytime
+            14-day free trial • No credit card required • Cancel anytime
           </p>
         </div>
       </section>
@@ -504,4 +463,3 @@ export default function LandingPage() {
     </div>
   )
 }
-

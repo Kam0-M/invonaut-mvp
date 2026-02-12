@@ -22,7 +22,7 @@ Invonaut is an intelligent financial assistant that predicts client payment beha
 - **PDF Branding**: Your logo and colors automatically applied to all invoice PDFs
 - **Email Branding**: Professional branded emails with your logo and color scheme
 - **Settings Management**: Easy-to-use settings page with real-time preview
-- **Tier Gating**: White label features exclusive to Professional ($59/mo) and Business ($79/mo) plans
+- **Tier Gating**: White label features exclusive to Professional ($60/mo) and Business ($79/mo) plans
 
 ### 📊 Financial Management
 - **Invoice Creation**: Clean, intuitive invoice builder with real-time previews
@@ -427,7 +427,7 @@ All database tables have RLS enabled. Users can only access their own data throu
 ### In Progress (Week 14-15)
 - 🔄 **Stripe Billing Integration**
   - Pricing page design
-  - Stripe product creation ($29/$59/$79 plans)
+  - Stripe product creation ($30/$60/$79 plans)
   - Checkout session API
   - Webhook handler
   - Billing management page
