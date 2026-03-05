@@ -54,15 +54,18 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // ⬅️ CHECK SUBSCRIPTION STATUS
+  // ⬅️ CHECK SUBSCRIPTION STATUS + HISTORY
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_customer_id, stripe_subscription_id, subscription_status')
     .eq('id', user.id)
     .single()
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id && 
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  
+  // ⬅️ NEW: Check if user has EVER subscribed (for conditional CTAs)
+  const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
 
   // Fetch invoices
   const { data: invoiceData } = await supabase
@@ -308,7 +311,7 @@ export default async function DashboardPage() {
                 </Link>
               ) : (
                 <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                  Start Free Trial
+                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
                 </Link>
               )}
             </div>
@@ -341,7 +344,7 @@ export default async function DashboardPage() {
                 </Link>
               ) : (
                 <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                  Start Free Trial
+                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
                 </Link>
               )}
             </div>
@@ -382,7 +385,7 @@ export default async function DashboardPage() {
                 </Link>
               ) : (
                 <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                  Start Free Trial
+                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
                 </Link>
               )}
             </div>
@@ -451,7 +454,7 @@ export default async function DashboardPage() {
                 </Link>
               ) : (
                 <Link href="/pricing" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
-                  Start Free Trial
+                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
                 </Link>
               )}
             </div>

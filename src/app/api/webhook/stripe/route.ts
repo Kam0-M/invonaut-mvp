@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
-    // Verify webhook signature
     event = stripe.webhooks.constructEvent(
       body,
       signature,
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Handle the event
   console.log('=== STRIPE WEBHOOK RECEIVED ===')
   console.log('Event type:', event.type)
 
@@ -97,10 +95,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Handle successful checkout
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.user_id
-  const planId = session.metadata?.plan_id
+  const userId = session.metadata?.userId
+  const planId = session.metadata?.planId
 
   if (!userId || !planId) {
     console.error('Missing user_id or plan_id in session metadata', {
@@ -113,7 +110,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
   const supabase = createAdminClient()
 
-  // Get subscription details
   const subscriptionId = session.subscription as string
 
   console.log('handleCheckoutCompleted - resolved values:', {
@@ -122,15 +118,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     subscriptionId,
   })
 
-  // Fetch the subscription to check trial status
   const subscription = await stripe.subscriptions.retrieve(subscriptionId)
   
-  // Calculate trial end date if in trial
   let trialEndDate = null
   let subscriptionStatus = 'active'
   
   if (subscription.status === 'trialing' && subscription.trial_end) {
-    // Trial end timestamp from Stripe (Unix timestamp in seconds)
     trialEndDate = new Date(subscription.trial_end * 1000).toISOString()
     subscriptionStatus = 'trialing'
   }
@@ -141,7 +134,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     trialEndDate,
   })
 
-  // Update user profile with subscription info
   const { error } = await supabase
     .from('user_profiles')
     .update({
@@ -160,7 +152,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   }
 }
 
-// Handle subscription updates (plan changes, trial ending, renewals)
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.user_id
 
@@ -171,7 +162,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   const supabase = createAdminClient()
 
-  // Determine new plan based on price ID
   const priceId = subscription.items.data[0]?.price.id
   let newPlan = 'starter'
 
@@ -181,7 +171,6 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     newPlan = 'business'
   }
 
-  // Determine subscription status
   let status = 'active'
   let trialEndDate = null
   
@@ -204,17 +193,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     cancel_at_period_end: subscription.cancel_at_period_end,
   })
 
-  // Update user profile
   const updateData: any = {
     subscription_tier: newPlan,
     subscription_status: status,
   }
 
-  // Only update trial_end_date if we have a value or need to clear it
   if (status === 'trialing' && trialEndDate) {
     updateData.trial_end_date = trialEndDate
   } else if (status === 'active') {
-    // Trial ended, clear trial fields
     updateData.trial_end_date = null
   }
 
@@ -230,7 +216,12 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   }
 }
 
-// Handle subscription cancellation
+// Handle subscription cancellation from Stripe webhook.
+// NOTE: The cancel route already updates the DB immediately when the user cancels.
+// This handler is a safety net for cases where Stripe fires the deleted event
+// without a matching cancel route call (e.g. canceled from Stripe dashboard).
+// We deliberately do NOT reset subscription_tier here so the billing page
+// correctly shows "Professional - Inactive" or "Starter - Inactive".
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.user_id
 
@@ -241,11 +232,10 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const supabase = createAdminClient()
 
-  // Downgrade to starter plan
+  // Only update status and clear subscription ID — preserve the tier
   const { error } = await supabase
     .from('user_profiles')
     .update({
-      subscription_tier: 'starter',
       subscription_status: 'canceled',
       stripe_subscription_id: null,
       trial_end_date: null,
@@ -254,21 +244,18 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     .eq('id', userId)
 
   if (error) {
-    console.error('Error canceling subscription:', error)
+    console.error('Error handling subscription deleted:', error)
   } else {
-    console.log(`User ${userId} downgraded to starter (subscription canceled)`)
+    console.log(`User ${userId} subscription canceled (tier preserved)`)
   }
 }
 
-// Handle successful payment
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
-  // Get subscription ID - could be string or object
   const subscriptionId = (invoice as any).subscription as string
 
   if (!subscriptionId) return
 
   try {
-    // Fetch subscription to get user metadata
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     const userId = subscription.metadata?.user_id
 
@@ -276,12 +263,10 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
     const supabase = createAdminClient()
 
-    // If this is the first payment after trial, clear trial fields
     const updateData: any = {
       subscription_status: 'active',
     }
 
-    // If subscription was trialing and now active, clear trial data
     if (subscription.status === 'active' && !subscription.trial_end) {
       updateData.trial_end_date = null
     }
@@ -301,18 +286,15 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   }
 }
 
-// Handle failed payment
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  // Get subscription ID - could be string or object
   const subscriptionId =
     typeof (invoice as any).subscription === 'string'
       ? (invoice as any).subscription
-      : (invoice as any).subscription?.id;
+      : (invoice as any).subscription?.id
 
-  if (!subscriptionId) return;
+  if (!subscriptionId) return
 
   try {
-    // Fetch subscription to get user metadata
     const subscription = await stripe.subscriptions.retrieve(subscriptionId)
     const userId = subscription.metadata?.user_id
 
@@ -320,7 +302,6 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
     const supabase = createAdminClient()
 
-    // Mark subscription as past_due
     const { error } = await supabase
       .from('user_profiles')
       .update({

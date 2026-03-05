@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
-    .select('logo_url, brand_color, secondary_brand_color, subscription_tier, full_name, email, business_name, address')
+    .select('logo_url, brand_color, secondary_brand_color, subscription_tier, full_name, email, business_name, address, stripe_subscription_id, stripe_customer_id, subscription_status')
     .eq('id', user.id)
     .single()
 
@@ -30,6 +30,11 @@ export default async function SettingsPage() {
   const brandColor = profile?.brand_color || '#0066FF'
   const secondaryBrandColor = profile?.secondary_brand_color || '#00D4AA'
   const subscriptionTier = profile?.subscription_tier || 'starter'
+  
+  // Calculate subscription state
+  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
 
   return (
     <div className="space-y-8">
@@ -60,6 +65,9 @@ export default async function SettingsPage() {
         currentBrandColor={brandColor}
         currentSecondaryBrandColor={secondaryBrandColor}
         subscriptionTier={subscriptionTier}
+        hasActiveSubscription={hasActiveSubscription}
+        hasEverSubscribed={hasEverSubscribed}
+        subscriptionStatus={profile?.subscription_status || 'inactive'}
         userProfile={{
           full_name: profile?.full_name || null,
           email: profile?.email || user.email || '',

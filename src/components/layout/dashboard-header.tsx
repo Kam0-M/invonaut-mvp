@@ -5,16 +5,17 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
-import { LogOut, Menu, X } from 'lucide-react'
+import { LogOut, Menu, X, Building2 } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardHeaderProps {
   user: User
   logoUrl?: string | null
   subscriptionTier?: string
+  businessName?: string | null
 }
 
-export default function DashboardHeader({ user, logoUrl, subscriptionTier = 'starter' }: DashboardHeaderProps) {
+export default function DashboardHeader({ user, logoUrl, subscriptionTier = 'starter', businessName }: DashboardHeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -65,9 +66,22 @@ export default function DashboardHeader({ user, logoUrl, subscriptionTier = 'sta
                   </span>
                 </div>
               )}
-              {/* Email */}
-              <div className="text-sm font-medium text-gray-700">
-                {user.email}
+              {/* Email and Business Name */}
+              <div className="flex items-center gap-3">
+                <div className="text-sm font-medium text-gray-700">
+                  {user.email}
+                </div>
+                
+                {/* Business Name Display */}
+                {businessName && (
+                  <>
+                    <div className="h-6 w-px bg-gray-300"></div>
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm font-bold text-gray-900">{businessName}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             
@@ -119,8 +133,17 @@ export default function DashboardHeader({ user, logoUrl, subscriptionTier = 'sta
                   </span>
                 </div>
               )}
-              <div className="text-sm font-medium text-gray-700">
-                {user.email}
+              <div>
+                <div className="text-sm font-medium text-gray-700">
+                  {user.email}
+                </div>
+                {/* Business Name - Mobile */}
+                {businessName && (
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <Building2 className="w-3.5 h-3.5 text-gray-500" />
+                    <span className="text-xs font-bold text-gray-900">{businessName}</span>
+                  </div>
+                )}
               </div>
             </div>
             

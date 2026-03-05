@@ -1,89 +1,67 @@
 ﻿'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { AlertTriangle, X, Lock } from 'lucide-react'
+import { useState } from 'react'
+import { AlertTriangle, X } from 'lucide-react'
 
 interface CancelSubscriptionButtonProps {
   currentTier: string
 }
 
 export default function CancelSubscriptionButton({ currentTier }: CancelSubscriptionButtonProps) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const router = useRouter()
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = 'unset'
-    }
-    return () => {
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen])
-
-  const handleCancel = async () => {
+  const handleConfirm = async () => {
     setIsLoading(true)
-
+    
     try {
       const response = await fetch('/api/cancel-subscription', {
         method: 'POST',
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to cancel subscription')
-      }
-
-      if (data.redirect) {
-        router.push(data.redirect)
-      } else if (data.immediate) {
-        router.push('/dashboard/billing?trial_canceled=true')
+      if (response.ok) {
+        window.location.reload()
       } else {
-        router.push('/cancellation-pending')
+        console.error('Failed to cancel subscription')
+        setIsLoading(false)
       }
-      
-      router.refresh()
-    } catch (error: any) {
-      console.error('Cancellation error:', error)
-      alert(error.message || 'Failed to cancel subscription')
+    } catch (error) {
+      console.error('Error canceling subscription:', error)
       setIsLoading(false)
     }
   }
 
-  const planName = currentTier === 'professional' ? 'Professional' : currentTier === 'business' ? 'Business' : 'Starter'
+  const isStarter = currentTier === 'starter'
+  const isProfessional = currentTier === 'professional'
 
   return (
     <>
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => setShowModal(true)}
         className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
       >
         Cancel Subscription
       </button>
 
-      {isOpen && (
+      {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl">
             {/* Header */}
-            <div className="bg-gradient-to-r from-red-600 to-red-700 text-white p-6 rounded-t-2xl sticky top-0 z-10">
+            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <Lock className="w-6 h-6" />
+                    <AlertTriangle className="w-6 h-6" />
                   </div>
                   <div>
                     <h2 className="text-2xl font-black">Cancel Subscription?</h2>
                     <p className="text-red-100 text-sm mt-1">
-                      You'll lose the ability to create new content
+                      This takes effect immediately
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setShowModal(false)}
                   className="text-white/80 hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
@@ -92,103 +70,114 @@ export default function CancelSubscriptionButton({ currentTier }: CancelSubscrip
             </div>
 
             <div className="p-6">
-              {/* What you'll lose */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  Features You'll Lose:
+              {/* What you lose */}
+              <div className="mb-4">
+                <h3 className="text-sm font-bold text-red-700 uppercase tracking-wide mb-2">
+                  You will IMMEDIATELY lose access to:
                 </h3>
-                <ul className="space-y-2">
-                  <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <X className="w-3 h-3 text-red-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm font-medium">
-                      <strong>Create new invoices</strong> - Can't send new invoices
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <X className="w-3 h-3 text-red-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm font-medium">
-                      <strong>Add new clients</strong> - Can't add client records
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <X className="w-3 h-3 text-red-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm font-medium">
-                      <strong>Edit existing data</strong> - Everything becomes view-only
-                    </span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <X className="w-3 h-3 text-red-600" />
-                    </div>
-                    <span className="text-gray-700 text-sm font-medium">
-                      <strong>Automated follow-ups</strong> - No reminder emails
-                    </span>
-                  </li>
-                  {currentTier === 'professional' && (
-                    <li className="flex items-start gap-2">
-                      <div className="w-5 h-5 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <X className="w-3 h-3 text-red-600" />
-                      </div>
-                      <span className="text-gray-700 text-sm font-medium">
-                        <strong>White label branding</strong> - Loses custom logo & colors
-                      </span>
-                    </li>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  {isStarter && (
+                    <>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Creating new invoices and editing drafts</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Adding and editing clients</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>AI payment predictions</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Sending invoices and automated follow-ups</span>
+                      </li>
+                    </>
+                  )}
+                  {isProfessional && (
+                    <>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Creating new invoices and editing drafts</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Adding and editing clients</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>White label branding (logo and custom colors)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-red-500 font-bold mt-0.5">✕</span>
+                        <span>Advanced AI predictions and sending invoices</span>
+                      </li>
+                    </>
                   )}
                 </ul>
               </div>
 
-              {/* What you CAN still do */}
-              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 mb-6">
-                <h3 className="font-bold text-green-900 text-sm mb-2">✅ You can still:</h3>
-                <ul className="text-sm text-green-800 space-y-1">
-                  <li>• View all your invoices and clients</li>
-                  <li>• See dashboard analytics and charts</li>
-                  <li>• Export your data anytime</li>
-                  <li>• Resubscribe to unlock all features again</li>
+              {/* What you keep */}
+              <div className="mb-4">
+                <h3 className="text-sm font-bold text-green-700 uppercase tracking-wide mb-2">
+                  What stays safe:
+                </h3>
+                <ul className="space-y-2 text-sm text-gray-700">
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold mt-0.5">✓</span>
+                    <span>All your existing invoices and client data (view-only)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold mt-0.5">✓</span>
+                    <span>Dashboard analytics and revenue history</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-600 font-bold mt-0.5">✓</span>
+                    <span>Your account — resubscribe anytime to restore full access</span>
+                  </li>
                 </ul>
               </div>
 
-              {/* What happens */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-6">
-                <h3 className="font-bold text-blue-900 text-sm mb-2">What happens next:</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Subscription ends immediately (no charge)</li>
-                  <li>• You'll see a "Subscribe" prompt instead of features</li>
-                  <li>• Your data stays safe - nothing is deleted</li>
-                  <li>• Click any "Subscribe" button to reactivate</li>
-                </ul>
-              </div>
+              {/* Downgrade note for Professional users only */}
+              {isProfessional && (
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-5">
+                  <p className="text-sm text-blue-900 font-medium">
+                    <strong>Prefer a lower cost over no access?</strong> Use "Downgrade to Starter" ($30/mo) instead to keep creating invoices and managing clients without losing everything.
+                  </p>
+                </div>
+              )}
 
-              {/* Buttons */}
+              {/* Confirmation note for Starter users */}
+              {isStarter && (
+                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-5">
+                  <p className="text-sm text-gray-700">
+                    You won't be charged again. Your data will be waiting for you if you decide to come back.
+                  </p>
+                </div>
+              )}
+
               <div className="flex gap-3">
                 <button
-                  onClick={() => setIsOpen(false)}
+                  onClick={() => setShowModal(false)}
                   disabled={isLoading}
                   className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-300 transition-all disabled:opacity-50"
                 >
                   Keep Subscription
                 </button>
                 <button
-                  onClick={handleCancel}
+                  onClick={handleConfirm}
                   disabled={isLoading}
                   className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-xl font-bold hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Processing...
+                      Cancelling...
                     </>
                   ) : (
-                    <>
-                      Confirm Cancellation
-                    </>
+                    'Yes, Cancel Subscription'
                   )}
                 </button>
               </div>

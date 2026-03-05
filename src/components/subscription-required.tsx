@@ -1,7 +1,53 @@
+'use client'
+
 import Link from 'next/link'
 import { Lock, Sparkles, CreditCard, ArrowRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SubscriptionRequired() {
+  const [hasEverSubscribed, setHasEverSubscribed] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const checkSubscriptionHistory = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        
+        if (!user) return
+
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('stripe_customer_id, stripe_subscription_id')
+          .eq('id', user.id)
+          .single()
+
+        // ⬅️ FIXED: Check BOTH customer_id AND subscription_id
+        // If they ever had a subscription, they have a customer_id
+        setHasEverSubscribed(!!profile?.stripe_customer_id || !!profile?.stripe_subscription_id)
+      } catch (error) {
+        console.error('Error checking subscription history:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkSubscriptionHistory()
+  }, [])
+
+  const buttonText = isLoading 
+    ? 'Loading...' 
+    : hasEverSubscribed 
+      ? 'Subscribe Now' 
+      : 'Start 14-Day Free Trial'
+
+  const footerText = isLoading
+    ? ''
+    : hasEverSubscribed
+      ? '✨ Flexible plans • Cancel anytime'
+      : '✨ 14-day free trial • No credit card required • Cancel anytime'
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-blue-100">
       <div className="max-w-2xl w-full">
@@ -26,7 +72,9 @@ export default function SubscriptionRequired() {
 
           {/* Description */}
           <p className="text-base sm:text-lg text-gray-600 text-center mb-8 font-medium">
-            You need an active subscription to create or edit invoices and clients.
+            {hasEverSubscribed 
+              ? 'Reactivate your subscription to continue creating and editing'
+              : 'You need an active subscription to create or edit invoices and clients.'}
           </p>
 
           {/* Features Box */}
@@ -88,7 +136,7 @@ export default function SubscriptionRequired() {
               className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
             >
               <Sparkles className="w-5 h-5" />
-              Start 14-Day Free Trial
+              {buttonText}
               <ArrowRight className="w-5 h-5" />
             </Link>
             <Link 
@@ -108,7 +156,7 @@ export default function SubscriptionRequired() {
         {/* Trust Badge */}
         <div className="text-center mt-6">
           <p className="text-sm text-gray-600 font-medium">
-            ✨ 14-day free trial • No credit card required • Cancel anytime
+            {footerText}
           </p>
         </div>
       </div>
