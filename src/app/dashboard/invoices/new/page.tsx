@@ -124,14 +124,14 @@ export default function NewInvoicePage() {
           .from('invoices')
           .select('invoice_number')
           .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .order('invoice_number', { ascending: false })
           .limit(1)
 
         if (error && error.code !== 'PGRST116') throw error
 
         if (data && data.length > 0) {
           const lastNumber = data[0].invoice_number
-          const match = lastNumber.match(/INV-(\\d+)/)
+          const match = lastNumber.match(/INV-(\d+)/)
           if (match) {
             const nextNum = parseInt(match[1], 10) + 1
             setInvoiceNumber(`INV-${nextNum.toString().padStart(5, '0')}`)

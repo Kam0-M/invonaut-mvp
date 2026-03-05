@@ -17,15 +17,16 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  // Get user profile with subscription tier and logo
+  // Get user profile with subscription tier, logo, and business name
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('subscription_tier, logo_url')
+    .select('subscription_tier, logo_url, business_name')
     .eq('id', user.id)
     .single()
 
   const subscriptionTier = profile?.subscription_tier || 'starter'
   const logoUrl = profile?.logo_url || null
+  const businessName = profile?.business_name || null
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -34,6 +35,7 @@ export default async function DashboardLayout({
         user={user} 
         logoUrl={logoUrl}
         subscriptionTier={subscriptionTier}
+        businessName={businessName}
       />
 
       <div className="flex">

@@ -6,7 +6,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export async function POST() {
   try {
-    // Check authentication
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
@@ -17,10 +16,9 @@ export async function POST() {
       )
     }
 
-    // Get user profile
     const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
-      .select('stripe_subscription_id, subscription_status, subscription_tier')
+      .select('stripe_subscription_id, subscription_status')
       .eq('id', user.id)
       .single()
 
@@ -31,36 +29,28 @@ export async function POST() {
       )
     }
 
-    const isOnTrial = profile.subscription_status === 'trialing'
+    // Cancel immediately in Stripe
+    await stripe.subscriptions.cancel(profile.stripe_subscription_id)
 
-    if (isOnTrial) {
-      // IMMEDIATE CANCELLATION for trials
-      await stripe.subscriptions.cancel(profile.stripe_subscription_id)
-      
-      console.log(`✅ Trial subscription ${profile.stripe_subscription_id} canceled immediately (no charge)`)
+    console.log(`✅ Subscription ${profile.stripe_subscription_id} canceled immediately`)
 
-      return NextResponse.json({
-        message: 'Trial canceled immediately',
-        immediate: true,
-        redirect: '/dashboard/billing?trial_canceled=true'
+    // Update DB immediately so locked gates activate on reload.
+    // DO NOT reset subscription_tier — keep whatever tier they were on
+    // so the billing page shows "Professional - Inactive" or "Starter - Inactive" correctly.
+    await supabase
+      .from('user_profiles')
+      .update({
+        stripe_subscription_id: null,
+        subscription_status: 'canceled',
       })
-    } else {
-      // CANCEL AT PERIOD END for paid subscriptions
-      const subscription = await stripe.subscriptions.update(
-        profile.stripe_subscription_id,
-        {
-          cancel_at_period_end: true,
-        }
-      )
+      .eq('id', user.id)
 
-      console.log(`✅ Subscription ${subscription.id} will be canceled at period end`)
+      console.log(`✅ Database updated - subscription removed for user ${user.id}`)
 
-      return NextResponse.json({
-        message: 'Subscription will be canceled at the end of the billing period',
-        immediate: false,
-        redirect: '/cancellation-pending'
-      })
-    }
+    return NextResponse.json({
+      message: 'Subscription canceled successfully',
+      immediate: true,
+    })
 
   } catch (error: any) {
     console.error('Cancel subscription error:', error)

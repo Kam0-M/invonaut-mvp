@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,13 +10,7 @@ export default function VerifyEmailPage() {
   const router = useRouter()
   const [email, setEmail] = useState<string>('')
   const [isChecking, setIsChecking] = useState(true)
-  const [debugInfo, setDebugInfo] = useState<string[]>([])
   const [manualRedirect, setManualRedirect] = useState(false)
-
-  const addDebug = (message: string) => {
-    console.log(message)
-    setDebugInfo(prev => [...prev, `${new Date().toLocaleTimeString()}: ${message}`])
-  }
 
   useEffect(() => {
     let isMounted = true
@@ -26,10 +20,6 @@ export default function VerifyEmailPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!isMounted) return
-      
-      addDebug(`User ID: ${user?.id}`)
-      addDebug(`Email: ${user?.email}`)
-      addDebug(`Email Confirmed At: ${user?.email_confirmed_at}`)
       
       if (user?.email) {
         setEmail(user.email)
@@ -48,15 +38,11 @@ export default function VerifyEmailPage() {
       
       const supabase = createClient()
       
-      addDebug('Polling for email confirmation...')
       await supabase.auth.refreshSession()
       
       const { data: { user } } = await supabase.auth.getUser()
       
-      addDebug(`Poll - Email Confirmed: ${!!user?.email_confirmed_at}`)
-      
       if (user?.email_confirmed_at && !manualRedirect) {
-        addDebug('✅ Email confirmed detected!')
         setManualRedirect(true)
         clearInterval(interval)
       }
@@ -69,17 +55,12 @@ export default function VerifyEmailPage() {
   }, [manualRedirect])
 
   const handleManualRedirect = async () => {
-    addDebug('Manual redirect triggered')
-    
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
-      addDebug('❌ No user found')
       return
     }
-    
-    addDebug(`Checking for profile: ${user.id}`)
     
     // Wait for profile creation
     let attempts = 0
@@ -90,11 +71,7 @@ export default function VerifyEmailPage() {
         .eq('id', user.id)
         .single()
       
-      addDebug(`Profile attempt ${attempts + 1}: ${profile ? 'Found' : 'Not found'}`)
-      
       if (profile) {
-        addDebug(`✅ Profile found: ${JSON.stringify(profile)}`)
-        addDebug('Redirecting to dashboard...')
         
         setTimeout(() => {
           router.push('/dashboard')
@@ -104,14 +81,13 @@ export default function VerifyEmailPage() {
       }
       
       if (error) {
-        addDebug(`Profile error: ${error.message}`)
+        // Swallow and retry until attempts exhausted
       }
       
       await new Promise(resolve => setTimeout(resolve, 500))
       attempts++
     }
     
-    addDebug('⚠️ Profile not found after 30 attempts, redirecting anyway')
     router.push('/dashboard')
     router.refresh()
   }
@@ -122,12 +98,10 @@ export default function VerifyEmailPage() {
       type: 'signup',
       email: email
     })
-
+    
     if (!error) {
-      addDebug('✅ Resend successful')
       alert('✅ Confirmation email sent! Check your inbox.')
     } else {
-      addDebug(`❌ Resend failed: ${error.message}`)
       alert('❌ Failed to resend email. Please try again later.')
     }
   }
@@ -245,21 +219,7 @@ export default function VerifyEmailPage() {
             </>
           )}
 
-          {/* Debug Info */}
-          {debugInfo.length > 0 && (
-            <details className="mt-6 pt-6 border-t-2 border-gray-100">
-              <summary className="text-sm font-bold text-gray-700 cursor-pointer mb-3">
-                🐛 Debug Info (Click to expand)
-              </summary>
-              <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
-                <div className="text-xs font-mono space-y-1">
-                  {debugInfo.map((info, i) => (
-                    <div key={i} className="text-gray-700">{info}</div>
-                  ))}
-                </div>
-              </div>
-            </details>
-          )}
+          
         </div>
       </div>
     </div>

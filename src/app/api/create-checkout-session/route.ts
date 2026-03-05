@@ -1,72 +1,86 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    // Verify Stripe key exists
-    if (!process.env.STRIPE_SECRET_KEY) {
-      console.error('STRIPE_SECRET_KEY is not set!')
-      return NextResponse.json({ error: 'Stripe is not configured' }, { status: 500 })
+    const formData = await request.formData()
+    const priceId = formData.get('priceId') as string
+    const planId = formData.get('planId') as string
+
+    console.log('Checkout request:', { priceId, planId })
+
+    if (!priceId || !planId) {
+      return NextResponse.json({ 
+        error: 'Price ID and Plan ID are required' 
+      }, { status: 400 })
     }
 
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      console.error('Auth error:', authError)
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const formData = await request.formData()
-    const priceId = formData.get('priceId') as string
-    const planId = formData.get('planId') as string
-
-    console.log('Checkout request:', { priceId, planId, userId: user.id })
-
-    if (!priceId || !planId) {
-      console.error('Missing priceId or planId:', { priceId, planId })
-      return NextResponse.json({ error: 'Price ID and Plan ID are required' }, { status: 400 })
-    }
-
-    // Verify price ID exists
-    if (!priceId.startsWith('price_')) {
-      console.error('Invalid price ID format:', priceId)
-      return NextResponse.json({ error: 'Invalid price ID format' }, { status: 400 })
-    }
-
-    // Get or create Stripe customer
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('stripe_customer_id, email')
+      .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier')
       .eq('id', user.id)
       .single()
 
-    let customerId = profile?.stripe_customer_id
+    const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
+    const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+      (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
-    if (!customerId) {
-      console.log('Creating new Stripe customer for user:', user.id)
-      const customer = await stripe.customers.create({
-        email: profile?.email || user.email!,
-        metadata: {
-          supabase_user_id: user.id,
-        },
-      })
-      customerId = customer.id
+    // UPGRADE/DOWNGRADE EXISTING SUBSCRIPTION
+    if (hasActiveSubscription && profile.subscription_tier !== planId) {
+      console.log('🔄 Upgrading/downgrading existing subscription')
+      
+      const subscription = await stripe.subscriptions.update(
+        profile.stripe_subscription_id!,
+        {
+          items: [{
+            id: (await stripe.subscriptions.retrieve(profile.stripe_subscription_id!)).items.data[0].id,
+            price: priceId,
+          }],
+          proration_behavior: 'create_prorations',
+        }
+      )
+
+      console.log('✅ Subscription updated in Stripe:', subscription.id)
 
       await supabase
         .from('user_profiles')
-        .update({ stripe_customer_id: customerId })
+        .update({ 
+          subscription_tier: planId,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id)
+
+      console.log('✅ Database updated to:', planId)
+
+      // ✅ Return redirect URL instead of redirecting
+      return NextResponse.json({ 
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?upgraded=true` 
+      })
     }
 
-    console.log('Creating checkout session for customer:', customerId)
+    // NEW SUBSCRIPTION OR REACTIVATION
+    const trialDays = hasEverSubscribed ? 0 : 14
+    
+    console.log('Trial decision:', {
+      hasEverSubscribed,
+      trialDays,
+      customerId: profile?.stripe_customer_id || 'new',
+      reason: hasEverSubscribed ? 'Returning customer - no trial' : 'New customer - 14 day trial'
+    })
 
-    // Create checkout session with 14-day free trial
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      customer: profile?.stripe_customer_id || undefined,
+      customer_email: !profile?.stripe_customer_id ? user.email : undefined,
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
@@ -75,40 +89,35 @@ export async function POST(request: NextRequest) {
           quantity: 1,
         },
       ],
-      // 🎯 ADD 14-DAY FREE TRIAL FOR ALL PLANS
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/billing?success=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
+      metadata: {
+        userId: user.id,
+        planId: planId,
+      },
       subscription_data: {
-        trial_period_days: 14,
         metadata: {
-          user_id: user.id,
-          plan_id: planId,
+          userId: user.id,
+          planId: planId,
         },
       },
-      success_url: `${request.nextUrl.origin}/dashboard/billing?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.nextUrl.origin}/pricing`,
-      metadata: {
-        user_id: user.id,
-        plan_id: planId,
-      },
-    })
-
-    console.log('Checkout session created successfully with 14-day trial!')
-    console.log('Session ID:', session.id)
-    console.log('Session URL:', session.url)
-
-    if (!session.url) {
-      console.error('No session URL returned from Stripe!')
-      return NextResponse.json({ error: 'Failed to get checkout URL' }, { status: 500 })
     }
 
-    // Redirect to Stripe checkout
-    console.log('Redirecting to:', session.url)
-    return NextResponse.redirect(session.url, 303)
+    if (trialDays > 0) {
+      sessionParams.subscription_data!.trial_period_days = trialDays
+    }
 
-  } catch (error) {
+    const session = await stripe.checkout.sessions.create(sessionParams)
+
+    console.log('✅ Checkout session created:', session.id, 'Trial days:', trialDays)
+
+    // ✅ Return URL instead of redirecting
+    return NextResponse.json({ url: session.url })
+
+  } catch (error: any) {
     console.error('Checkout session error:', error)
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to create checkout session' },
-      { status: 500 }
-    )
+    return NextResponse.json({ 
+      error: error.message || 'Failed to create checkout session' 
+    }, { status: 500 })
   }
 }

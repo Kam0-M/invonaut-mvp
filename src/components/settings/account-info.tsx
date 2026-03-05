@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 interface AccountInfoProps {
@@ -20,6 +21,7 @@ export default function AccountInfo({
   address,
   onUnsavedChanges 
 }: AccountInfoProps) {
+  const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
@@ -69,6 +71,10 @@ export default function AccountInfo({
       setSuccessMessage('Account information updated successfully!')
       setIsEditing(false)
       onUnsavedChanges?.(false)
+      
+      // Refresh the page to show updated data everywhere
+      router.refresh()
+      
       setTimeout(() => setSuccessMessage(''), 3000)
     } catch (err: any) {
       console.error('Error updating account:', err)

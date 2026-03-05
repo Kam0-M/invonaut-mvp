@@ -1,31 +1,4 @@
-﻿// Helper function to load image as base64 (Node.js compatible)
-async function loadImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url)
-    if (!response.ok) throw new Error('Failed to fetch image')
-    
-    // Convert response to Buffer (Node.js)
-    const arrayBuffer = await response.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    
-    // Determine MIME type from URL extension
-    let mimeType = 'image/png'
-    if (url.toLowerCase().endsWith('.jpg') || url.toLowerCase().endsWith('.jpeg')) {
-      mimeType = 'image/jpeg'
-    } else if (url.toLowerCase().endsWith('.svg')) {
-      mimeType = 'image/svg+xml'
-    } else if (url.toLowerCase().endsWith('.webp')) {
-      mimeType = 'image/webp'
-    }
-    
-    // Convert to base64 data URL
-    const base64 = buffer.toString('base64')
-    return `data:${mimeType};base64,${base64}`
-  } catch (error) {
-    console.error('Error loading image:', error)
-    return null
-  }
-}import jsPDF from 'jspdf'
+﻿import jsPDF from 'jspdf'
 
 type InvoiceData = {
   invoice_number: string
@@ -69,15 +42,42 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16),
       }
-    : { r: 0, g: 102, b: 255 } // Default Invonaut blue
+    : { r: 37, g: 99, b: 235 } // Default Invonaut blue (#2563EB - tailwind blue-600)
 }
 
-
+// Helper function to load image as base64 (Node.js compatible)
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error('Failed to fetch image')
+    
+    // Convert response to Buffer (Node.js)
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    
+    // Determine MIME type from URL extension
+    let mimeType = 'image/png'
+    if (url.toLowerCase().endsWith('.jpg') || url.toLowerCase().endsWith('.jpeg')) {
+      mimeType = 'image/jpeg'
+    } else if (url.toLowerCase().endsWith('.svg')) {
+      mimeType = 'image/svg+xml'
+    } else if (url.toLowerCase().endsWith('.webp')) {
+      mimeType = 'image/webp'
+    }
+    
+    // Convert to base64 data URL
+    const base64 = buffer.toString('base64')
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.error('Error loading image:', error)
+    return null
+  }
+}
 
 export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer> {
-  // Extract white label data
-  const brandColor = data.user_profile.brand_color || '#0066FF'
-  const secondaryColor = data.user_profile.secondary_brand_color || '#00D4AA'
+  // Extract white label data - use Invonaut branding from landing page as default
+  const brandColor = data.user_profile.brand_color || '#2563EB' // Landing page blue-600
+  const secondaryColor = data.user_profile.secondary_brand_color || '#14B8A6' // Landing page teal-500
   const logoUrl = data.user_profile.logo_url
   const hasLogo = !!logoUrl
 
@@ -85,7 +85,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer
   const primaryColorRGB = hexToRgb(brandColor)
   const secondaryColorRGB = hexToRgb(secondaryColor)
 
-  console.log('PDF Generator - White Label Data:', {
+  console.log('PDF Generator - Branding:', {
     brand_color: brandColor,
     secondary_brand_color: secondaryColor,
     logo_url: logoUrl,
@@ -228,7 +228,7 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer
 
   yPosition += 10
 
-  // Items table header with primary color background
+  // ⬅️ FIXED: Items table header with wider columns for large numbers
   doc.setFillColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
   doc.rect(20, yPosition, pageWidth - 40, 10, 'F')
 
@@ -236,13 +236,13 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer
   doc.setFontSize(10)
   doc.setTextColor(255, 255, 255)
   doc.text('Description', 25, yPosition + 7)
-  doc.text('Qty', pageWidth - 90, yPosition + 7)
-  doc.text('Unit Price', pageWidth - 70, yPosition + 7)
-  doc.text('Total', pageWidth - 35, yPosition + 7, { align: 'right' })
+  doc.text('Qty', pageWidth - 110, yPosition + 7) // ⬅️ Moved left to make room
+  doc.text('Unit Price', pageWidth - 80, yPosition + 7) // ⬅️ Wider column for large prices
+  doc.text('Total', pageWidth - 25, yPosition + 7, { align: 'right' }) // ⬅️ Right-aligned for large totals
 
   yPosition += 15
 
-  // Items with alternating row colors
+  // ⬅️ FIXED: Items with wider columns for large numbers
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   data.items.forEach((item, index) => {
@@ -253,12 +253,12 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer
     }
 
     doc.setTextColor(60)
-    const descLines = doc.splitTextToSize(item.description, 100)
+    const descLines = doc.splitTextToSize(item.description, 85) // ⬅️ Shortened description to make room
     doc.text(descLines, 25, yPosition)
     
-    doc.text(item.quantity.toString(), pageWidth - 90, yPosition)
-    doc.text(`$${item.unit_price.toFixed(2)}`, pageWidth - 70, yPosition)
-    doc.text(`$${item.total.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
+    doc.text(item.quantity.toString(), pageWidth - 110, yPosition) // ⬅️ ALIGNED
+    doc.text(`$${item.unit_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 80, yPosition) // ⬅️ WIDER + comma formatting
+    doc.text(`$${item.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 25, yPosition, { align: 'right' }) // ⬅️ NOW HAS SPACE!
 
     yPosition += Math.max(descLines.length * 5, 10)
   })
@@ -272,27 +272,27 @@ export async function generateInvoicePDF(data: InvoiceData): Promise<ArrayBuffer
 
   yPosition += 10
 
-  // Subtotal
+  // Subtotal with comma formatting for large amounts
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(10)
   doc.setTextColor(100)
   doc.text('Subtotal:', pageWidth - 70, yPosition)
-  doc.text(`$${data.subtotal.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
+  doc.text(`$${data.subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 25, yPosition, { align: 'right' })
 
   yPosition += 8
 
-  // Tax
+  // Tax with comma formatting
   doc.text('Tax:', pageWidth - 70, yPosition)
-  doc.text(`$${data.tax_amount.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
+  doc.text(`$${data.tax_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 25, yPosition, { align: 'right' })
 
   yPosition += 12
 
-  // Total with primary color
+  // Total with primary color and comma formatting
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(12)
   doc.setTextColor(primaryColorRGB.r, primaryColorRGB.g, primaryColorRGB.b)
   doc.text('TOTAL:', pageWidth - 70, yPosition)
-  doc.text(`$${data.total_amount.toFixed(2)}`, pageWidth - 25, yPosition, { align: 'right' })
+  doc.text(`$${data.total_amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, pageWidth - 25, yPosition, { align: 'right' })
 
   // Notes section if present
   if (data.notes) {

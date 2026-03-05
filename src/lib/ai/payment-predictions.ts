@@ -29,10 +29,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
-// TEMPORARY DEBUG - Remove after testing
-console.log('OpenAI API Key exists:', !!process.env.OPENAI_API_KEY)
-console.log('OpenAI API Key starts with sk-:', process.env.OPENAI_API_KEY?.startsWith('sk-'))
-
 /**
  * Analyze client payment history
  */

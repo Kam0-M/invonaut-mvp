@@ -6,7 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import LogoUploader from './logo-uploader'
 import ColorPicker from './color-picker'
 import AccountInfo from './account-info'
-import { AlertCircle, CheckCircle2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, CreditCard, Lock, Sparkles } from 'lucide-react'
+import Link from 'next/link'
 
 interface SettingsFormProps {
   userId: string
@@ -14,6 +15,9 @@ interface SettingsFormProps {
   currentBrandColor: string
   currentSecondaryBrandColor: string
   subscriptionTier: string
+  hasActiveSubscription: boolean
+  hasEverSubscribed: boolean
+  subscriptionStatus: string
   userProfile: {
     full_name: string | null
     email: string
@@ -28,6 +32,9 @@ export default function SettingsForm({
   currentBrandColor,
   currentSecondaryBrandColor,
   subscriptionTier,
+  hasActiveSubscription,
+  hasEverSubscribed,
+  subscriptionStatus,
   userProfile
 }: SettingsFormProps) {
   const router = useRouter()
@@ -56,7 +63,6 @@ export default function SettingsForm({
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault()
-        // Modern browsers ignore custom messages and show their own
         e.returnValue = ''
         return ''
       }
@@ -64,25 +70,6 @@ export default function SettingsForm({
 
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [hasUnsavedChanges])
-
-  // Navigation warning (for internal Next.js navigation)
-  useEffect(() => {
-    const handleRouteChange = () => {
-      if (hasUnsavedChanges) {
-        const confirmed = window.confirm(
-          'You have unsaved changes. Are you sure you want to leave this page? Your changes will be lost.'
-        )
-        if (!confirmed) {
-          // Prevent navigation
-          throw 'Route change aborted by user'
-        }
-      }
-    }
-
-    // Note: This is a workaround for Next.js app router
-    // We'll handle this through the beforeunload event primarily
-    return () => {}
   }, [hasUnsavedChanges])
 
   const handleColorsChanged = (primary: string, secondary: string) => {
@@ -113,12 +100,10 @@ export default function SettingsForm({
       setSaveStatus('saved')
       setHasUnsavedChanges(false)
       
-      // Reset saved status after 3 seconds
       setTimeout(() => {
         setSaveStatus('idle')
       }, 3000)
 
-      // Refresh the page to update the server-side data
       router.refresh()
     } catch (error) {
       console.error('Save error:', error)
@@ -157,6 +142,166 @@ export default function SettingsForm({
         />
       </div>
 
+      {/* Current Plan Section */}
+      <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-8">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Current Plan</h2>
+            <p className="text-sm text-gray-500">Manage your subscription</p>
+          </div>
+        </div>
+
+        {hasActiveSubscription ? (
+          <div className="space-y-6">
+            {/* ACTIVE SUBSCRIPTION */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="text-2xl font-black text-gray-900 capitalize">{subscriptionTier}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                      subscriptionStatus === 'active' 
+                        ? 'bg-green-100 text-green-800'
+                        : subscriptionStatus === 'trialing'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {subscriptionStatus === 'active' && '✓ Active'}
+                      {subscriptionStatus === 'trialing' && '⏱ Trial'}
+                      {subscriptionStatus === 'past_due' && '⚠ Past Due'}
+                    </span>
+                  </div>
+                  <p className="text-gray-700 font-medium">
+                    {subscriptionTier === 'starter' && '$30/month • 25 invoices • Basic AI predictions'}
+                    {subscriptionTier === 'professional' && '$60/month • Unlimited invoices • White label branding'}
+                    {subscriptionTier === 'business' && '$79/month • Everything + Team features + API access'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  href="/dashboard/billing"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Manage Subscription
+                </Link>
+                
+                {subscriptionTier === 'starter' && (
+                  <Link
+                    href="/pricing"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Upgrade to Professional
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            {/* Feature List */}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">
+                    {subscriptionTier === 'starter' ? '25 invoices/month' : 'Unlimited invoices'}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    {subscriptionTier === 'starter' ? 'Upgrade for unlimited' : 'No monthly limits'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">AI Payment Predictions</p>
+                  <p className="text-xs text-gray-600">95% accuracy rate</p>
+                </div>
+              </div>
+              
+              {isProfessionalOrBusiness && (
+                <>
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">White Label Branding</p>
+                      <p className="text-xs text-gray-600">Custom logo & colors</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-gray-900 text-sm">Priority Support</p>
+                      <p className="text-xs text-gray-600">Faster response times</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        ) : hasEverSubscribed ? (
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-8 border-2 border-orange-200 text-center">
+            {/* CANCELED / INACTIVE (had subscription before) */}
+            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock className="w-8 h-8 text-orange-600" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">No Active Subscription</h3>
+            <p className="text-gray-700 font-medium mb-6 max-w-md mx-auto">
+              Your subscription has been canceled. Reactivate to unlock all features and access your data again.
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+            >
+              <Sparkles className="w-5 h-5" />
+              Reactivate Subscription
+            </Link>
+            <p className="text-sm text-gray-600 mt-6">
+              Your data is safe and will be restored when you resubscribe
+            </p>
+          </div>
+        ) : (
+          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border-2 border-blue-200 text-center">
+            {/* NEW USER (never subscribed) */}
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="w-8 h-8 text-blue-600" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-2">Start Your Free Trial</h3>
+            <p className="text-gray-700 font-medium mb-6 max-w-md mx-auto">
+              Get 14 days free on any plan. No credit card required. Unlock AI predictions, automated follow-ups, and professional invoicing.
+            </p>
+            <Link
+              href="/pricing"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105 text-lg"
+            >
+              <Sparkles className="w-5 h-5" />
+              Start 14-Day Free Trial
+            </Link>
+            <div className="flex items-center justify-center gap-6 mt-6 text-sm text-gray-600">
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                No credit card
+              </span>
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                Cancel anytime
+              </span>
+              <span className="flex items-center gap-1">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                Full access
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* White Label Branding */}
       <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-8">
         <div className="flex items-center gap-3 mb-6">
@@ -192,7 +337,6 @@ export default function SettingsForm({
           </div>
         ) : (
           <div className="space-y-8">
-            {/* Logo Upload */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-3">
                 Company Logo
@@ -207,7 +351,6 @@ export default function SettingsForm({
               </p>
             </div>
 
-            {/* Color Picker */}
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-3">
                 Brand Colors
@@ -223,7 +366,6 @@ export default function SettingsForm({
               </p>
             </div>
 
-            {/* Unsaved Changes Status */}
             {hasUnsavedChanges && (
               <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />
@@ -254,7 +396,6 @@ export default function SettingsForm({
               </div>
             )}
 
-            {/* Save Button */}
             <div className="flex justify-end pt-4 border-t-2 border-gray-100">
               <button
                 type="button"
@@ -273,41 +414,6 @@ export default function SettingsForm({
             </div>
           </div>
         )}
-      </div>
-
-      {/* Subscription Info */}
-      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-gray-200 p-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Current Plan</h2>
-            <p className="text-sm text-gray-500">Manage your subscription</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-lg font-bold text-gray-900 capitalize">{subscriptionTier} Plan</p>
-            <p className="text-sm text-gray-600">
-              {subscriptionTier === 'starter' && '$30/month • 25 invoices'}
-              {subscriptionTier === 'professional' && '$60/month • Unlimited invoices + White label'}
-              {subscriptionTier === 'business' && '$79/month • Everything + Team features'}
-            </p>
-          </div>
-          {subscriptionTier === 'starter' && (
-            <button
-              type="button"
-              onClick={() => router.push('/pricing')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg transition-colors"
-            >
-              Upgrade
-            </button>
-          )}
-        </div>
       </div>
     </div>
   )

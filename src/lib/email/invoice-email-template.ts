@@ -1,44 +1,51 @@
-﻿type InvoiceEmailData = {
+﻿type EmailTemplateData = {
   invoice_number: string
   client_name: string
-  total_amount: number
   due_date: string
+  total_amount: number
   business_name: string
-  invoice_link?: string
-  logo_url?: string | null
-  brand_color?: string | null
-  secondary_brand_color?: string | null
+  logo_url: string | null
+  brand_color: string | null
+  secondary_brand_color: string | null
 }
 
-export function generateInvoiceEmailHTML(data: InvoiceEmailData): string {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount)
-  }
+// ⬅️ CONTRAST HELPER: Determine if we should use light or dark text on a given background color
+function shouldUseLightText(hexColor: string): boolean {
+  // Remove # if present
+  const hex = hexColor.replace('#', '')
+  
+  // Convert to RGB
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  
+  // Calculate relative luminance (WCAG formula)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  
+  // If luminance > 0.5, color is light, use dark text
+  // If luminance <= 0.5, color is dark, use light text
+  return luminance <= 0.5
+}
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  // White label colors (defaults to Invonaut colors)
-  const primaryColor = data.brand_color || '#0066FF'
-  const secondaryColor = data.secondary_brand_color || '#00D4AA'
-  const hasLogo = !!data.logo_url
-  const showInvonautBranding = !hasLogo
-
-  // Debug logging
-  console.log('Email Template - White Label Data:', {
-    primaryColor,
-    secondaryColor,
-    logo_url: data.logo_url,
-    hasLogo
+export function generateInvoiceEmailHTML(data: EmailTemplateData): string {
+  // Use Invonaut brand colors from landing page as default
+  const brandColor = data.brand_color || '#2563EB' // Landing page blue-600
+  const secondaryColor = data.secondary_brand_color || '#14B8A6' // Landing page teal-500
+  
+  // ⬅️ DETERMINE TEXT COLOR BASED ON BACKGROUND for readability
+  const textOnBrand = shouldUseLightText(brandColor) ? '#FFFFFF' : '#1F2937'
+  const textOnSecondary = shouldUseLightText(secondaryColor) ? '#FFFFFF' : '#1F2937'
+  
+  const formattedDueDate = new Date(data.due_date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
   })
+  
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(data.total_amount)
 
   return `
 <!DOCTYPE html>
@@ -48,151 +55,138 @@ export function generateInvoiceEmailHTML(data: InvoiceEmailData): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Invoice ${data.invoice_number}</title>
 </head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
-  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5; padding: 40px 0;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F3F4F6;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F3F4F6; padding: 40px 20px;">
     <tr>
       <td align="center">
-        <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <!-- Main Container -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
           
-          <!-- Header with White Label Colors -->
+          <!-- Header with Brand Color -->
           <tr>
-            <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%); padding: 40px 30px; text-align: center;">
-              ${hasLogo && data.logo_url ? `
-                <div style="margin-bottom: 20px;">
-                  <img src="${data.logo_url}" alt="${data.business_name}" style="max-height: 60px; max-width: 200px; display: inline-block;" />
-                </div>
+            <td style="background: linear-gradient(135deg, ${brandColor} 0%, ${secondaryColor} 100%); padding: 40px 30px; text-align: center;">
+              ${data.logo_url ? `
+                <img src="${data.logo_url}" alt="${data.business_name}" style="max-width: 150px; max-height: 60px; margin-bottom: 20px;">
               ` : ''}
-              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                ${data.invoice_number}
-              </h1>
-              <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.9;">
-                From ${data.business_name}
-              </p>
+              <h1 style="margin: 0; color: ${textOnBrand}; font-size: 28px; font-weight: 700;">New Invoice</h1>
+              <p style="margin: 10px 0 0; color: ${textOnBrand}; font-size: 16px; opacity: 0.9;">from ${data.business_name}</p>
             </td>
           </tr>
-          
-          <!-- Content -->
+
+          <!-- Body Content -->
           <tr>
             <td style="padding: 40px 30px;">
-              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
+              <p style="margin: 0 0 20px; color: #1F2937; font-size: 16px; line-height: 1.6;">
                 Hello ${data.client_name},
               </p>
               
-              <p style="margin: 0 0 30px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                Thank you for your business! Please find your invoice attached to this email.
+              <p style="margin: 0 0 30px; color: #4B5563; font-size: 16px; line-height: 1.6;">
+                Here's your invoice. The PDF is attached to this email for your records.
               </p>
-              
-              <!-- Invoice Summary Box with Brand Colors -->
-              <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f8f9fa; border-radius: 8px; border: 2px solid ${primaryColor}20; margin-bottom: 30px;">
+
+              <!-- Invoice Details Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F9FAFB; border-radius: 8px; border: 2px solid #E5E7EB; margin-bottom: 30px;">
                 <tr>
-                  <td style="padding: 25px;">
-                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <td style="padding: 24px;">
+                    <!-- Invoice Number with Contrast-Safe Text -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
                       <tr>
-                        <td style="padding: 8px 0; font-size: 14px; color: #666666;">
-                          Invoice Number:
-                        </td>
-                        <td align="right" style="padding: 8px 0; font-size: 14px; color: #333333; font-weight: 600;">
-                          ${data.invoice_number}
+                        <td style="padding: 12px 16px; background-color: ${brandColor}; border-radius: 6px;">
+                          <p style="margin: 0; color: #6B7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: ${textOnBrand}; opacity: 0.8;">Invoice Number</p>
+                          <p style="margin: 4px 0 0; color: ${textOnBrand}; font-size: 18px; font-weight: 700;">${data.invoice_number}</p>
                         </td>
                       </tr>
+                    </table>
+
+                    <!-- Amount Due with Contrast-Safe Text -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;">
                       <tr>
-                        <td style="padding: 8px 0; font-size: 14px; color: #666666;">
-                          Amount Due:
-                        </td>
-                        <td align="right" style="padding: 8px 0; font-size: 18px; color: ${primaryColor}; font-weight: bold;">
-                          ${formatCurrency(data.total_amount)}
+                        <td style="padding: 12px 16px; background-color: ${secondaryColor}; border-radius: 6px;">
+                          <p style="margin: 0; color: ${textOnSecondary}; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8;">Amount Due</p>
+                          <p style="margin: 4px 0 0; color: ${textOnSecondary}; font-size: 24px; font-weight: 700;">${formattedAmount}</p>
                         </td>
                       </tr>
+                    </table>
+
+                    <!-- Due Date -->
+                    <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
-                        <td style="padding: 8px 0; font-size: 14px; color: #666666;">
-                          Due Date:
-                        </td>
-                        <td align="right" style="padding: 8px 0; font-size: 14px; color: #333333; font-weight: 600;">
-                          ${formatDate(data.due_date)}
+                        <td style="padding: 12px 16px; background-color: #FFFFFF; border: 2px solid #E5E7EB; border-radius: 6px;">
+                          <p style="margin: 0; color: #6B7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Due Date</p>
+                          <p style="margin: 4px 0 0; color: #1F2937; font-size: 16px; font-weight: 600;">${formattedDueDate}</p>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
               </table>
-              
-              <p style="margin: 0 0 20px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                The invoice is attached as a PDF to this email. If you have any questions or concerns, please don't hesitate to reach out.
-              </p>
-              
-              <p style="margin: 0 0 10px 0; font-size: 16px; color: #333333; line-height: 1.6;">
-                Best regards,<br>
-                <strong style="color: ${primaryColor};">${data.business_name}</strong>
+
+              <!-- Attachment Notice -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #EEF2FF; border-left: 4px solid ${brandColor}; border-radius: 6px; margin-bottom: 30px;">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0; color: #3730A3; font-size: 14px; font-weight: 600;">📎 Invoice attached</p>
+                    <p style="margin: 8px 0 0; color: #4338CA; font-size: 14px; line-height: 1.5;">The invoice is attached as a PDF to this email.</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Questions Section -->
+              <p style="margin: 0; color: #4B5563; font-size: 16px; line-height: 1.6;">
+                If you have any questions or concerns, please don't hesitate to reach out.
               </p>
             </td>
           </tr>
-          
-          <!-- Footer - Only show Invonaut branding if no white label -->
-          ${showInvonautBranding ? `
+
+          <!-- Footer -->
           <tr>
-            <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
-              <p style="margin: 0; font-size: 12px; color: #666666; line-height: 1.5;">
-                This invoice was generated by Invonaut<br>
-                <a href="https://Invonaut.com" style="color: #0066FF; text-decoration: none;">AI-Powered Invoicing for Freelancers</a>
+            <td style="background-color: #F9FAFB; padding: 30px; text-align: center; border-top: 1px solid #E5E7EB;">
+              <p style="margin: 0; color: #6B7280; font-size: 14px;">
+                This invoice was sent by ${data.business_name}
               </p>
+              ${!data.logo_url ? `
+                <p style="margin: 10px 0 0; color: #9CA3AF; font-size: 12px;">
+                  Powered by Invonaut
+                </p>
+              ` : ''}
             </td>
           </tr>
-          ` : `
-          <tr>
-            <td style="padding: 20px; text-align: center;">
-              <div style="height: 4px; background: linear-gradient(90deg, ${primaryColor} 0%, ${secondaryColor} 100%); border-radius: 2px;"></div>
-            </td>
-          </tr>
-          `}
-          
         </table>
       </td>
     </tr>
   </table>
 </body>
 </html>
-  `
+`
 }
 
-export function generateInvoiceEmailText(data: InvoiceEmailData): string {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount)
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  }
-
-  const showInvonautBranding = !data.logo_url
+export function generateInvoiceEmailText(data: EmailTemplateData): string {
+  const formattedDueDate = new Date(data.due_date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+  
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(data.total_amount)
 
   return `
-Invoice ${data.invoice_number}
-From ${data.business_name}
+Invoice from ${data.business_name}
 
 Hello ${data.client_name},
 
-Thank you for your business! Please find your invoice attached to this email.
+Here's your invoice. The PDF is attached to this email for your records.
 
-Invoice Details:
-- Invoice Number: ${data.invoice_number}
-- Amount Due: ${formatCurrency(data.total_amount)}
-- Due Date: ${formatDate(data.due_date)}
+Invoice Number: ${data.invoice_number}
+Amount Due: ${formattedAmount}
+Due Date: ${formattedDueDate}
 
-If you have any questions or concerns, please don't hesitate to reach out.
+The invoice is attached as a PDF to this email. If you have any questions or concerns, please don't hesitate to reach out.
 
-Best regards,
-${data.business_name}
-
-${showInvonautBranding ? `
 ---
-This invoice was generated by Invonaut - AI-Powered Invoicing for Freelancers
-` : ''}
-  `
+This invoice was sent by ${data.business_name}
+${!data.logo_url ? 'Powered by Invonaut' : ''}
+  `.trim()
 }
