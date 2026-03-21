@@ -184,12 +184,24 @@ export default function PortalSettingsForm({
             <label className="block text-sm font-bold text-gray-700 mb-2">
               Your portal link
             </label>
-            <input
-              type="text"
-              readOnly
-              value={fullPortalPreviewUrl}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 font-mono text-sm text-gray-800"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                readOnly
+                value={fullPortalPreviewUrl}
+                className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 bg-gray-50 font-mono text-sm text-gray-800"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(fullPortalPreviewUrl)
+                  toast.success('Portal link copied!')
+                }}
+                className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all font-semibold text-sm text-gray-700 whitespace-nowrap"
+              >
+                Copy link
+              </button>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
