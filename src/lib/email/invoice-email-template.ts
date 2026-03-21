@@ -1,4 +1,4 @@
-﻿type EmailTemplateData = {
+type EmailTemplateData = {
   invoice_number: string
   client_name: string
   due_date: string
@@ -146,7 +146,7 @@ export function generateInvoiceEmailHTML(data: EmailTemplateData): string {
               </p>
               ${!data.logo_url ? `
                 <p style="margin: 10px 0 0; color: #9CA3AF; font-size: 12px;">
-                  Powered by Invonaut
+                  Invonaut · From contract to cash. Automated.
                 </p>
               ` : ''}
             </td>
@@ -187,6 +187,6 @@ The invoice is attached as a PDF to this email. If you have any questions or con
 
 ---
 This invoice was sent by ${data.business_name}
-${!data.logo_url ? 'Powered by Invonaut' : ''}
+${!data.logo_url ? 'Invonaut · From contract to cash. Automated.' : ''}
   `.trim()
 }
