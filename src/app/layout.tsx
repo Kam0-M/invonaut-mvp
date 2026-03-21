@@ -1,15 +1,15 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/providers/toast-provider";
 
 export const metadata: Metadata = {
-  title: 'Invonaut - AI-Powered Invoicing for Freelancers',
-  description: 'Never chase another late payment. AI that turns your invoicing chaos into cash flow predictability.',
+  title: 'Invonaut - From Contract to Cash. Automated.',
+  description: 'From contract to cash, automated. Contracts, invoices, time tracking, expenses, and cash flow — all in one platform.',
   keywords: 'invoicing, freelance, AI, payment tracking, invoice management',
   authors: [{ name: 'Invonaut' }],
   openGraph: {
-    title: 'Invonaut - AI-Powered Invoicing',
-    description: 'Smart invoicing for freelancers',
+    title: 'Invonaut - From Contract to Cash',
+    description: 'From contract to cash. Automated.',
     type: 'website',
   },
 }

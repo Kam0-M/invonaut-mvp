@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   FileText,
   Users,
+  ExternalLink,
   Settings,
   BarChart3,
   HelpCircle,
@@ -25,6 +26,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Invoices', href: '/dashboard/invoices', icon: FileText },
     { name: 'Clients', href: '/dashboard/clients', icon: Users },
+    { name: 'Client Portal', href: '/dashboard/portal', icon: ExternalLink },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
