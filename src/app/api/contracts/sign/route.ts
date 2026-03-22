@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { Resend } from 'resend'
+import { generateContractPDF } from '@/lib/contracts/generate-contract-pdf'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
       // Fetch owner profile for name + email
       const { data: ownerProfile } = await supabase
         .from('user_profiles')
-        .select('business_name, full_name, email')
+        .select('business_name, full_name, email, address, logo_url, brand_color, subscription_tier')
         .eq('id', portalRow.user_id)
         .single()
 
@@ -165,10 +166,48 @@ export async function POST(request: NextRequest) {
 <body style="font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 560px; margin: 0 auto; padding: 24px;">
   <p>Hi ${recipientName},</p>
   <p>This confirms that <strong>${contract.title}</strong> has been signed by <strong>${signerName.trim()}</strong> on ${signedAt}.</p>
-  <p>The contract is now active. Both parties are bound by its terms.</p>
+  <p>The contract is now active. Both parties are bound by its terms. A signed copy is attached to this email.</p>
   <p style="font-size: 13px; color: #666; margin-top: 32px;">Powered by Invonaut · From contract to cash. Automated.</p>
 </body>
 </html>`.trim()
+
+      // Fetch full contract content for PDF (we only selected id/status/title earlier)
+      const { data: fullContract } = await supabase
+        .from('contracts')
+        .select('content, created_at')
+        .eq('id', contractId)
+        .single()
+
+      // Generate signed contract PDF
+      const isWhiteLabel =
+        ownerProfile?.subscription_tier === 'professional' ||
+        ownerProfile?.subscription_tier === 'business'
+
+      const pdfArrayBuffer = await generateContractPDF({
+        title: contract.title,
+        status: 'active',
+        created_at: fullContract?.created_at ?? new Date().toISOString(),
+        signed_at: new Date().toISOString(),
+        signer_name: signerName.trim(),
+        signer_email: clientEmail,
+        content: (fullContract?.content ?? []) as Array<{ title: string; content: string; category: string }>,
+        client: {
+          name: clientName,
+          email: clientEmail,
+          company: null,
+        },
+        owner: {
+          business_name: ownerProfile?.business_name ?? null,
+          full_name: ownerProfile?.full_name ?? null,
+          email: ownerProfile?.email ?? null,
+          address: ownerProfile?.address ?? null,
+          logo_url: isWhiteLabel ? (ownerProfile?.logo_url ?? null) : null,
+          brand_color: isWhiteLabel ? (ownerProfile?.brand_color ?? null) : null,
+        },
+      })
+
+      const pdfBuffer = Buffer.from(pdfArrayBuffer)
+      const pdfFilename = `contract-${contract.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40)}.pdf`
 
       // Email to client (only if their email matches OWNER_EMAIL in demo mode)
       if (clientEmail && clientEmail === OWNER_EMAIL) {
@@ -177,6 +216,7 @@ export async function POST(request: NextRequest) {
           to: clientEmail,
           subject: `Contract signed: ${contract.title}`,
           html: sharedHtml(clientName),
+          attachments: [{ filename: pdfFilename, content: pdfBuffer }],
         })
       }
 
@@ -187,6 +227,7 @@ export async function POST(request: NextRequest) {
           to: ownerEmail,
           subject: `${clientName} has signed: ${contract.title}`,
           html: sharedHtml(businessName),
+          attachments: [{ filename: pdfFilename, content: pdfBuffer }],
         })
       }
     } catch (emailErr) {
