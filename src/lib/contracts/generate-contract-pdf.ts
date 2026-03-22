@@ -13,6 +13,7 @@ type ContractPDFData = {
   signed_at?: string
   signer_name?: string
   signer_email?: string
+  signature_image?: string | null  // base64 data URL from canvas
   content: ClauseBlock[]
   client: {
     name: string
@@ -209,8 +210,9 @@ export async function generateContractPDF(data: ContractPDFData): Promise<ArrayB
 
   // ── Signature block ────────────────────────────────────────────────────────
   if (data.signer_name || data.signed_at) {
-    // Ensure enough space for the signature block
-    if (y + 45 > pageHeight - margin) {
+    // Reserve space: image (30h) + text rows (~30) + disclaimer (~10) + padding
+    const sigBlockHeight = data.signature_image ? 85 : 50
+    if (y + sigBlockHeight > pageHeight - margin) {
       doc.addPage()
       y = margin
     }
@@ -226,6 +228,46 @@ export async function generateContractPDF(data: ContractPDFData): Promise<ArrayB
     doc.setTextColor(40, 40, 40)
     doc.text('SIGNATURE', margin, y)
     y += 7
+
+    // Embed the actual canvas signature image
+    if (data.signature_image) {
+      try {
+        // Draw a light box behind the signature
+        doc.setFillColor(250, 250, 250)
+        doc.setDrawColor(220, 220, 220)
+        doc.setLineWidth(0.3)
+        doc.roundedRect(margin, y, contentWidth, 30, 2, 2, 'FD')
+
+        // Add the signature image inside the box
+        // Canvas is 600x144px — scale to fit the box width while keeping ratio
+        const imgWidth = contentWidth - 4
+        const imgHeight = 28
+        doc.addImage(
+          data.signature_image,
+          'PNG',
+          margin + 2,
+          y + 1,
+          imgWidth,
+          imgHeight,
+          undefined,
+          'FAST'
+        )
+        y += 34
+      } catch (err) {
+        // If image embedding fails, fall back to a placeholder line
+        console.error('Signature image embed error:', err)
+        doc.setDrawColor(180, 180, 180)
+        doc.setLineWidth(0.5)
+        doc.line(margin, y + 15, margin + 80, y + 15)
+        y += 20
+      }
+    }
+
+    // Signature baseline label
+    doc.setFontSize(7)
+    doc.setTextColor(180, 180, 180)
+    doc.text('Signature', margin, y)
+    y += 6
 
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
@@ -247,12 +289,13 @@ export async function generateContractPDF(data: ContractPDFData): Promise<ArrayB
       y += 5
     }
 
+    y += 3
     doc.setFontSize(8)
     doc.setTextColor(150, 150, 150)
     doc.text(
       'This document was electronically signed. The signature is legally binding under the US ESIGN Act (2000) and UETA.',
       margin,
-      y + 4,
+      y,
       { maxWidth: contentWidth }
     )
   }
