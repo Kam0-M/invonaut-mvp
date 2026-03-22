@@ -79,9 +79,13 @@ export async function POST(request: NextRequest) {
     // Fetch user profile for business info AND white label branding
     const { data: userProfile } = await supabase
       .from('user_profiles')
-      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color')
+      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier')
       .eq('id', user.id)
       .single()
+
+    const isWhiteLabel =
+      userProfile?.subscription_tier === 'professional' ||
+      userProfile?.subscription_tier === 'business'
 
     const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients
 
@@ -107,9 +111,9 @@ export async function POST(request: NextRequest) {
         full_name: userProfile?.full_name || null,
         email: userProfile?.email || null,
         address: userProfile?.address || null,
-        logo_url: userProfile?.logo_url || null,
-        brand_color: userProfile?.brand_color || null,
-        secondary_brand_color: userProfile?.secondary_brand_color || null
+        logo_url: isWhiteLabel ? (userProfile?.logo_url || null) : null,
+        brand_color: isWhiteLabel ? (userProfile?.brand_color || null) : null,
+        secondary_brand_color: isWhiteLabel ? (userProfile?.secondary_brand_color || null) : null
       },
       items: (items || []).map((item) => ({
         description: item.description,

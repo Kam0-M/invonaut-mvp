@@ -94,10 +94,15 @@ export async function GET(request: NextRequest) {
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select(
-        'full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color'
+        'full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier'
       )
       .eq('id', portalRow.user_id)
       .single()
+
+    // White label branding only applies to Professional and Business tier owners
+    const isWhiteLabel =
+      userProfile?.subscription_tier === 'professional' ||
+      userProfile?.subscription_tier === 'business'
 
     // 6. Fetch client details
     const { data: clientRow } = await supabase
@@ -128,9 +133,9 @@ export async function GET(request: NextRequest) {
         full_name:             userProfile?.full_name             ?? null,
         email:                 userProfile?.email                 ?? null,
         address:               userProfile?.address               ?? null,
-        logo_url:              userProfile?.logo_url              ?? null,
-        brand_color:           userProfile?.brand_color           ?? null,
-        secondary_brand_color: userProfile?.secondary_brand_color ?? null,
+        logo_url:              isWhiteLabel ? (userProfile?.logo_url              ?? null) : null,
+        brand_color:           isWhiteLabel ? (userProfile?.brand_color           ?? null) : null,
+        secondary_brand_color: isWhiteLabel ? (userProfile?.secondary_brand_color ?? null) : null,
       },
       items: (items ?? []).map((item) => ({
         description: item.description,

@@ -138,12 +138,17 @@ export default async function PortalPage({
   // 2. Fetch owner branding
   const { data: ownerProfile } = await supabase
     .from('user_profiles')
-    .select('business_name, full_name, logo_url, brand_color, secondary_brand_color')
+    .select('business_name, full_name, logo_url, brand_color, secondary_brand_color, subscription_tier')
     .eq('id', portalRow.user_id)
     .single()
 
-  const brandColor = ownerProfile?.brand_color || '#0066FF'
-  const logoUrl = ownerProfile?.logo_url || null
+  // White label branding only applies to Professional and Business tier owners
+  const isWhiteLabel =
+    ownerProfile?.subscription_tier === 'professional' ||
+    ownerProfile?.subscription_tier === 'business'
+
+  const brandColor = isWhiteLabel ? (ownerProfile?.brand_color || '#0066FF') : '#0066FF'
+  const logoUrl = isWhiteLabel ? (ownerProfile?.logo_url || null) : null
   const businessName =
     ownerProfile?.business_name || ownerProfile?.full_name || 'Invonaut'
 
