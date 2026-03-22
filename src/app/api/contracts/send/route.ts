@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Contract not found.' }, { status: 404 })
     }
 
-    if (contract.status !== 'draft') {
+    if (!['draft', 'sent', 'awaiting_signature'].includes(contract.status)) {
       return NextResponse.json({
         success: false,
-        error: 'Only draft contracts can be sent.',
+        error: 'This contract cannot be sent — it is already active, completed, or cancelled.',
       }, { status: 400 })
     }
 
