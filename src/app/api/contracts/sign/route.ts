@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         signed_at: new Date().toISOString(),
         signer_name: signerName.trim(),
         signer_email: clientEmail,
+        signature_image: signatureData,  // base64 canvas data URL
         content: (fullContract?.content ?? []) as Array<{ title: string; content: string; category: string }>,
         client: {
           name: clientName,
