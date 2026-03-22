@@ -162,8 +162,9 @@ export default function ContractSigningForm({
         return
       }
       setSigned(true)
-      // Scroll to top to show the success state
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      // Refresh the server component so it re-fetches and shows
+      // the full-page "Contract signed" state instead of the form
+      router.refresh()
     } catch {
       alert('Something went wrong. Please try again.')
     } finally {
