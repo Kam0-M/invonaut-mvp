@@ -112,6 +112,18 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
 
   const items = (itemsData || []) as InvoiceItem[]
 
+  // Linked contracts
+  const { data: linkedContractsRaw } = await supabase
+    .from('contract_invoice_links')
+    .select('contract_id, link_type, contracts(id, title, status)')
+    .eq('invoice_id', id)
+
+  const linkedContracts = (linkedContractsRaw ?? []).map((l: any) => ({
+    contract_id: l.contract_id,
+    link_type: l.link_type,
+    contract: Array.isArray(l.contracts) ? l.contracts[0] ?? null : l.contracts ?? null,
+  }))
+
   const displayStatus = getInvoiceDisplayStatus({
     status: normalizedInvoice.status,
     due_date: normalizedInvoice.due_date
@@ -381,6 +393,33 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           <p className="text-sm text-gray-600 font-medium">
             Last reminder sent on {formatDate(normalizedInvoice.last_followed_up)}
           </p>
+        </div>
+      )}
+
+      {/* Linked contracts */}
+      {linkedContracts.length > 0 && (
+        <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg">
+          <h3 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Linked Contracts</h3>
+          <div className="space-y-2">
+            {linkedContracts.map((link) => {
+              const c = link.contract
+              if (!c) return null
+              return (
+                <Link
+                  key={link.contract_id}
+                  href={`/dashboard/contracts/${c.id}`}
+                  className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition-colors group"
+                >
+                  <span className="font-bold text-sm text-gray-900 group-hover:text-blue-700 truncate">
+                    {c.title}
+                  </span>
+                  <span className="text-xs text-gray-400 flex-shrink-0 ml-2 capitalize">
+                    {c.status.replace(/_/g, ' ')}
+                  </span>
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
