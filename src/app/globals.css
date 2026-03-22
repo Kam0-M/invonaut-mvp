@@ -2,28 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Invonaut is a light-only app — dark mode is intentionally disabled.
+   Removing the dark media query prevents white-on-white text bugs in
+   inputs, textareas, and selects across the entire app. */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+  color-scheme: light;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: #1a1a1a;
+  background-color: #fafafa;
+}
+
+/* Global input safety net — ensures text is always visible regardless
+   of parent background or browser dark mode. Apply this to all native
+   form elements so inline inputs never inherit invisible text. */
+@layer base {
+  input,
+  textarea,
+  select {
+    color: #1a1a1a;
+    background-color: #ffffff;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9ca3af;
+  }
 }
 
 @layer utilities {
