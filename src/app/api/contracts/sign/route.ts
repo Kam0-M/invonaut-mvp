@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { Resend } from 'resend'
+
+const resend = new Resend(process.env.RESEND_API_KEY)
+const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -134,6 +138,60 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       console.error('Contract status update error:', updateError)
+    }
+
+    // 9. Send confirmation emails to both the client and the owner
+    try {
+      // Fetch owner profile for name + email
+      const { data: ownerProfile } = await supabase
+        .from('user_profiles')
+        .select('business_name, full_name, email')
+        .eq('id', portalRow.user_id)
+        .single()
+
+      const businessName = ownerProfile?.business_name || ownerProfile?.full_name || 'Invonaut'
+      const ownerEmail = ownerProfile?.email || OWNER_EMAIL
+      const clientEmail = clientRow?.email || ''
+      const clientName = clientRow?.name || signerName
+
+      const signedAt = new Date().toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      })
+
+      const sharedHtml = (recipientName: string) => `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8" /></head>
+<body style="font-family: system-ui, sans-serif; line-height: 1.6; color: #333; max-width: 560px; margin: 0 auto; padding: 24px;">
+  <p>Hi ${recipientName},</p>
+  <p>This confirms that <strong>${contract.title}</strong> has been signed by <strong>${signerName.trim()}</strong> on ${signedAt}.</p>
+  <p>The contract is now active. Both parties are bound by its terms.</p>
+  <p style="font-size: 13px; color: #666; margin-top: 32px;">Powered by Invonaut · From contract to cash. Automated.</p>
+</body>
+</html>`.trim()
+
+      // Email to client (only if their email matches OWNER_EMAIL in demo mode)
+      if (clientEmail && clientEmail === OWNER_EMAIL) {
+        await resend.emails.send({
+          from: 'Invonaut <onboarding@resend.dev>',
+          to: clientEmail,
+          subject: `Contract signed: ${contract.title}`,
+          html: sharedHtml(clientName),
+        })
+      }
+
+      // Email to owner (only if their email matches OWNER_EMAIL in demo mode)
+      if (ownerEmail && ownerEmail === OWNER_EMAIL) {
+        await resend.emails.send({
+          from: 'Invonaut <onboarding@resend.dev>',
+          to: ownerEmail,
+          subject: `${clientName} has signed: ${contract.title}`,
+          html: sharedHtml(businessName),
+        })
+      }
+    } catch (emailErr) {
+      // Email errors are non-fatal — the signature was already saved successfully
+      console.error('Contract confirmation email error:', emailErr)
     }
 
     return NextResponse.json({ success: true, message: 'Contract signed successfully.' })
