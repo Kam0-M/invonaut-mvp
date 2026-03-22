@@ -14,7 +14,12 @@ interface ContractSigningFormProps {
 function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const isDrawingRef = useRef(false)
-  const [hasSignature, setHasSignature] = useState(false)
+  // Use a ref instead of state so marking "has signature" never triggers a re-render
+  // mid-stroke, which would jump the canvas and distort the signature.
+  const hasSignatureRef = useRef(false)
+  // Separate display state only updated on mouseup/touchend so UI updates
+  // happen only after the stroke is complete, never during it.
+  const [showClear, setShowClear] = useState(false)
 
   const getPos = (e: MouseEvent | TouchEvent, canvas: HTMLCanvasElement) => {
     const rect = canvas.getBoundingClientRect()
@@ -57,11 +62,22 @@ function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => v
       const pos = getPos(e, canvas)
       ctx.lineTo(pos.x, pos.y)
       ctx.stroke()
-      if (!hasSignature) setHasSignature(true)
-      onChange(canvas.toDataURL('image/png'))
+      // Mark internally — NO state update here so no re-render mid-stroke
+      hasSignatureRef.current = true
     }
 
-    const stop = () => { isDrawingRef.current = false }
+    const stop = () => {
+      if (!isDrawingRef.current) return
+      isDrawingRef.current = false
+      // Only update React state (and therefore the UI) once the stroke is finished
+      if (hasSignatureRef.current) {
+        const canvas = canvasRef.current
+        if (canvas) {
+          onChange(canvas.toDataURL('image/png'))
+          setShowClear(true)
+        }
+      }
+    }
 
     canvas.addEventListener('mousedown', start)
     canvas.addEventListener('mousemove', draw)
@@ -80,7 +96,10 @@ function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => v
       canvas.removeEventListener('touchmove', draw)
       canvas.removeEventListener('touchend', stop)
     }
-  }, [onChange, hasSignature])
+  // Empty dependency array — set up once and never re-run.
+  // onChange is called imperatively inside stop(), not as a dependency.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const clear = () => {
     const canvas = canvasRef.current
@@ -88,20 +107,22 @@ function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => v
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setHasSignature(false)
+    hasSignatureRef.current = false
+    setShowClear(false)
     onChange(null)
   }
 
   return (
     <div className="space-y-2">
-      <div className="relative border-2 border-gray-200 rounded-xl bg-white overflow-hidden">
+      {/* Fixed height container so the layout never shifts when the clear button appears */}
+      <div className="relative border-2 border-gray-200 rounded-xl bg-white overflow-hidden" style={{ height: '144px' }}>
         <canvas
           ref={canvasRef}
           width={600}
-          height={160}
-          className="w-full h-36 touch-none cursor-crosshair"
+          height={144}
+          className="w-full h-full touch-none cursor-crosshair block"
         />
-        {!hasSignature && (
+        {!showClear && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <p className="text-gray-300 text-sm font-medium flex items-center gap-2">
               <PenLine className="w-4 h-4" />
@@ -109,19 +130,22 @@ function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => v
             </p>
           </div>
         )}
-        {/* Signature line */}
-        <div className="absolute bottom-5 left-6 right-6 h-px bg-gray-100" />
+        {/* Signature baseline */}
+        <div className="absolute bottom-5 left-6 right-6 h-px bg-gray-100 pointer-events-none" />
       </div>
-      {hasSignature && (
-        <button
-          type="button"
-          onClick={clear}
-          className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium"
-        >
-          <RotateCcw className="w-3.5 h-3.5" />
-          Clear and redraw
-        </button>
-      )}
+      {/* Fixed-height slot for the clear button — always reserves the space so layout never shifts */}
+      <div className="h-5">
+        {showClear && (
+          <button
+            type="button"
+            onClick={clear}
+            className="inline-flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors font-medium"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Clear and redraw
+          </button>
+        )}
+      </div>
     </div>
   )
 }
