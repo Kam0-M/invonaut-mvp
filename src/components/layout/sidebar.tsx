@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { 
   LayoutDashboard,
   FileText,
+  ScrollText,
   Users,
   ExternalLink,
   Settings,
@@ -26,6 +27,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Invoices', href: '/dashboard/invoices', icon: FileText },
     { name: 'Clients', href: '/dashboard/clients', icon: Users },
+    { name: 'Contracts', href: '/dashboard/contracts', icon: ScrollText },
     { name: 'Client Portal', href: '/dashboard/portal', icon: ExternalLink },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
