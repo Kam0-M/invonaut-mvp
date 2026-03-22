@@ -4,6 +4,13 @@ import Link from 'next/link'
 import { ArrowLeft, Calendar, DollarSign, User } from 'lucide-react'
 import ContractStatusBadge from '@/components/contracts/contract-status-badge'
 import ContractActions from '@/components/contracts/contract-actions'
+import ContractInvoiceLinker from '@/components/contracts/contract-invoice-linker'
+
+type LinkedInvoice = {
+  invoice_id: string
+  link_type: string
+  invoices: { id: string; invoice_number: string; total_amount: number; status: string } | null
+}
 
 type ClauseBlock = {
   title: string
@@ -39,7 +46,7 @@ export default async function ContractDetailPage({
   const { data: contract, error } = await supabase
     .from('contracts')
     .select(`
-      id, title, status, template_type, content,
+      id, title, status, template_type, content, client_id,
       total_value, start_date, end_date, created_at, updated_at,
       clients(id, name, email, company)
     `)
@@ -52,10 +59,30 @@ export default async function ContractDetailPage({
   const clientData = Array.isArray(contract.clients) ? contract.clients[0] : contract.clients
 
   // Linked invoices
-  const { data: linkedInvoices } = await supabase
+  const { data: linkedInvoicesRaw } = await supabase
     .from('contract_invoice_links')
-    .select('link_type, invoices(id, invoice_number, total_amount, status)')
+    .select('invoice_id, link_type, invoices(id, invoice_number, total_amount, status)')
     .eq('contract_id', id)
+
+  const linkedInvoices: LinkedInvoice[] = (linkedInvoicesRaw ?? []).map((l: any) => ({
+    invoice_id: l.invoice_id,
+    link_type: l.link_type,
+    invoices: Array.isArray(l.invoices) ? l.invoices[0] ?? null : l.invoices ?? null,
+  }))
+
+  // All user invoices for the link picker (filtered to this client)
+  const linkedInvoiceIds = new Set(linkedInvoices.map(l => l.invoice_id))
+  const { data: availableInvoicesRaw } = await supabase
+    .from('invoices')
+    .select('id, invoice_number, total_amount, status')
+    .eq('user_id', user.id)
+    .eq('client_id', (contract as any).client_id ?? '')
+    .order('created_at', { ascending: false })
+    .limit(100)
+
+  const availableInvoices = (availableInvoicesRaw ?? []) as {
+    id: string; invoice_number: string; total_amount: number; status: string
+  }[]
 
   // Signatures
   const { data: signatures } = await supabase
@@ -197,34 +224,12 @@ export default async function ContractDetailPage({
             </div>
           )}
 
-          {/* Linked invoices */}
-          <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-4">
-            <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">Linked Invoices</h3>
-            {!linkedInvoices || linkedInvoices.length === 0 ? (
-              <p className="text-sm text-gray-400">No invoices linked yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {linkedInvoices.map((link: any, i) => {
-                  const inv = Array.isArray(link.invoices) ? link.invoices[0] : link.invoices
-                  if (!inv) return null
-                  return (
-                    <Link
-                      key={i}
-                      href={`/dashboard/invoices/${inv.id}`}
-                      className="flex items-center justify-between p-3 rounded-xl bg-gray-50 hover:bg-blue-50 transition-colors group"
-                    >
-                      <span className="font-mono text-sm font-bold text-gray-900 group-hover:text-blue-700">
-                        {inv.invoice_number}
-                      </span>
-                      <span className="text-sm text-gray-500">
-                        {formatCurrency(Number(inv.total_amount))}
-                      </span>
-                    </Link>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          {/* Linked invoices — interactive */}
+          <ContractInvoiceLinker
+            contractId={id}
+            linkedInvoices={linkedInvoices}
+            availableInvoices={availableInvoices}
+          />
         </div>
       </div>
     </div>
