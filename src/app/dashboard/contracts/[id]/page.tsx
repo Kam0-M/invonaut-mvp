@@ -132,6 +132,7 @@ export default async function ContractDetailPage({
           contractId={id}
           status={contract.status}
           clientEmail={clientData?.email ?? null}
+          expiryDate={(contract as any).expiry_date ?? null}
         />
       </div>
 
