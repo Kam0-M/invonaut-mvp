@@ -94,12 +94,6 @@ export default async function ContractDetailPage({
 
   const clauses = (contract.content ?? []) as ClauseBlock[]
 
-  // Show dismiss button only for active contracts with an expiry date that haven't been dismissed
-  const showDismissButton =
-    contract.status === 'active' &&
-    !!(contract as any).expiry_date &&
-    !(contract as any).reminders_dismissed
-
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -251,24 +245,19 @@ export default async function ContractDetailPage({
             availableInvoices={availableInvoices}
           />
 
-          {/* Dismiss expiry reminders — only for active contracts with an expiry date */}
-          {showDismissButton && (
+          {/* Reminders card — shown whenever an expiry date is set on an active contract */}
+          {(contract as any).expiry_date && contract.status === 'active' && (
             <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-3">
               <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">Reminders</h3>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                You'll be emailed at 30, 15, 7, and 1 day before this contract expires.
-              </p>
-              <DismissRemindersButton contractId={id} />
-            </div>
-          )}
-
-          {/* Dismissed state — show a note so it doesn't just silently vanish */}
-          {(contract as any).expiry_date && (contract as any).reminders_dismissed && (
-            <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-2">
-              <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">Reminders</h3>
-              <p className="text-xs text-gray-400 flex items-center gap-1.5">
-                <span>🔕</span> Expiry reminders are off for this contract.
-              </p>
+              {!(contract as any).reminders_dismissed && (
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  You'll be emailed at 30, 15, 7, and 1 day before this contract expires.
+                </p>
+              )}
+              <DismissRemindersButton
+                contractId={id}
+                isDismissed={!!(contract as any).reminders_dismissed}
+              />
             </div>
           )}
         </div>
