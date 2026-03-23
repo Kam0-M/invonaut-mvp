@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, DollarSign, User } from 'lucide-react'
 import ContractStatusBadge from '@/components/contracts/contract-status-badge'
 import ContractActions from '@/components/contracts/contract-actions'
 import ContractInvoiceLinker from '@/components/contracts/contract-invoice-linker'
+import DismissRemindersButton from '@/components/contracts/dismiss-reminders-button'
 
 type LinkedInvoice = {
   invoice_id: string
@@ -47,7 +48,8 @@ export default async function ContractDetailPage({
     .from('contracts')
     .select(`
       id, title, status, template_type, content, client_id,
-      total_value, start_date, end_date, created_at, updated_at,
+      total_value, start_date, end_date, expiry_date,
+      reminders_dismissed, created_at, updated_at,
       clients(id, name, email, company)
     `)
     .eq('id', id)
@@ -71,7 +73,6 @@ export default async function ContractDetailPage({
   }))
 
   // All user invoices for the link picker (filtered to this client)
-  const linkedInvoiceIds = new Set(linkedInvoices.map(l => l.invoice_id))
   const { data: availableInvoicesRaw } = await supabase
     .from('invoices')
     .select('id, invoice_number, total_amount, status')
@@ -92,6 +93,12 @@ export default async function ContractDetailPage({
     .order('signed_at', { ascending: true })
 
   const clauses = (contract.content ?? []) as ClauseBlock[]
+
+  // Show dismiss button only for active contracts with an expiry date that haven't been dismissed
+  const showDismissButton =
+    contract.status === 'active' &&
+    !!(contract as any).expiry_date &&
+    !(contract as any).reminders_dismissed
 
   return (
     <div className="space-y-8">
@@ -199,6 +206,18 @@ export default async function ContractDetailPage({
                 </div>
               </div>
             )}
+
+            {(contract as any).expiry_date && (
+              <div className="flex items-start gap-3">
+                <Calendar className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-0.5">Expires</p>
+                  <p className="text-sm text-gray-700">
+                    {formatDate((contract as any).expiry_date)}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Signatures */}
@@ -230,6 +249,27 @@ export default async function ContractDetailPage({
             linkedInvoices={linkedInvoices}
             availableInvoices={availableInvoices}
           />
+
+          {/* Dismiss expiry reminders — only for active contracts with an expiry date */}
+          {showDismissButton && (
+            <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-3">
+              <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">Reminders</h3>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                You'll be emailed at 30, 15, 7, and 1 day before this contract expires.
+              </p>
+              <DismissRemindersButton contractId={id} />
+            </div>
+          )}
+
+          {/* Dismissed state — show a note so it doesn't just silently vanish */}
+          {(contract as any).expiry_date && (contract as any).reminders_dismissed && (
+            <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-2">
+              <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">Reminders</h3>
+              <p className="text-xs text-gray-400 flex items-center gap-1.5">
+                <span>🔕</span> Expiry reminders are off for this contract.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
