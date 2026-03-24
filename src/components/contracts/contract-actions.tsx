@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Send, Loader2, CalendarClock, RefreshCw } from 'lucide-react'
+import { Send, Loader2, CalendarClock, RefreshCw, Pencil } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 
 interface ContractActionsProps {
@@ -110,6 +111,7 @@ export default function ContractActions({
   const isSendable = ['draft', 'sent', 'awaiting_signature'].includes(status)
   const isExtendable = ['active', 'expired'].includes(status)
   const isResend = status === 'sent' || status === 'awaiting_signature'
+  const isEditable = status === 'draft'
 
   // Minimum date for the extend picker — tomorrow
   const tomorrow = new Date()
@@ -119,6 +121,17 @@ export default function ContractActions({
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap gap-2 justify-end">
+
+        {/* Edit — draft only */}
+        {isEditable && (
+          <Link
+            href={`/dashboard/contracts/${contractId}/edit`}
+            className="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all"
+          >
+            <Pencil className="w-4 h-4" />
+            Edit
+          </Link>
+        )}
 
         {/* Send / Resend */}
         {isSendable && (
