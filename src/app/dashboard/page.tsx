@@ -5,7 +5,7 @@ import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
 import { ClientRowDashboard } from '@/components/dashboard/client-row-dashboard'
 import { InvoiceRowDashboard } from '@/components/dashboard/invoice-row-dashboard'
-import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles, Lock } from 'lucide-react'
+import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
 import ViewOnlyBanner from '@/components/view-only-banner'
@@ -163,6 +163,28 @@ export default async function DashboardPage() {
     color: statusColors[status]
   }))
 
+
+  // Contract metrics
+  const now30 = new Date()
+  now30.setDate(now30.getDate() + 30)
+
+  const { data: activeContractsRaw } = await supabase
+    .from('contracts')
+    .select('id, total_value, expiry_date, reminders_dismissed')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+
+  const activeContracts = activeContractsRaw ?? []
+  const activeContractsCount = activeContracts.length
+  const totalContractValue = activeContracts.reduce(
+    (sum, c: any) => sum + Number(c.total_value || 0), 0
+  )
+  const expiringSoonCount = activeContracts.filter((c: any) => {
+    if (!c.expiry_date || c.reminders_dismissed) return false
+    const expiry = new Date(c.expiry_date)
+    return expiry <= now30 && expiry >= new Date()
+  }).length
+
   const recentInvoices = invoices.slice(0, 10)
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
@@ -282,6 +304,77 @@ export default async function DashboardPage() {
           <p className="text-4xl font-black text-red-900">{overdueCount}</p>
         </div>
       </div>
+
+
+      {/* Contract Metrics */}
+      {hasActiveSubscription && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+              <FileSignature className="w-5 h-5 text-purple-600" />
+              Contracts
+            </h2>
+            <Link href="/dashboard/contracts" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
+              View All →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {/* Active Contracts */}
+            <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-8 border-2 border-purple-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <FileSignature className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-purple-700 uppercase tracking-wider bg-purple-200 px-3 py-1.5 rounded-full">Active</span>
+              </div>
+              <p className="text-sm font-bold text-purple-700 mb-2 uppercase tracking-wide">Active Contracts</p>
+              <p className="text-4xl font-black text-purple-900">{activeContractsCount}</p>
+            </div>
+
+            {/* Total Contract Value */}
+            <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-8 border-2 border-indigo-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Banknote className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-indigo-200 px-3 py-1.5 rounded-full">Value</span>
+              </div>
+              <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">Total Contract Value</p>
+              <p className="text-4xl font-black text-indigo-900">{formatCurrency(totalContractValue)}</p>
+            </div>
+
+            {/* Expiring Soon */}
+            <div className={`rounded-2xl p-8 border-2 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 ${
+              expiringSoonCount > 0
+                ? 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200'
+                : 'bg-gradient-to-br from-gray-50 to-slate-50 border-gray-100'
+            }`}>
+              <div className="flex items-center justify-between mb-6">
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
+                  expiringSoonCount > 0
+                    ? 'bg-gradient-to-br from-amber-500 to-orange-500'
+                    : 'bg-gradient-to-br from-gray-400 to-slate-500'
+                }`}>
+                  <CalendarClock className="w-8 h-8 text-white" />
+                </div>
+                <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${
+                  expiringSoonCount > 0
+                    ? 'text-amber-700 bg-amber-200'
+                    : 'text-gray-600 bg-gray-200'
+                }`}>
+                  {expiringSoonCount > 0 ? 'Action needed' : 'All clear'}
+                </span>
+              </div>
+              <p className={`text-sm font-bold mb-2 uppercase tracking-wide ${
+                expiringSoonCount > 0 ? 'text-amber-700' : 'text-gray-600'
+              }`}>Expiring Within 30 Days</p>
+              <p className={`text-4xl font-black ${
+                expiringSoonCount > 0 ? 'text-amber-900' : 'text-gray-700'
+              }`}>{expiringSoonCount}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
