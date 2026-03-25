@@ -181,6 +181,7 @@ function ContractBuilder({
   const [totalValue, setTotalValue] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
   const [clauses, setClauses] = useState<ClauseBlock[]>(
     initialClauses.map((c, i) => ({ ...c, id: `clause-${Date.now()}-${i}` }))
   )
@@ -253,6 +254,7 @@ function ContractBuilder({
           totalValue: totalValue ? parseFloat(totalValue) : null,
           startDate: startDate || null,
           endDate: endDate || null,
+          expiryDate: expiryDate || null,
           content: clauses.map(({ id: _id, ...rest }) => rest),
         }),
       })
@@ -375,6 +377,18 @@ function ContractBuilder({
               type="date"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">
+              Expiry date (optional)
+              <span className="ml-2 text-xs text-gray-400 font-normal">Used for renewal reminders</span>
+            </label>
+            <input
+              type="date"
+              value={expiryDate}
+              onChange={e => setExpiryDate(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>

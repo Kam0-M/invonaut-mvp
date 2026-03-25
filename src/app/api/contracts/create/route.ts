@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { title, clientId, templateType, totalValue, startDate, endDate, content } = body
+    const { title, clientId, templateType, totalValue, startDate, endDate, expiryDate, content } = body
 
     if (!title?.trim()) {
       return NextResponse.json({ success: false, error: 'Contract title is required.' }, { status: 400 })
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         total_value: totalValue ?? null,
         start_date: startDate ?? null,
         end_date: endDate ?? null,
+        expiry_date: expiryDate ?? null,
         updated_at: new Date().toISOString(),
       })
       .select('id')
