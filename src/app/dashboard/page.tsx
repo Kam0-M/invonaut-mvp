@@ -43,6 +43,14 @@ type Client = {
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
+// For metric cards — abbreviates large numbers so they never overflow the card
+const formatCurrencyCompact = (amount: number): string => {
+  if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`
+  if (amount >= 1_000_000)     return `$${(amount / 1_000_000).toFixed(1)}M`
+  if (amount >= 10_000)        return `$${(amount / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(amount)
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const {
@@ -267,7 +275,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-green-700 uppercase tracking-wider bg-green-200 px-3 py-1.5 rounded-full">Total</span>
           </div>
           <p className="text-sm font-bold text-green-700 mb-2 uppercase tracking-wide">Total Revenue</p>
-          <p className="text-4xl font-black text-green-900">{formatCurrency(totalRevenue)}</p>
+          <p className="text-3xl font-black text-green-900 truncate">{formatCurrencyCompact(totalRevenue)}</p>
         </div>
 
         {/* Pending Payments */}
@@ -279,7 +287,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-blue-700 uppercase tracking-wider bg-blue-200 px-3 py-1.5 rounded-full">Pending</span>
           </div>
           <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">Pending Payments</p>
-          <p className="text-4xl font-black text-blue-900">{formatCurrency(pendingPayments)}</p>
+          <p className="text-3xl font-black text-blue-900 truncate">{formatCurrencyCompact(pendingPayments)}</p>
         </div>
 
         {/* Paid This Month */}
@@ -291,7 +299,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-teal-700 uppercase tracking-wider bg-teal-200 px-3 py-1.5 rounded-full">Month</span>
           </div>
           <p className="text-sm font-bold text-teal-700 mb-2 uppercase tracking-wide">Paid This Month</p>
-          <p className="text-4xl font-black text-teal-900">{formatCurrency(paidThisMonth)}</p>
+          <p className="text-3xl font-black text-teal-900 truncate">{formatCurrencyCompact(paidThisMonth)}</p>
         </div>
 
         {/* Overdue Invoices */}
@@ -303,7 +311,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-red-700 uppercase tracking-wider bg-red-200 px-3 py-1.5 rounded-full">Alert</span>
           </div>
           <p className="text-sm font-bold text-red-700 mb-2 uppercase tracking-wide">Overdue Invoices</p>
-          <p className="text-4xl font-black text-red-900">{overdueCount}</p>
+          <p className="text-3xl font-black text-red-900">{overdueCount}</p>
         </div>
       </div>
 
@@ -330,7 +338,7 @@ export default async function DashboardPage() {
                 <span className="text-xs font-bold text-purple-700 uppercase tracking-wider bg-purple-200 px-3 py-1.5 rounded-full">Active</span>
               </div>
               <p className="text-sm font-bold text-purple-700 mb-2 uppercase tracking-wide">Active Contracts</p>
-              <p className="text-4xl font-black text-purple-900">{activeContractsCount}</p>
+              <p className="text-3xl font-black text-purple-900">{activeContractsCount}</p>
             </div>
 
             {/* Total Contract Value */}
@@ -342,7 +350,7 @@ export default async function DashboardPage() {
                 <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-indigo-200 px-3 py-1.5 rounded-full">Value</span>
               </div>
               <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">Total Contract Value</p>
-              <p className="text-4xl font-black text-indigo-900">{formatCurrency(totalContractValue)}</p>
+              <p className="text-3xl font-black text-indigo-900 truncate">{formatCurrencyCompact(totalContractValue)}</p>
             </div>
 
             {/* Expiring Soon */}
@@ -372,7 +380,7 @@ export default async function DashboardPage() {
               }`}>Expiring Within 30 Days</p>
               <p className={`text-4xl font-black ${
                 expiringSoonCount > 0 ? 'text-amber-900' : 'text-gray-700'
-              }`}>{expiringSoonCount}</p>
+              } truncate`}>{expiringSoonCount}</p>
             </div>
           </div>
         </div>
@@ -507,8 +515,8 @@ export default async function DashboardPage() {
                         </span>
                       </div>
                     </div>
-                    <span className="text-base font-black text-gray-900 flex-shrink-0 group-hover:text-blue-600 transition-colors">
-                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(inv.total_amount)}
+                    <span className="text-sm font-black text-gray-900 flex-shrink-0 group-hover:text-blue-600 transition-colors">
+                      {formatCurrencyCompact(inv.total_amount)}
                     </span>
                   </Link>
                 )
