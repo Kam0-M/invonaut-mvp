@@ -45,8 +45,8 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
   }
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col">
-      <div className="flex flex-col flex-grow pt-8 bg-white overflow-y-auto border-r-2 border-gray-100">
+    <div className="hidden md:flex md:w-64 md:flex-col h-full">
+      <div className="flex flex-col h-full pt-8 bg-white overflow-y-auto border-r-2 border-gray-100">
         {/* Logo */}
         <div className="px-6 mb-8">
           <Link href="/dashboard" className="flex items-center">

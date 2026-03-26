@@ -125,27 +125,29 @@ export default async function DashboardPage() {
 
   const overdueCount = invoices.filter(inv => inv.displayStatus === 'overdue').length
 
-  // Revenue chart data
+  // Revenue chart data — use local dates to avoid UTC midnight timezone bugs
   const revenueChartData = (() => {
     const monthLabels = Array.from({ length: 6 }, (_, idx) => {
-      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - idx), 1))
-      return { 
-        year: d.getUTCFullYear(), 
-        month: d.getUTCMonth(), 
-        label: d.toLocaleString('en-US', { month: 'short' }) 
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        label: d.toLocaleString('en-US', { month: 'short' }),
+        isCurrentMonth: d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth(),
       }
     })
 
     const paidInvoices = invoices.filter(inv => inv.displayStatus === 'paid')
-    
-    return monthLabels.map(({ year, month, label }) => {
+
+    return monthLabels.map(({ year, month, label, isCurrentMonth }) => {
       const revenue = paidInvoices
         .filter(inv => {
-          const d = new Date(inv.issue_date)
-          return d.getUTCFullYear() === year && d.getUTCMonth() === month
+          // Parse as local noon to avoid UTC midnight → previous local day bug
+          const d = new Date(inv.issue_date + 'T12:00:00')
+          return d.getFullYear() === year && d.getMonth() === month
         })
         .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
-      return { month: label, revenue }
+      return { month: label, revenue, isCurrentMonth }
     })
   })()
 
@@ -447,136 +449,128 @@ export default async function DashboardPage() {
 
       {/* Recent Invoices & Clients */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+
         {/* Recent Invoices */}
-        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
-          <div className="mb-6 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 overflow-hidden">
+          <div className="px-8 pt-8 pb-5 flex items-center justify-between border-b-2 border-gray-50">
             <div>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recent Invoices</h2>
-              <p className="text-sm text-gray-600 font-medium">Latest {recentInvoices.length} invoices</p>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">Recent Invoices</h2>
+              <p className="text-sm text-gray-500 font-medium mt-0.5">Latest {recentInvoices.length} invoices</p>
             </div>
             {hasInvoices && (
-              <Link href="/dashboard/invoices" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
-                View All →
+              <Link href="/dashboard/invoices" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                View all →
               </Link>
             )}
           </div>
 
           {!hasInvoices ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-blue-600" />
+            <div className="flex flex-col items-center justify-center py-14 text-center px-8">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                <FileText className="w-7 h-7 text-blue-500" />
               </div>
-              <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
-              <p className="text-sm text-gray-600 mb-6 font-medium">
-                {hasActiveSubscription
-                  ? 'Start creating invoices to track payments'
-                  : 'Subscribe to start creating invoices'}
+              <h3 className="text-base font-black text-gray-900 mb-1">No invoices yet</h3>
+              <p className="text-sm text-gray-500 mb-5 font-medium">
+                {hasActiveSubscription ? 'Create your first invoice to get started' : 'Subscribe to start creating invoices'}
               </p>
-              {hasActiveSubscription ? (
-                <Link href="/dashboard/invoices/new" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                  Create Invoice
-                </Link>
-              ) : (
-                <Link href="/pricing" className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
-                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
-                </Link>
-              )}
+              <Link href={hasActiveSubscription ? "/dashboard/invoices/new" : "/pricing"}
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+                {hasActiveSubscription ? 'Create Invoice' : hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
+              </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-                <div className="overflow-hidden rounded-xl border-2 border-gray-200">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Invoice #</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Client</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Due Date</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Amount</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {recentInvoices.map(inv => (
-                        <InvoiceRowDashboard
-                          key={inv.id}
-                          id={inv.id}
-                          invoiceNumber={inv.invoice_number}
-                          clientName={inv.clients?.name || null}
-                          dueDate={inv.due_date}
-                          totalAmount={inv.total_amount}
-                          status={inv.displayStatus}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div className="divide-y divide-gray-50">
+              {recentInvoices.map(inv => {
+                const statusColors: Record<string, string> = {
+                  draft: 'bg-gray-100 text-gray-600 border border-gray-200',
+                  sent: 'bg-blue-50 text-blue-700 border border-blue-200',
+                  paid: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+                  overdue: 'bg-red-50 text-red-700 border border-red-200',
+                }
+                const isOverdueInv = inv.displayStatus === 'overdue'
+                return (
+                  <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
+                    className="flex items-center gap-4 px-8 py-5 hover:bg-gray-50 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-black text-sm text-gray-900 font-mono">{inv.invoice_number}</span>
+                        <span className={`inline-flex px-2 py-0.5 rounded-lg text-xs font-bold uppercase tracking-wide ${statusColors[inv.displayStatus] ?? statusColors.draft}`}>
+                          {inv.displayStatus}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500 font-medium truncate">{inv.clients?.name || '—'}</span>
+                        <span className="text-gray-300 text-xs">·</span>
+                        <span className={`text-xs font-semibold ${isOverdueInv ? 'text-red-500' : 'text-gray-400'}`}>
+                          Due {new Date(inv.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-base font-black text-gray-900 flex-shrink-0 group-hover:text-blue-600 transition-colors">
+                      {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(inv.total_amount)}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>
 
         {/* Recent Clients */}
-        <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
-          <div className="mb-6 flex items-center justify-between">
+        <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1 overflow-hidden">
+          <div className="px-8 pt-8 pb-5 flex items-center justify-between border-b-2 border-gray-50">
             <div>
-              <h2 className="text-2xl font-black text-gray-900 tracking-tight">Recent Clients</h2>
-              <p className="text-sm text-gray-600 font-medium">Latest {clients.length} clients</p>
+              <h2 className="text-xl font-black text-gray-900 tracking-tight">Recent Clients</h2>
+              <p className="text-sm text-gray-500 font-medium mt-0.5">Latest {clients.length} clients</p>
             </div>
             {hasClients && (
-              <Link href="/dashboard/clients" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
-                View All →
+              <Link href="/dashboard/clients" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                View all →
               </Link>
             )}
           </div>
 
           {!hasClients ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mb-4">
-                <Users className="w-8 h-8 text-teal-600" />
+            <div className="flex flex-col items-center justify-center py-14 text-center px-8">
+              <div className="w-14 h-14 bg-teal-50 rounded-2xl flex items-center justify-center mb-4">
+                <Users className="w-7 h-7 text-teal-500" />
               </div>
-              <h3 className="text-lg font-black text-gray-900 mb-2">No clients yet</h3>
-              <p className="text-sm text-gray-600 mb-6 font-medium">
-                {hasActiveSubscription
-                  ? 'Add your first client to start creating invoices'
-                  : 'Subscribe to start adding clients'}
+              <h3 className="text-base font-black text-gray-900 mb-1">No clients yet</h3>
+              <p className="text-sm text-gray-500 mb-5 font-medium">
+                {hasActiveSubscription ? 'Add your first client to get started' : 'Subscribe to start adding clients'}
               </p>
-              {hasActiveSubscription ? (
-                <Link href="/dashboard/clients/new" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
-                  Add Client
-                </Link>
-              ) : (
-                <Link href="/pricing" className="bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
-                  {hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
-                </Link>
-              )}
+              <Link href={hasActiveSubscription ? "/dashboard/clients/new" : "/pricing"}
+                className="bg-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
+                {hasActiveSubscription ? 'Add Client' : hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
+              </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
-              <div className="inline-block min-w-full align-middle px-4 sm:px-0">
-                <div className="overflow-hidden rounded-xl border-2 border-gray-200">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Name</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Company</th>
-                        <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-wider text-gray-700">Email</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
-                      {clients.map(client => (
-                        <ClientRowDashboard
-                          key={client.id}
-                          id={client.id}
-                          name={client.name}
-                          company={client.company}
-                          email={client.email}
-                        />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div className="divide-y divide-gray-50">
+              {clients.map(client => (
+                <Link key={client.id} href={`/dashboard/clients/${client.id}`}
+                  className="flex items-center gap-4 px-8 py-5 hover:bg-gray-50 transition-colors group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center flex-shrink-0">
+                    <span className="text-teal-700 text-sm font-black">
+                      {client.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-sm text-gray-900 group-hover:text-blue-600 transition-colors truncate">
+                      {client.name}
+                    </p>
+                    <p className="text-sm text-gray-400 font-medium truncate">
+                      {client.company || client.email || '—'}
+                    </p>
+                  </div>
+                  {client.email && (
+                    <span className="text-xs text-gray-400 font-medium flex-shrink-0 hidden lg:block truncate max-w-36">
+                      {client.email}
+                    </span>
+                  )}
+                </Link>
+              ))}
             </div>
           )}
         </div>
