@@ -29,8 +29,8 @@ export default async function DashboardLayout({
   const businessName = profile?.business_name || null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+    <div className="h-screen flex flex-col overflow-hidden bg-gray-50">
+      {/* Header — fixed at top */}
       <DashboardHeader 
         user={user} 
         logoUrl={logoUrl}
@@ -38,12 +38,13 @@ export default async function DashboardLayout({
         businessName={businessName}
       />
 
-      <div className="flex">
-        {/* Sidebar */}
+      {/* Body — sidebar + main scroll independently */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar — scrolls on its own */}
         <Sidebar subscriptionTier={subscriptionTier} />
 
-        {/* Main Content */}
-        <main className="flex-1 p-8">
+        {/* Main Content — scrolls on its own */}
+        <main className="flex-1 overflow-y-auto p-8">
           {children}
         </main>
       </div>
