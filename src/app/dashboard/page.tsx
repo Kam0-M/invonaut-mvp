@@ -3,11 +3,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
-import { ClientRowDashboard } from '@/components/dashboard/client-row-dashboard'
-import { InvoiceRowDashboard } from '@/components/dashboard/invoice-row-dashboard'
 import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
+import MetricCardValue from '@/components/dashboard/metric-card-value'
 import ViewOnlyBanner from '@/components/view-only-banner'
 
 type InvoiceRaw = {
@@ -43,6 +42,10 @@ type Client = {
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
+// Full precision — used for tooltip
+const formatCurrencyFull = (amount: number): string =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+
 // For metric cards — abbreviates large numbers so they never overflow the card
 const formatCurrencyCompact = (amount: number): string => {
   if (amount >= 1_000_000_000) return `$${(amount / 1_000_000_000).toFixed(1)}B`
@@ -62,17 +65,15 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // ⬅️ CHECK SUBSCRIPTION STATUS + HISTORY
   const { data: profile } = await supabase
     .from('user_profiles')
     .select('stripe_customer_id, stripe_subscription_id, subscription_status')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
-  
-  // ⬅️ NEW: Check if user has EVER subscribed (for conditional CTAs)
+
   const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
 
   // Fetch invoices
@@ -82,24 +83,19 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(100)
-    
+
   const rawInvoices = (invoiceData ?? []) as any[]
-  
+
   const invoices: Invoice[] = rawInvoices.map(inv => {
     const normalizedInv = {
       ...inv,
       clients: Array.isArray(inv.clients) && inv.clients.length > 0 ? inv.clients[0] : inv.clients
     }
-    
-    const displayStatus = getInvoiceDisplayStatus({ 
-      status: normalizedInv.status, 
-      due_date: normalizedInv.due_date 
+    const displayStatus = getInvoiceDisplayStatus({
+      status: normalizedInv.status,
+      due_date: normalizedInv.due_date
     })
-    
-    return {
-      ...normalizedInv,
-      displayStatus
-    }
+    return { ...normalizedInv, displayStatus }
   })
 
   // Fetch clients
@@ -109,9 +105,9 @@ export default async function DashboardPage() {
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(10)
-  
+
   const clients = (clientData ?? []) as Client[]
-  
+
   const now = new Date()
 
   // Metrics
@@ -126,7 +122,7 @@ export default async function DashboardPage() {
   const paidThisMonth = invoices
     .filter(inv => inv.displayStatus === 'paid')
     .filter(inv => {
-      const d = new Date(inv.issue_date)
+      const d = new Date(inv.issue_date + 'T12:00:00')
       return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
     })
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
@@ -150,7 +146,6 @@ export default async function DashboardPage() {
     return monthLabels.map(({ year, month, label, isCurrentMonth }) => {
       const revenue = paidInvoices
         .filter(inv => {
-          // Parse as local noon to avoid UTC midnight → previous local day bug
           const d = new Date(inv.issue_date + 'T12:00:00')
           return d.getFullYear() === year && d.getMonth() === month
         })
@@ -172,7 +167,6 @@ export default async function DashboardPage() {
     value: invoices.filter(inv => inv.displayStatus === status).length,
     color: statusColors[status]
   }))
-
 
   // Contract metrics
   const now30 = new Date()
@@ -199,15 +193,14 @@ export default async function DashboardPage() {
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
 
-  // Get random welcome message
   const welcomeMessage = getWelcomeMessage()
 
   return (
     <div className="space-y-8 max-w-7xl">
-      {/* Header with Gradient - Matches Landing Page */}
+
+      {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-10 shadow-2xl">
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-        
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px' }} />
         <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-2 mb-3">
@@ -217,10 +210,7 @@ export default async function DashboardPage() {
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-3 tracking-tight">{welcomeMessage}</h1>
             <p className="text-blue-100 text-lg font-medium">Track your invoices, revenue, and client activity in real-time.</p>
           </div>
-          
-          {/* ⬅️ LOCKED/UNLOCKED BUTTONS */}
           <div className="flex flex-col sm:flex-row gap-3">
-            {/* Create Invoice Button */}
             {hasActiveSubscription ? (
               <Link href="/dashboard/invoices/new" className="inline-block bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-center hover:shadow-2xl transition-all hover:scale-105">
                 <div className="flex items-center justify-center gap-2">
@@ -229,17 +219,11 @@ export default async function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <button
-                disabled
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/20 text-white/50 font-bold cursor-not-allowed border-2 border-white/20"
-                title="Subscribe to create invoices"
-              >
+              <button disabled className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/20 text-white/50 font-bold cursor-not-allowed border-2 border-white/20" title="Subscribe to create invoices">
                 <Lock className="w-5 h-5" />
                 Create Invoice (Locked)
               </button>
             )}
-
-            {/* Add Client Button */}
             {hasActiveSubscription ? (
               <Link href="/dashboard/clients/new" className="inline-block bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center">
                 <div className="flex items-center justify-center gap-2">
@@ -248,11 +232,7 @@ export default async function DashboardPage() {
                 </div>
               </Link>
             ) : (
-              <button
-                disabled
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 text-white/50 border-2 border-white/20 font-bold cursor-not-allowed"
-                title="Subscribe to add clients"
-              >
+              <button disabled className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-white/10 text-white/50 border-2 border-white/20 font-bold cursor-not-allowed" title="Subscribe to add clients">
                 <Lock className="w-5 h-5" />
                 Add Client (Locked)
               </button>
@@ -261,11 +241,12 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ⬅️ VIEW-ONLY BANNER (if no subscription) */}
+      {/* View-only banner */}
       {!hasActiveSubscription && <ViewOnlyBanner />}
 
-      {/* Metrics - Premium Cards with Hover Effects */}
+      {/* Invoice Metric Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+
         {/* Total Revenue */}
         <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border-2 border-green-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
           <div className="flex items-center justify-between mb-6">
@@ -275,7 +256,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-green-700 uppercase tracking-wider bg-green-200 px-3 py-1.5 rounded-full">Total</span>
           </div>
           <p className="text-sm font-bold text-green-700 mb-2 uppercase tracking-wide">Total Revenue</p>
-          <p className="text-3xl font-black text-green-900 truncate">{formatCurrencyCompact(totalRevenue)}</p>
+          <MetricCardValue compact={formatCurrencyCompact(totalRevenue)} full={formatCurrencyFull(totalRevenue)} colorClass="text-green-900" />
         </div>
 
         {/* Pending Payments */}
@@ -287,7 +268,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-blue-700 uppercase tracking-wider bg-blue-200 px-3 py-1.5 rounded-full">Pending</span>
           </div>
           <p className="text-sm font-bold text-blue-700 mb-2 uppercase tracking-wide">Pending Payments</p>
-          <p className="text-3xl font-black text-blue-900 truncate">{formatCurrencyCompact(pendingPayments)}</p>
+          <MetricCardValue compact={formatCurrencyCompact(pendingPayments)} full={formatCurrencyFull(pendingPayments)} colorClass="text-blue-900" />
         </div>
 
         {/* Paid This Month */}
@@ -299,7 +280,7 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-teal-700 uppercase tracking-wider bg-teal-200 px-3 py-1.5 rounded-full">Month</span>
           </div>
           <p className="text-sm font-bold text-teal-700 mb-2 uppercase tracking-wide">Paid This Month</p>
-          <p className="text-3xl font-black text-teal-900 truncate">{formatCurrencyCompact(paidThisMonth)}</p>
+          <MetricCardValue compact={formatCurrencyCompact(paidThisMonth)} full={formatCurrencyFull(paidThisMonth)} colorClass="text-teal-900" />
         </div>
 
         {/* Overdue Invoices */}
@@ -311,12 +292,12 @@ export default async function DashboardPage() {
             <span className="text-xs font-bold text-red-700 uppercase tracking-wider bg-red-200 px-3 py-1.5 rounded-full">Alert</span>
           </div>
           <p className="text-sm font-bold text-red-700 mb-2 uppercase tracking-wide">Overdue Invoices</p>
-          <p className="text-3xl font-black text-red-900">{overdueCount}</p>
+          <MetricCardValue compact={String(overdueCount)} full={String(overdueCount)} colorClass="text-red-900" />
         </div>
+
       </div>
 
-
-      {/* Contract Metrics */}
+      {/* Contract Metric Cards */}
       {hasActiveSubscription && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -329,6 +310,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+
             {/* Active Contracts */}
             <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-8 border-2 border-purple-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
               <div className="flex items-center justify-between mb-6">
@@ -338,7 +320,7 @@ export default async function DashboardPage() {
                 <span className="text-xs font-bold text-purple-700 uppercase tracking-wider bg-purple-200 px-3 py-1.5 rounded-full">Active</span>
               </div>
               <p className="text-sm font-bold text-purple-700 mb-2 uppercase tracking-wide">Active Contracts</p>
-              <p className="text-3xl font-black text-purple-900">{activeContractsCount}</p>
+              <MetricCardValue compact={String(activeContractsCount)} full={String(activeContractsCount)} colorClass="text-purple-900" />
             </div>
 
             {/* Total Contract Value */}
@@ -350,7 +332,7 @@ export default async function DashboardPage() {
                 <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider bg-indigo-200 px-3 py-1.5 rounded-full">Value</span>
               </div>
               <p className="text-sm font-bold text-indigo-700 mb-2 uppercase tracking-wide">Total Contract Value</p>
-              <p className="text-3xl font-black text-indigo-900 truncate">{formatCurrencyCompact(totalContractValue)}</p>
+              <MetricCardValue compact={formatCurrencyCompact(totalContractValue)} full={formatCurrencyFull(totalContractValue)} colorClass="text-indigo-900" />
             </div>
 
             {/* Expiring Soon */}
@@ -377,17 +359,23 @@ export default async function DashboardPage() {
               </div>
               <p className={`text-sm font-bold mb-2 uppercase tracking-wide ${
                 expiringSoonCount > 0 ? 'text-amber-700' : 'text-gray-600'
-              }`}>Expiring Within 30 Days</p>
-              <p className={`text-4xl font-black ${
-                expiringSoonCount > 0 ? 'text-amber-900' : 'text-gray-700'
-              } truncate`}>{expiringSoonCount}</p>
+              }`}>
+                Expiring Within 30 Days
+              </p>
+              <MetricCardValue
+                compact={String(expiringSoonCount)}
+                full={String(expiringSoonCount)}
+                colorClass={expiringSoonCount > 0 ? 'text-amber-900' : 'text-gray-700'}
+              />
             </div>
+
           </div>
         </div>
       )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+
         <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-1">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div>
@@ -404,7 +392,7 @@ export default async function DashboardPage() {
               </div>
               <h3 className="text-lg font-black text-gray-900 mb-2">No revenue data yet</h3>
               <p className="text-sm text-gray-600 mb-6 max-w-sm font-medium">
-                {hasActiveSubscription 
+                {hasActiveSubscription
                   ? 'Create and send invoices to start tracking your revenue growth'
                   : 'Subscribe to start creating invoices and tracking revenue'}
               </p>
@@ -453,6 +441,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
       </div>
 
       {/* Recent Invoices & Clients */}
@@ -481,8 +470,10 @@ export default async function DashboardPage() {
               <p className="text-sm text-gray-500 mb-5 font-medium">
                 {hasActiveSubscription ? 'Create your first invoice to get started' : 'Subscribe to start creating invoices'}
               </p>
-              <Link href={hasActiveSubscription ? "/dashboard/invoices/new" : "/pricing"}
-                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all hover:shadow-lg">
+              <Link
+                href={hasActiveSubscription ? '/dashboard/invoices/new' : '/pricing'}
+                className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all hover:shadow-lg"
+              >
                 {hasActiveSubscription ? 'Create Invoice' : hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
               </Link>
             </div>
@@ -497,7 +488,9 @@ export default async function DashboardPage() {
                 }
                 const isOverdueInv = inv.displayStatus === 'overdue'
                 return (
-                  <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
+                  <Link
+                    key={inv.id}
+                    href={`/dashboard/invoices/${inv.id}`}
                     className="flex items-center gap-4 px-8 py-5 hover:bg-gray-50 transition-colors group"
                   >
                     <div className="flex-1 min-w-0">
@@ -548,15 +541,19 @@ export default async function DashboardPage() {
               <p className="text-sm text-gray-500 mb-5 font-medium">
                 {hasActiveSubscription ? 'Add your first client to get started' : 'Subscribe to start adding clients'}
               </p>
-              <Link href={hasActiveSubscription ? "/dashboard/clients/new" : "/pricing"}
-                className="bg-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-teal-700 transition-all hover:shadow-lg">
+              <Link
+                href={hasActiveSubscription ? '/dashboard/clients/new' : '/pricing'}
+                className="bg-teal-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-teal-700 transition-all hover:shadow-lg"
+              >
                 {hasActiveSubscription ? 'Add Client' : hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'}
               </Link>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {clients.map(client => (
-                <Link key={client.id} href={`/dashboard/clients/${client.id}`}
+                <Link
+                  key={client.id}
+                  href={`/dashboard/clients/${client.id}`}
                   className="flex items-center gap-4 px-8 py-5 hover:bg-gray-50 transition-colors group"
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center flex-shrink-0">
@@ -582,6 +579,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+
       </div>
     </div>
   )
