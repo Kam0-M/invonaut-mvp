@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Plus, Receipt } from 'lucide-react'
 import ExpenseList from '@/components/expenses/expense-list'
 import ExpenseReportGenerator from '@/components/expenses/expense-report-generator'
+import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 
 type PageProps = {
@@ -26,6 +27,15 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  // Fetch budgets for Business tier sidebar
+  const { data: budgetsRaw } = await supabase
+    .from('expense_budgets')
+    .select('id, category, monthly_limit')
+    .eq('user_id', user.id)
+    .order('category', { ascending: true })
+
+  const budgets = (budgetsRaw ?? []) as { id: string; category: string; monthly_limit: number }[]
 
   const { category, start, end } = await searchParams
 
@@ -149,8 +159,15 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
           {/* Expense list */}
           <ExpenseList expenses={expenses} totalAmount={totalAmount} />
 
-          {/* Report generator */}
-          <ExpenseReportGenerator />
+          {/* Report generator + Budget settings side by side on large screens */}
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+            <div className="xl:col-span-2">
+              <ExpenseReportGenerator />
+            </div>
+            <div>
+              <BudgetSettings budgets={budgets} isBusiness={isBusiness} />
+            </div>
+          </div>
         </>
       )}
     </div>
