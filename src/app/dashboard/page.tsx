@@ -200,6 +200,7 @@ export default async function DashboardPage() {
   )
   const netProfit = totalRevenue - totalExpenses
   const isProfitable = netProfit >= 0
+  const profitabilityPct = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : null
 
   const recentInvoices = invoices.slice(0, 10)
   const hasInvoices = invoices.length > 0
@@ -353,6 +354,14 @@ export default async function DashboardPage() {
               <p className="text-xs text-gray-400 font-medium">Expenses</p>
               <p className="text-sm font-black text-gray-700">{formatCurrencyCompact(totalExpenses)}</p>
             </div>
+            {profitabilityPct !== null && (
+              <div className="ml-auto text-right">
+                <p className="text-xs text-gray-400 font-medium">Margin</p>
+                <p className={`text-sm font-black ${isProfitable ? 'text-emerald-700' : 'text-red-700'}`}>
+                  {isProfitable ? '+' : ''}{profitabilityPct}%
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
