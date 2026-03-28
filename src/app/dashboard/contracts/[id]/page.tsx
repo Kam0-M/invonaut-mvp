@@ -6,6 +6,7 @@ import ContractStatusBadge from '@/components/contracts/contract-status-badge'
 import ContractActions from '@/components/contracts/contract-actions'
 import ContractInvoiceLinker from '@/components/contracts/contract-invoice-linker'
 import DismissRemindersButton from '@/components/contracts/dismiss-reminders-button'
+import ContractReview from '@/components/contracts/contract-review'
 
 type LinkedInvoice = {
   invoice_id: string
@@ -43,6 +44,15 @@ export default async function ContractDetailPage({
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('subscription_tier')
+    .eq('id', user.id)
+    .single()
+
+  const subscriptionTier = profile?.subscription_tier ?? 'starter'
+  const isPro = subscriptionTier === 'professional' || subscriptionTier === 'business'
 
   const { data: contract, error } = await supabase
     .from('contracts')
@@ -260,6 +270,9 @@ export default async function ContractDetailPage({
               />
             </div>
           )}
+          {/* AI Contract Review */}
+          <ContractReview contractId={id} isPro={isPro} />
+
         </div>
       </div>
     </div>
