@@ -364,6 +364,41 @@ export default async function DashboardPage() {
             full={formatCurrencyFull(Math.abs(netProfit))}
             colorClass={isProfitable ? 'text-emerald-900' : 'text-red-900'}
           />
+
+          {/* Human-readable insight */}
+          <p className={`text-sm font-medium mt-2 ${isProfitable ? 'text-emerald-600' : 'text-red-500'}`}>
+            {totalRevenue === 0
+              ? 'No revenue recorded yet.'
+              : isProfitable
+              ? `You're keeping ${profitabilityPct}% of what you earn.`
+              : `Expenses exceed revenue by ${formatCurrencyCompact(Math.abs(netProfit))}.`
+            }
+          </p>
+
+          {/* Expense ratio bar */}
+          {totalRevenue > 0 && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-gray-400">Expenses vs Revenue</span>
+                <span className={`text-xs font-black ${isProfitable ? 'text-emerald-600' : 'text-red-500'}`}>
+                  {Math.min(Math.round((totalExpenses / totalRevenue) * 100), 100)}%
+                </span>
+              </div>
+              <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    isProfitable
+                      ? totalExpenses / totalRevenue < 0.5
+                        ? 'bg-gradient-to-r from-emerald-400 to-green-500'
+                        : 'bg-gradient-to-r from-amber-400 to-orange-400'
+                      : 'bg-gradient-to-r from-red-400 to-rose-500'
+                  }`}
+                  style={{ width: `${Math.min((totalExpenses / totalRevenue) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-6 mt-4 pt-4 border-t border-gray-100">
             <div>
               <p className="text-xs text-gray-400 font-medium">Revenue</p>
