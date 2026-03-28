@@ -1,6 +1,10 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Lazy init — only created when AI is actually called, not at import time
+// This prevents crashes when OPENAI_API_KEY is missing
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 export const EXPENSE_CATEGORIES = [
   { value: 'software',      label: 'Software & Subscriptions' },
@@ -42,7 +46,7 @@ ${categoryList}
 Respond ONLY with the category value (e.g. "software"). No explanation, no punctuation.`
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are an expense categorization assistant. Respond only with the category value string.' },
