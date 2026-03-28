@@ -1,0 +1,61 @@
+import OpenAI from 'openai'
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+
+export const EXPENSE_CATEGORIES = [
+  { value: 'software',      label: 'Software & Subscriptions' },
+  { value: 'hardware',      label: 'Hardware & Equipment' },
+  { value: 'travel',        label: 'Travel & Transport' },
+  { value: 'meals',         label: 'Meals & Entertainment' },
+  { value: 'marketing',     label: 'Marketing & Advertising' },
+  { value: 'office',        label: 'Office Supplies' },
+  { value: 'professional',  label: 'Professional Services' },
+  { value: 'utilities',     label: 'Utilities & Internet' },
+  { value: 'education',     label: 'Education & Training' },
+  { value: 'insurance',     label: 'Insurance' },
+  { value: 'taxes',         label: 'Taxes & Fees' },
+  { value: 'other',         label: 'Other' },
+] as const
+
+export type ExpenseCategory = typeof EXPENSE_CATEGORIES[number]['value']
+
+export function getCategoryLabel(value: string): string {
+  return EXPENSE_CATEGORIES.find(c => c.value === value)?.label ?? 'Other'
+}
+
+export async function suggestCategory(
+  description: string,
+  vendor?: string
+): Promise<ExpenseCategory> {
+  const categoryList = EXPENSE_CATEGORIES.map(c => `${c.value}: ${c.label}`).join('\n')
+
+  const prompt = `You are an expense categorization assistant for freelancers and small businesses.
+
+Given the following expense, return the single most appropriate category value.
+
+Expense description: "${description}"
+${vendor ? `Vendor: "${vendor}"` : ''}
+
+Available categories:
+${categoryList}
+
+Respond ONLY with the category value (e.g. "software"). No explanation, no punctuation.`
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        { role: 'system', content: 'You are an expense categorization assistant. Respond only with the category value string.' },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.1,
+      max_tokens: 20,
+    })
+
+    const raw = response.choices[0].message.content?.trim().toLowerCase() ?? 'other'
+    const valid = EXPENSE_CATEGORIES.find(c => c.value === raw)
+    return valid ? valid.value : 'other'
+  } catch {
+    return 'other'
+  }
+}

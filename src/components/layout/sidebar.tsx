@@ -13,7 +13,8 @@ import {
   BarChart3,
   HelpCircle,
   CreditCard,
-  Sparkles
+  Sparkles,
+  Receipt
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -28,6 +29,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
     { name: 'Invoices', href: '/dashboard/invoices', icon: FileText },
     { name: 'Clients', href: '/dashboard/clients', icon: Users },
     { name: 'Contracts', href: '/dashboard/contracts', icon: ScrollText },
+    { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt },
     { name: 'Client Portal', href: '/dashboard/portal', icon: ExternalLink },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
@@ -45,8 +47,8 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
   }
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col h-full">
-      <div className="flex flex-col h-full pt-8 bg-white overflow-y-auto border-r-2 border-gray-100">
+    <div className="hidden md:flex md:w-64 md:flex-col">
+      <div className="flex flex-col flex-grow pt-8 bg-white overflow-y-auto border-r-2 border-gray-100">
         {/* Logo */}
         <div className="px-6 mb-8">
           <Link href="/dashboard" className="flex items-center">

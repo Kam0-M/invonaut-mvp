@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
-import { Users, FileText, TrendingUp, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock } from 'lucide-react'
+import { Users, FileText, TrendingUp, TrendingDown, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
 import MetricCardValue from '@/components/dashboard/metric-card-value'
@@ -189,6 +189,18 @@ export default async function DashboardPage() {
     return expiry <= now30 && expiry >= new Date()
   }).length
 
+  // Total expenses this month (for net profit card)
+  const { data: expensesRaw } = await supabase
+    .from('expenses')
+    .select('amount')
+    .eq('user_id', user.id)
+
+  const totalExpenses = (expensesRaw ?? []).reduce(
+    (sum, e: any) => sum + Number(e.amount || 0), 0
+  )
+  const netProfit = totalRevenue - totalExpenses
+  const isProfitable = netProfit >= 0
+
   const recentInvoices = invoices.slice(0, 10)
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
@@ -296,6 +308,54 @@ export default async function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Net Profit Card */}
+      {hasActiveSubscription && (
+        <div className={`rounded-2xl p-8 border-2 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2 ${
+          isProfitable
+            ? 'bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-100'
+            : 'bg-gradient-to-br from-red-50 to-rose-50 border-red-100'
+        }`}>
+          <div className="flex items-center justify-between mb-6">
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
+              isProfitable
+                ? 'bg-gradient-to-br from-emerald-500 to-green-600'
+                : 'bg-gradient-to-br from-red-500 to-rose-600'
+            }`}>
+              {isProfitable
+                ? <TrendingUp className="w-8 h-8 text-white" />
+                : <TrendingDown className="w-8 h-8 text-white" />
+              }
+            </div>
+            <div className="text-right">
+              <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${
+                isProfitable ? 'text-emerald-700 bg-emerald-200' : 'text-red-700 bg-red-200'
+              }`}>
+                {isProfitable ? 'Profitable' : 'Net loss'}
+              </span>
+              <p className="text-xs text-gray-400 mt-1.5">Revenue − Expenses</p>
+            </div>
+          </div>
+          <p className={`text-sm font-bold mb-2 uppercase tracking-wide ${
+            isProfitable ? 'text-emerald-700' : 'text-red-700'
+          }`}>Net Profit</p>
+          <MetricCardValue
+            compact={formatCurrencyCompact(Math.abs(netProfit))}
+            full={formatCurrencyFull(Math.abs(netProfit))}
+            colorClass={isProfitable ? 'text-emerald-900' : 'text-red-900'}
+          />
+          <div className="flex gap-6 mt-4 pt-4 border-t border-gray-100">
+            <div>
+              <p className="text-xs text-gray-400 font-medium">Revenue</p>
+              <p className="text-sm font-black text-gray-700">{formatCurrencyCompact(totalRevenue)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-400 font-medium">Expenses</p>
+              <p className="text-sm font-black text-gray-700">{formatCurrencyCompact(totalExpenses)}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Contract Metric Cards */}
       {hasActiveSubscription && (
