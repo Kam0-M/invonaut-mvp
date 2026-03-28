@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { RevenueChart } from '@/components/dashboard/revenue-chart'
 import { StatusChart } from '@/components/dashboard/status-chart'
-import { Users, FileText, TrendingUp, TrendingDown, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock } from 'lucide-react'
+import { Users, FileText, TrendingUp, TrendingDown, DollarSign, Clock, AlertCircle, Sparkles, Lock, FileSignature, Banknote, CalendarClock, Receipt, Tag } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
 import MetricCardValue from '@/components/dashboard/metric-card-value'
@@ -189,15 +189,34 @@ export default async function DashboardPage() {
     return expiry <= now30 && expiry >= new Date()
   }).length
 
-  // Total expenses this month (for net profit card)
+  // Expenses — fetch richer data for dashboard section + net profit card
   const { data: expensesRaw } = await supabase
     .from('expenses')
-    .select('amount')
+    .select('id, description, amount, date, category, vendor')
     .eq('user_id', user.id)
+    .order('date', { ascending: false })
 
-  const totalExpenses = (expensesRaw ?? []).reduce(
-    (sum, e: any) => sum + Number(e.amount || 0), 0
-  )
+  const allExpenses = (expensesRaw ?? []) as any[]
+
+  const totalExpenses = allExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)
+
+  const expensesThisMonth = allExpenses
+    .filter(e => {
+      const d = new Date(e.date + 'T12:00:00')
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    })
+    .reduce((sum, e) => sum + Number(e.amount || 0), 0)
+
+  // Top spending category
+  const categoryTotalsMap: Record<string, number> = {}
+  allExpenses.forEach(e => {
+    categoryTotalsMap[e.category] = (categoryTotalsMap[e.category] || 0) + Number(e.amount || 0)
+  })
+  const topCategory = Object.entries(categoryTotalsMap)
+    .sort((a, b) => b[1] - a[1])[0] ?? null
+
+  const recentExpenses = allExpenses.slice(0, 4)
+
   const netProfit = totalRevenue - totalExpenses
   const isProfitable = netProfit >= 0
   const profitabilityPct = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : null
@@ -363,6 +382,125 @@ export default async function DashboardPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Expenses Section */}
+      {hasActiveSubscription && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+              <Receipt className="w-5 h-5 text-orange-500" />
+              Expenses
+            </h2>
+            <Link href="/dashboard/expenses" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
+              View All →
+            </Link>
+          </div>
+
+          {/* Expense metric cards */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+
+            {/* Total Expenses */}
+            <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-8 border-2 border-orange-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Receipt className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-orange-700 uppercase tracking-wider bg-orange-200 px-3 py-1.5 rounded-full">All time</span>
+              </div>
+              <p className="text-sm font-bold text-orange-700 mb-2 uppercase tracking-wide">Total Expenses</p>
+              <MetricCardValue
+                compact={formatCurrencyCompact(totalExpenses)}
+                full={formatCurrencyFull(totalExpenses)}
+                colorClass="text-orange-900"
+              />
+            </div>
+
+            {/* This Month */}
+            <div className="bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl p-8 border-2 border-rose-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Clock className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-rose-700 uppercase tracking-wider bg-rose-200 px-3 py-1.5 rounded-full">Month</span>
+              </div>
+              <p className="text-sm font-bold text-rose-700 mb-2 uppercase tracking-wide">Spent This Month</p>
+              <MetricCardValue
+                compact={formatCurrencyCompact(expensesThisMonth)}
+                full={formatCurrencyFull(expensesThisMonth)}
+                colorClass="text-rose-900"
+              />
+            </div>
+
+            {/* Top Category */}
+            <div className="bg-gradient-to-br from-violet-50 to-purple-50 rounded-2xl p-8 border-2 border-violet-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Tag className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-violet-700 uppercase tracking-wider bg-violet-200 px-3 py-1.5 rounded-full">Top</span>
+              </div>
+              <p className="text-sm font-bold text-violet-700 mb-2 uppercase tracking-wide">Top Category</p>
+              {topCategory ? (
+                <>
+                  <p className="text-2xl font-black text-violet-900 leading-tight capitalize">
+                    {topCategory[0].replace(/_/g, ' ')}
+                  </p>
+                  <p className="text-sm font-bold text-violet-600 mt-1">
+                    {formatCurrencyCompact(topCategory[1])}
+                  </p>
+                </>
+              ) : (
+                <p className="text-2xl font-black text-violet-300">—</p>
+              )}
+            </div>
+
+          </div>
+
+          {/* Recent expenses mini-list */}
+          {recentExpenses.length > 0 && (
+            <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
+                <p className="text-sm font-black text-gray-700">Recent Expenses</p>
+                <Link href="/dashboard/expenses" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                  View all →
+                </Link>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {recentExpenses.map((e: any) => (
+                  <div key={e.id} className="flex items-center gap-4 px-6 py-3.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{e.description}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(e.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {e.vendor && ` · ${e.vendor}`}
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold px-2 py-0.5 rounded-lg bg-orange-50 text-orange-700 border border-orange-200 flex-shrink-0 capitalize">
+                      {e.category.replace(/_/g, ' ')}
+                    </span>
+                    <span className="text-sm font-black text-gray-900 flex-shrink-0">
+                      {formatCurrencyCompact(Number(e.amount))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {recentExpenses.length === 0 && (
+            <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-8 text-center">
+              <p className="text-gray-400 text-sm font-medium mb-3">No expenses recorded yet.</p>
+              <Link
+                href="/dashboard/expenses/new"
+                className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                <Receipt className="w-4 h-4" />
+                Add your first expense
+              </Link>
+            </div>
+          )}
         </div>
       )}
 
