@@ -81,13 +81,14 @@ export default async function BillingPage({
     {
       id: 'starter',
       name: 'Starter',
-      price: 30,
+      price: 40,
       features: [
         '25 invoices per month',
         'Unlimited clients',
         'Basic AI payment predictions',
         'Email invoicing with PDF',
         'Dashboard analytics',
+        'Expense tracking',
         'Invonaut branding',
       ],
       priceId: process.env.STRIPE_PRICE_ID_STARTER,
@@ -95,16 +96,33 @@ export default async function BillingPage({
     {
       id: 'professional',
       name: 'Professional',
-      price: 60,
+      price: 80,
       features: [
         'Unlimited invoices',
         'Unlimited clients',
         'Advanced AI predictions',
         'White label branding',
         'Custom logo & colors',
+        'AI contract review',
+        'AI expense categorization',
         'Priority support',
       ],
       priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL,
+    },
+    {
+      id: 'business',
+      name: 'Business',
+      price: 120,
+      features: [
+        'Everything in Professional',
+        'Budget tracking & alerts',
+        'Multi-party contract signing',
+        'Contract version control',
+        'Retainer management',
+        '3 team seats',
+        'Dedicated account manager',
+      ],
+      priceId: process.env.STRIPE_PRICE_ID_BUSINESS,
     },
   ]
 
@@ -221,109 +239,77 @@ export default async function BillingPage({
       {/* NEW USER (Never Subscribed) - Welcome Card */}
       {!hasActiveSubscription && !hasEverSubscribed && (
         <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600"></div>
-          <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-          
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600" />
+          <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}} />
           <div className="relative z-10 p-10">
-            <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div className="grid lg:grid-cols-2 gap-10 items-center">
               <div>
                 <div className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 text-white text-sm font-medium mb-6">
-                  Get Started with Invonaut
+                  From Contract to Cash. Automated.
                 </div>
-                
                 <h2 className="text-4xl md:text-5xl font-black text-white mb-4 leading-tight">
-                  🎉 Welcome to<br />
-                  <span className="text-teal-300">Invonaut!</span>
+                  One platform for<br />
+                  <span className="text-teal-300">your entire workflow.</span>
                 </h2>
-                
-                <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-                  Choose a plan below to start your 14-day free trial. No credit card required until your trial ends.
+                <p className="text-lg text-blue-100 mb-8 leading-relaxed">
+                  Invonaut handles contracts, e-signatures, invoicing, expense tracking, and cash flow — so you can focus on the work, not the admin.
                 </p>
-                
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                   <a
                     href="#available-plans"
                     className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold hover:shadow-2xl transition-all hover:scale-105 text-center"
                   >
-                    View Plans Below ↓
+                    Start Free Trial ↓
                   </a>
                   <Link
                     href="/pricing"
                     className="bg-white/10 backdrop-blur-sm text-white border-2 border-white/30 px-8 py-4 rounded-xl font-bold hover:bg-white/20 transition-all text-center"
                   >
-                    Compare Features
+                    Compare Plans
                   </Link>
                 </div>
-
                 <p className="text-blue-200 text-sm font-medium">
-                  14-day free trial • $0 setup cost • 95% AI accuracy
+                  14-day free trial · No credit card required · Cancel anytime
                 </p>
               </div>
-
-              <div className="hidden lg:block">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 transform hover:scale-105 transition-all duration-500">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Why Invonaut?</span>
-                    <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold">Ready to Go</span>
+              <div className="hidden lg:grid grid-cols-2 gap-4">
+                {[
+                  { icon: '📄', title: 'Contracts & E-Sigs', desc: 'Send, sign, and track contracts in one place' },
+                  { icon: '💸', title: 'Invoicing', desc: 'Create and send professional invoices instantly' },
+                  { icon: '📊', title: 'Expense Tracking', desc: 'Categorize expenses and generate tax-ready reports' },
+                  { icon: '🤖', title: 'AI Powered', desc: 'Payment predictions, contract review, auto-categorization' },
+                  { icon: '🎨', title: 'White Label', desc: 'Your logo, your colors on every document' },
+                  { icon: '🏦', title: 'Cash Flow', desc: 'See your financial position at a glance' },
+                ].map(item => (
+                  <div key={item.title} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-4">
+                    <div className="text-2xl mb-2">{item.icon}</div>
+                    <h4 className="font-black text-white text-sm mb-1">{item.title}</h4>
+                    <p className="text-blue-200 text-xs leading-relaxed">{item.desc}</p>
                   </div>
-                  
-                  <div className="space-y-6 mb-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-black text-gray-900 mb-1">AI Predictions</h4>
-                        <p className="text-sm text-gray-600">Know exactly when clients will pay</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-black text-gray-900 mb-1">Auto Follow-ups</h4>
-                        <p className="text-sm text-gray-600">Never chase payments manually</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-black text-gray-900 mb-1">White Label</h4>
-                        <p className="text-sm text-gray-600">Professional branded invoices</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-gray-100">
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="text-center">
-                        <div className="text-3xl font-black text-gray-900 mb-1">10+</div>
-                        <div className="text-xs text-gray-600 font-medium">Hours Saved</div>
-                      </div>
-                      <div className="text-center border-l border-r border-gray-200">
-                        <div className="text-3xl font-black text-gray-900 mb-1">95%</div>
-                        <div className="text-xs text-gray-600 font-medium">Accuracy</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-3xl font-black text-gray-900 mb-1">40%</div>
-                        <div className="text-xs text-gray-600 font-medium">Faster Pay</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* LAPSED USER (Had subscription, now inactive) */}
+      {!hasActiveSubscription && hasEverSubscribed && (
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-blue-100 p-8 shadow-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
+              <Zap className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-2xl font-black text-gray-900 mb-1">Welcome back</h2>
+              <p className="text-gray-600 font-medium">Your data is safe and waiting. Resubscribe below to pick up right where you left off.</p>
+            </div>
+            <a
+              href="#available-plans"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105 flex-shrink-0"
+            >
+              View Plans ↓
+            </a>
           </div>
         </div>
       )}
@@ -486,6 +472,28 @@ export default async function BillingPage({
                   <>
                     {hasActiveSubscription && !cancelAtPeriodEnd ? (
                       <div className="space-y-3">
+                        <div className="bg-gradient-to-r from-purple-50 to-violet-50 border-2 border-purple-200 rounded-xl p-4 mb-3">
+                          <h4 className="text-sm font-bold text-purple-900 mb-2">🚀 Unlock Business Features</h4>
+                          <p className="text-sm text-purple-700 mb-3">
+                            Upgrade to Business for budget alerts, multi-party signing, version control, and 3 team seats.
+                          </p>
+                          <Link
+                            href="/pricing"
+                            className="block w-full bg-gradient-to-r from-purple-600 to-violet-600 text-white text-center px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
+                          >
+                            Upgrade to Business
+                          </Link>
+                        </div>
+
+                        <div className="relative py-2">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-xs">
+                            <span className="bg-gray-50 px-3 text-gray-500 font-medium">or manage plan</span>
+                          </div>
+                        </div>
+
                         <div>
                           <DowngradeConfirmButton 
                             currentTier={currentTier}
@@ -513,13 +521,6 @@ export default async function BillingPage({
                             End subscription (your data stays safe, locked until you resubscribe)
                           </p>
                         </div>
-                        
-                        <div className="bg-gray-100 rounded-lg p-3 mt-3">
-                          <p className="text-xs text-gray-700">
-                            <strong className="text-gray-900">Downgrade:</strong> Keeps data, switches to Starter features ($30/mo)<br/>
-                            <strong className="text-gray-900">Cancel:</strong> Ends subscription, locks access (data saved, reactivate anytime)
-                          </p>
-                        </div>
                       </div>
                     ) : (
                       <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
@@ -531,6 +532,63 @@ export default async function BillingPage({
                               {hasEverSubscribed 
                                 ? 'Reactivate your subscription to regain access to all your features.'
                                 : 'Start a 14-day free trial to unlock all features.'}
+                            </p>
+                            <Link
+                              href="/pricing"
+                              className="inline-block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:shadow-xl transition-all"
+                            >
+                              {hasEverSubscribed ? 'Subscribe Now' : 'View Plans & Start Trial'}
+                            </Link>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* BUSINESS USERS */}
+                {currentTier === 'business' && (
+                  <>
+                    {hasActiveSubscription && !cancelAtPeriodEnd ? (
+                      <div className="space-y-3">
+                        <div>
+                          <DowngradeConfirmButton 
+                            currentTier={currentTier}
+                            targetTier="professional"
+                            buttonText="Downgrade to Professional"
+                            className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
+                          />
+                          <p className="text-xs text-gray-600 mt-1.5">
+                            Switch to Professional ($80/mo) — keep all your data
+                          </p>
+                        </div>
+                        
+                        <div className="relative py-2">
+                          <div className="absolute inset-0 flex items-center">
+                            <div className="w-full border-t border-gray-300"></div>
+                          </div>
+                          <div className="relative flex justify-center text-xs">
+                            <span className="bg-gray-50 px-3 text-gray-500 font-medium">or cancel completely</span>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <CancelSubscriptionButton currentTier={currentTier} />
+                          <p className="text-xs text-gray-600 mt-1.5">
+                            End subscription (your data stays safe, locked until you resubscribe)
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="text-sm font-bold text-blue-900 mb-1">No Active Subscription</h4>
+                            <p className="text-sm text-blue-700 mb-3">
+                              {hasEverSubscribed 
+                                ? 'Reactivate your Business subscription to regain access.'
+                                : 'Start a 14-day free trial to unlock all Business features.'}
                             </p>
                             <Link
                               href="/pricing"
@@ -609,11 +667,9 @@ export default async function BillingPage({
         <h2 className="text-2xl font-black text-gray-900 mb-6">
           {!hasEverSubscribed ? 'Choose Your Plan' : 'Available Plans'}
         </h2>
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-3 gap-6">
           {plans.map((plan) => {
             const isCurrentPlan = plan.id === currentTier && hasActiveSubscription
-            const isUpgrade = plan.id === 'professional' && currentTier === 'starter' && hasActiveSubscription
-
             return (
               <div
                 key={plan.id}
@@ -669,22 +725,30 @@ export default async function BillingPage({
                   </button>
                 ) : hasActiveSubscription ? (
                   <>
-{isUpgrade && (
-  <CheckoutButton
-    priceId={plan.priceId!}
-    planId={plan.id}
-    buttonText={`Upgrade to ${plan.name}`}
-    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-  />
-)}
-                    {plan.id === 'starter' && currentTier === 'professional' && (
-                      <DowngradeConfirmButton 
-                        currentTier={currentTier}
-                        targetTier="starter"
-                        buttonText="Switch to Starter"
-                        className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-                      />
-                    )}
+                    {(() => {
+                      const tiers = ['starter', 'professional', 'business']
+                      const currentIdx = tiers.indexOf(currentTier)
+                      const planIdx = tiers.indexOf(plan.id)
+                      if (planIdx > currentIdx) {
+                        return (
+                          <CheckoutButton
+                            priceId={plan.priceId!}
+                            planId={plan.id}
+                            buttonText={`Upgrade to ${plan.name}`}
+                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
+                          />
+                        )
+                      } else {
+                        return (
+                          <DowngradeConfirmButton
+                            currentTier={currentTier}
+                            targetTier={plan.id}
+                            buttonText={`Switch to ${plan.name}`}
+                            className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
+                          />
+                        )
+                      }
+                    })()} 
                   </>
 ) : (
   <CheckoutButton
