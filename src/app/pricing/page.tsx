@@ -28,6 +28,7 @@ export default async function PricingPage() {
 
   const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER || ''
   const professionalPriceId = process.env.STRIPE_PRICE_ID_PROFESSIONAL || ''
+  const businessPriceId = process.env.STRIPE_PRICE_ID_BUSINESS || ''
 
   return (
     <PricingClientWrapper
@@ -37,6 +38,7 @@ export default async function PricingPage() {
       currentTier={currentTier}
       starterPriceId={starterPriceId}
       professionalPriceId={professionalPriceId}
+      businessPriceId={businessPriceId}
     />
   )
 }
