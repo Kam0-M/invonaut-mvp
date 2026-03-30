@@ -126,6 +126,13 @@ export default async function BillingPage({
     },
   ]
 
+  // Annual price IDs for billing info display
+  const annualPriceIds = [
+    process.env.STRIPE_PRICE_ID_STARTER_ANNUAL,
+    process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL,
+    process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL,
+  ]
+
   const currentPlan = plans.find(p => p.id === currentTier)
   const trialCanceled = params.trial_canceled === 'true'
 
@@ -559,7 +566,7 @@ export default async function BillingPage({
                             className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
                           />
                           <p className="text-xs text-gray-600 mt-1.5">
-                            Switch to Professional ($80/mo) — keep all your data
+                            Switch to Professional ($60/mo) — keep all your data
                           </p>
                         </div>
                         

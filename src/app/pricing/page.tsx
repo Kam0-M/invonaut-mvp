@@ -29,6 +29,9 @@ export default async function PricingPage() {
   const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER || ''
   const professionalPriceId = process.env.STRIPE_PRICE_ID_PROFESSIONAL || ''
   const businessPriceId = process.env.STRIPE_PRICE_ID_BUSINESS || ''
+  const starterAnnualPriceId = process.env.STRIPE_PRICE_ID_STARTER_ANNUAL || ''
+  const professionalAnnualPriceId = process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL || ''
+  const businessAnnualPriceId = process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL || ''
 
   return (
     <PricingClientWrapper
@@ -39,6 +42,9 @@ export default async function PricingPage() {
       starterPriceId={starterPriceId}
       professionalPriceId={professionalPriceId}
       businessPriceId={businessPriceId}
+      starterAnnualPriceId={starterAnnualPriceId}
+      professionalAnnualPriceId={professionalAnnualPriceId}
+      businessAnnualPriceId={businessAnnualPriceId}
     />
   )
 }
