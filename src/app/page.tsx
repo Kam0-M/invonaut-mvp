@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import LandingPricingSection from '@/components/landing-pricing-section'
 
 export default function LandingPage() {
   return (
@@ -394,119 +395,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-
-            {/* Starter */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all">
-              <h3 className="text-xl font-black text-gray-900 mb-1">Starter</h3>
-              <p className="text-gray-500 text-sm mb-6">For freelancers getting started.</p>
-              <div className="mb-1">
-                <span className="text-5xl font-black text-gray-900">$40</span>
-                <span className="text-gray-500 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-teal-600 font-semibold mb-8">14 days free</p>
-              <ul className="space-y-3 mb-8 text-sm">
-                {[
-                  '25 invoices per month',
-                  'Unlimited clients',
-                  'Basic AI payment predictions',
-                  'Invoice email with PDF',
-                  'Automated follow-up reminders',
-                  'Time tracking (timer + manual)',
-                  'Expense logging',
-                  'Client portal (view-only)',
-                  '3 active contracts',
-                ].map(f => (
-                  <li key={f} className="flex items-start gap-3">
-                    <svg className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-gray-600">{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block w-full bg-gray-900 text-white text-center py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
-                Start free trial
-              </Link>
-            </div>
-
-            {/* Professional — highlighted */}
-            <div className="bg-gradient-to-b from-blue-600 to-blue-700 rounded-2xl p-8 shadow-2xl relative md:scale-[1.03]">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-md whitespace-nowrap">
-                Most popular
-              </div>
-              <h3 className="text-xl font-black text-white mb-1">Professional</h3>
-              <p className="text-blue-100 text-sm mb-6">For established freelancers.</p>
-              <div className="mb-1">
-                <span className="text-5xl font-black text-white">$80</span>
-                <span className="text-blue-100 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-teal-200 font-semibold mb-8">14 days free</p>
-              <ul className="space-y-3 mb-8 text-sm">
-                {[
-                  'Everything in Starter, plus:',
-                  'Unlimited invoices',
-                  'White label branding',
-                  'Advanced AI insights',
-                  'Full time tracking + weekly summary',
-                  'AI expense categorization',
-                  'Branded client portal',
-                  'Unlimited contracts + e-signatures',
-                  'AI contract review',
-                  'Cash flow dashboard + runway',
-                ].map((f, i) => (
-                  <li key={f} className="flex items-start gap-3">
-                    <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${i === 0 ? 'text-teal-200' : 'text-teal-300'}`} fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className={`${i === 0 ? 'text-white font-bold' : 'text-blue-50'}`}>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block w-full bg-white text-blue-600 text-center py-3.5 rounded-xl font-bold text-sm hover:bg-blue-50 transition-all">
-                Start free trial
-              </Link>
-            </div>
-
-            {/* Business */}
-            <div className="bg-white rounded-2xl p-8 border-2 border-gray-100 hover:border-blue-200 hover:shadow-lg transition-all">
-              <h3 className="text-xl font-black text-gray-900 mb-1">Business</h3>
-              <p className="text-gray-500 text-sm mb-6">For small agencies and studios.</p>
-              <div className="mb-1">
-                <span className="text-5xl font-black text-gray-900">$120</span>
-                <span className="text-gray-500 text-sm">/month</span>
-              </div>
-              <p className="text-xs text-teal-600 font-semibold mb-8">14 days free</p>
-              <ul className="space-y-3 mb-8 text-sm">
-                {[
-                  'Everything in Professional, plus:',
-                  'Multi-user access (3 seats)',
-                  'Multi-party contract signing',
-                  'Contract version control',
-                  'Retainer management',
-                  'AI contract drafting',
-                  'Budget tracking by category',
-                  'Dedicated account manager',
-                  'Custom onboarding session',
-                ].map((f, i) => (
-                  <li key={f} className="flex items-start gap-3">
-                    <svg className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className={`${i === 0 ? 'text-gray-900 font-bold' : 'text-gray-600'}`}>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="block w-full bg-gray-900 text-white text-center py-3.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition-all">
-                Start free trial
-              </Link>
-            </div>
-
-          </div>
-
-          <p className="text-center text-gray-400 mt-10 text-sm">
-            All plans include a 14-day free trial &nbsp;·&nbsp; No credit card required &nbsp;·&nbsp; Cancel anytime
-          </p>
+          <LandingPricingSection />
         </div>
       </section>
 

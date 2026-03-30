@@ -28,6 +28,9 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
+  const tier = profile?.subscription_tier ?? 'starter'
+  const isBusiness = tier === 'business'
+
   // Fetch budgets for Business tier sidebar
   const { data: budgetsRaw } = await supabase
     .from('expense_budgets')

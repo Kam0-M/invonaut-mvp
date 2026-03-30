@@ -7,6 +7,7 @@ import DowngradeConfirmButton from '@/components/billing/downgrade-confirm-butto
 import CancellationCountdownBanner from '@/components/billing/cancellation-countdown-banner'
 import CheckoutButton from '@/components/checkout-button'
 import SuccessReload from '@/components/billing/success-reload'
+import BillingPlansSection from '@/components/billing/billing-plans-section'
 
 export default async function BillingPage({
   searchParams,
@@ -81,7 +82,9 @@ export default async function BillingPage({
     {
       id: 'starter',
       name: 'Starter',
-      price: 40,
+      monthlyPrice: 40,
+      annualMonthlyPrice: 33,
+      annualTotalPrice: 400,
       features: [
         '25 invoices per month',
         'Unlimited clients',
@@ -91,12 +94,15 @@ export default async function BillingPage({
         'Expense tracking',
         'Invonaut branding',
       ],
-      priceId: process.env.STRIPE_PRICE_ID_STARTER,
+      monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER ?? '',
+      annualPriceId: process.env.STRIPE_PRICE_ID_STARTER_ANNUAL ?? '',
     },
     {
       id: 'professional',
       name: 'Professional',
-      price: 80,
+      monthlyPrice: 80,
+      annualMonthlyPrice: 67,
+      annualTotalPrice: 800,
       features: [
         'Unlimited invoices',
         'Unlimited clients',
@@ -107,12 +113,15 @@ export default async function BillingPage({
         'AI expense categorization',
         'Priority support',
       ],
-      priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL,
+      monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL ?? '',
+      annualPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL ?? '',
     },
     {
       id: 'business',
       name: 'Business',
-      price: 120,
+      monthlyPrice: 120,
+      annualMonthlyPrice: 100,
+      annualTotalPrice: 1200,
       features: [
         'Everything in Professional',
         'Budget tracking & alerts',
@@ -122,15 +131,9 @@ export default async function BillingPage({
         '3 team seats',
         'Dedicated account manager',
       ],
-      priceId: process.env.STRIPE_PRICE_ID_BUSINESS,
+      monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS ?? '',
+      annualPriceId: process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL ?? '',
     },
-  ]
-
-  // Annual price IDs for billing info display
-  const annualPriceIds = [
-    process.env.STRIPE_PRICE_ID_STARTER_ANNUAL,
-    process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL,
-    process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL,
   ]
 
   const currentPlan = plans.find(p => p.id === currentTier)
@@ -343,7 +346,7 @@ export default async function BillingPage({
               <div className="mb-6">
                 <div className="flex items-baseline gap-2 mb-4">
                   <span className="text-5xl font-black text-gray-900">
-                    ${currentPlan?.price}
+                    ${currentPlan?.monthlyPrice}
                   </span>
                   <span className="text-gray-600 font-medium">/month</span>
                 </div>
@@ -379,7 +382,7 @@ export default async function BillingPage({
                           {daysLeftInTrial} {daysLeftInTrial === 1 ? 'day' : 'days'} remaining in your free trial
                         </p>
                         <p className="text-xs text-blue-600 mt-2">
-                          You'll be charged <span className="font-bold">${currentPlan?.price}/month</span> starting {trialEndDate.toLocaleDateString('en-US', { 
+                          You'll be charged <span className="font-bold">${currentPlan?.monthlyPrice}/month</span> starting {trialEndDate.toLocaleDateString('en-US', { 
                             month: 'long', 
                             day: 'numeric', 
                             year: 'numeric' 
@@ -640,7 +643,7 @@ export default async function BillingPage({
                           </span>
                         </div>
                         <p className="text-xs text-gray-500">
-                          ${currentPlan?.price}/month will be charged on this date
+                          ${currentPlan?.monthlyPrice}/month will be charged on this date
                         </p>
                       </div>
                     )}
@@ -669,107 +672,13 @@ export default async function BillingPage({
         </div>
       )}
 
-      {/* Available Plans */}
-      <div id="available-plans">
-        <h2 className="text-2xl font-black text-gray-900 mb-6">
-          {!hasEverSubscribed ? 'Choose Your Plan' : 'Available Plans'}
-        </h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          {plans.map((plan) => {
-            const isCurrentPlan = plan.id === currentTier && hasActiveSubscription
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-2xl border-2 p-6 transition-all ${
-                  isCurrentPlan
-                    ? 'border-blue-500 bg-blue-50'
-                    : plan.id === 'professional'
-                    ? 'border-blue-300 bg-white hover:border-blue-400 hover:shadow-xl'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
-                }`}
-              >
-                {isCurrentPlan && (
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">
-                      Current Plan
-                    </span>
-                  </div>
-                )}
-
-                {!isCurrentPlan && plan.id === 'professional' && (
-                  <div className="mb-4">
-                    <span className="inline-block px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
-                      MOST POPULAR
-                    </span>
-                  </div>
-                )}
-
-                <h3 className="text-xl font-black text-gray-900 mb-2">
-                  {plan.name}
-                </h3>
-                <div className="flex items-baseline gap-1 mb-4">
-                  <span className="text-4xl font-black text-gray-900">
-                    ${plan.price}
-                  </span>
-                  <span className="text-gray-600 font-medium">/mo</span>
-                </div>
-
-                <ul className="space-y-2 mb-6">
-                  {plan.features.slice(0, 4).map((feature, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm">
-                      <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700 font-medium">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {isCurrentPlan ? (
-                  <button
-                    disabled
-                    className="w-full bg-gray-300 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm cursor-not-allowed"
-                  >
-                    Current Plan
-                  </button>
-                ) : hasActiveSubscription ? (
-                  <>
-                    {(() => {
-                      const tiers = ['starter', 'professional', 'business']
-                      const currentIdx = tiers.indexOf(currentTier)
-                      const planIdx = tiers.indexOf(plan.id)
-                      if (planIdx > currentIdx) {
-                        return (
-                          <CheckoutButton
-                            priceId={plan.priceId!}
-                            planId={plan.id}
-                            buttonText={`Upgrade to ${plan.name}`}
-                            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-                          />
-                        )
-                      } else {
-                        return (
-                          <DowngradeConfirmButton
-                            currentTier={currentTier}
-                            targetTier={plan.id}
-                            buttonText={`Switch to ${plan.name}`}
-                            className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-                          />
-                        )
-                      }
-                    })()} 
-                  </>
-) : (
-  <CheckoutButton
-    priceId={plan.priceId!}
-    planId={plan.id}
-    buttonText={hasEverSubscribed ? 'Subscribe Now' : 'Start 14-Day Free Trial'}
-    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-  />
-)}
-              </div>
-            )
-          })}
-        </div>
-      </div>
+      {/* Available Plans — client component with annual toggle */}
+      <BillingPlansSection
+        plans={plans}
+        currentTier={currentTier}
+        hasActiveSubscription={hasActiveSubscription}
+        hasEverSubscribed={hasEverSubscribed}
+      />
     </div>
   )
 }
