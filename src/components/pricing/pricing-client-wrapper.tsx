@@ -15,6 +15,7 @@ type PricingClientWrapperProps = {
   starterAnnualPriceId: string
   professionalAnnualPriceId: string
   businessAnnualPriceId: string
+  initialBilling?: 'monthly' | 'annual'
 }
 
 export default function PricingClientWrapper({
@@ -28,8 +29,9 @@ export default function PricingClientWrapper({
   starterAnnualPriceId,
   professionalAnnualPriceId,
   businessAnnualPriceId,
+  initialBilling = 'monthly',
 }: PricingClientWrapperProps) {
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [billing, setBilling] = useState<'monthly' | 'annual'>(initialBilling)
 
   const getButtonText = (planId: string) => {
     if (hasActiveSubscription && currentTier === planId) return 'Current Plan'
@@ -255,13 +257,14 @@ export default function PricingClientWrapper({
 
         <p className="text-center text-gray-600 mt-12 text-sm font-medium">{footerText}</p>
 
-        {isLoggedIn && (
-          <div className="text-center mt-6">
-            <Link href="/dashboard" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">
-              ← Back to Dashboard
-            </Link>
-          </div>
-        )}
+        <div className="text-center mt-6">
+          <Link
+            href={isLoggedIn ? '/dashboard' : '/'}
+            className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
+          >
+            {isLoggedIn ? '← Back to Dashboard' : '← Back to Home'}
+          </Link>
+        </div>
       </div>
     </div>
   )
