@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import CheckoutButton from '@/components/checkout-button'
 
@@ -11,6 +12,9 @@ type PricingClientWrapperProps = {
   starterPriceId: string
   professionalPriceId: string
   businessPriceId: string
+  starterAnnualPriceId: string
+  professionalAnnualPriceId: string
+  businessAnnualPriceId: string
 }
 
 export default function PricingClientWrapper({
@@ -21,7 +25,11 @@ export default function PricingClientWrapper({
   starterPriceId,
   professionalPriceId,
   businessPriceId,
+  starterAnnualPriceId,
+  professionalAnnualPriceId,
+  businessAnnualPriceId,
 }: PricingClientWrapperProps) {
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
   const getButtonText = (planId: string) => {
     if (hasActiveSubscription && currentTier === planId) return 'Current Plan'
@@ -45,9 +53,12 @@ export default function PricingClientWrapper({
     {
       id: 'starter',
       name: 'Starter',
-      price: 40,
+      monthlyPrice: 40,
+      annualMonthlyPrice: 33,   // $400/yr ÷ 12, rounded
+      annualTotalPrice: 400,
       description: 'Perfect for new freelancers',
-      priceId: starterPriceId,
+      monthlyPriceId: starterPriceId,
+      annualPriceId: starterAnnualPriceId,
       highlighted: false,
       features: [
         '25 invoices per month',
@@ -62,9 +73,12 @@ export default function PricingClientWrapper({
     {
       id: 'professional',
       name: 'Professional',
-      price: 80,
+      monthlyPrice: 80,
+      annualMonthlyPrice: 67,
+      annualTotalPrice: 800,
       description: 'For established freelancers',
-      priceId: professionalPriceId,
+      monthlyPriceId: professionalPriceId,
+      annualPriceId: professionalAnnualPriceId,
       highlighted: true,
       features: [
         'Everything in Starter, plus:',
@@ -81,9 +95,12 @@ export default function PricingClientWrapper({
     {
       id: 'business',
       name: 'Business',
-      price: 120,
+      monthlyPrice: 120,
+      annualMonthlyPrice: 100,
+      annualTotalPrice: 1200,
       description: 'For small agencies and studios',
-      priceId: businessPriceId,
+      monthlyPriceId: businessPriceId,
+      annualPriceId: businessAnnualPriceId,
       highlighted: false,
       features: [
         'Everything in Professional, plus:',
@@ -108,7 +125,9 @@ export default function PricingClientWrapper({
   return (
     <div className="min-h-screen bg-gray-50 py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
+
+        {/* Header */}
+        <div className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">Choose Your Plan</h1>
           <p className="text-xl text-gray-600">
             {isLoggedIn && hasEverSubscribed
@@ -117,9 +136,38 @@ export default function PricingClientWrapper({
           </p>
         </div>
 
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-4 mb-12">
+          <span className={`text-sm font-bold ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>
+            Monthly
+          </span>
+          <button
+            onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
+            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
+              billing === 'annual' ? 'bg-blue-600' : 'bg-gray-300'
+            }`}
+            aria-label="Toggle billing period"
+          >
+            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+              billing === 'annual' ? 'translate-x-6' : 'translate-x-1'
+            }`} />
+          </button>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-bold ${billing === 'annual' ? 'text-gray-900' : 'text-gray-400'}`}>
+              Annual
+            </span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+              Save 2 months
+            </span>
+          </div>
+        </div>
+
+        {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
           {plans.map(plan => {
             const isCurrent = hasActiveSubscription && currentTier === plan.id
+            const activePriceId = billing === 'annual' ? plan.annualPriceId : plan.monthlyPriceId
+
             return (
               <div
                 key={plan.id}
@@ -134,6 +182,7 @@ export default function PricingClientWrapper({
                     Most Popular
                   </div>
                 )}
+
                 <div className="mb-6">
                   <h3 className={`text-2xl font-black mb-1 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
                     {plan.name}
@@ -142,15 +191,28 @@ export default function PricingClientWrapper({
                     {plan.description}
                   </p>
                 </div>
-                <div className="mb-2">
-                  <span className={`text-5xl font-black ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                    ${plan.price}
-                  </span>
-                  <span className={`font-medium ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>/month</span>
+
+                {/* Price display */}
+                <div className="mb-1">
+                  <div className="flex items-end gap-1">
+                    <span className={`text-5xl font-black ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                      ${billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice}
+                    </span>
+                    <span className={`font-medium mb-1.5 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
+                      /month
+                    </span>
+                  </div>
+                  {billing === 'annual' && (
+                    <p className={`text-xs font-semibold mt-0.5 ${plan.highlighted ? 'text-teal-200' : 'text-emerald-600'}`}>
+                      Billed ${plan.annualTotalPrice}/year
+                    </p>
+                  )}
                 </div>
+
                 <p className={`text-sm font-semibold mb-8 ${plan.highlighted ? 'text-teal-200' : 'text-green-700'}`}>
                   {trialText}
                 </p>
+
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((feature, i) => (
                     <li key={feature} className="flex items-start gap-3">
@@ -159,22 +221,30 @@ export default function PricingClientWrapper({
                         plan.highlighted
                           ? i === 0 ? 'text-white font-bold' : 'text-white font-medium'
                           : i === 0 ? 'text-gray-900 font-bold' : 'text-gray-700 font-medium'
-                      }`}>{feature}</span>
+                      }`}>
+                        {feature}
+                      </span>
                     </li>
                   ))}
                 </ul>
+
                 {isCurrent ? (
-                  <button disabled className="block w-full bg-gray-300 text-gray-600 text-center py-4 rounded-xl font-bold text-base cursor-not-allowed">
+                  <button
+                    disabled
+                    className="block w-full bg-gray-300 text-gray-600 text-center py-4 rounded-xl font-bold text-base cursor-not-allowed"
+                  >
                     Current Plan
                   </button>
                 ) : (
                   <CheckoutButton
-                    priceId={plan.priceId}
+                    priceId={activePriceId}
                     planId={plan.id}
                     buttonText={getButtonText(plan.id)}
-                    disabled={!plan.priceId}
+                    disabled={!activePriceId}
                     className={`block w-full text-center py-4 rounded-xl font-bold text-base transition-all hover:shadow-xl ${
-                      plan.highlighted ? 'bg-white text-blue-600 hover:bg-blue-50' : 'bg-gray-900 text-white hover:bg-gray-800'
+                      plan.highlighted
+                        ? 'bg-white text-blue-600 hover:bg-blue-50'
+                        : 'bg-gray-900 text-white hover:bg-gray-800'
                     }`}
                   />
                 )}
@@ -184,6 +254,7 @@ export default function PricingClientWrapper({
         </div>
 
         <p className="text-center text-gray-600 mt-12 text-sm font-medium">{footerText}</p>
+
         {isLoggedIn && (
           <div className="text-center mt-6">
             <Link href="/dashboard" className="text-blue-600 hover:text-blue-700 font-semibold text-sm">

@@ -1,17 +1,20 @@
 import Stripe from 'stripe'
 
-// Initialize Stripe with secret key (server-side only)
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   typescript: true,
 })
 
-// Plan configuration
+// Plan configuration — single source of truth for all price IDs
+// Monthly price IDs: STRIPE_PRICE_ID_STARTER / _PROFESSIONAL / _BUSINESS
+// Annual price IDs:  STRIPE_PRICE_ID_STARTER_ANNUAL / _PROFESSIONAL_ANNUAL / _BUSINESS_ANNUAL
 export const PLANS = {
   starter: {
     id: 'starter',
     name: 'Starter',
-    price: 30,
-    priceId: process.env.STRIPE_PRICE_ID_STARTER!,
+    monthlyPrice: 40,
+    annualPrice: 400,           // 2 months free ($40 × 10)
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER!,
+    annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL!,
     features: {
       invoicesPerMonth: 25,
       clients: 'unlimited',
@@ -22,8 +25,10 @@ export const PLANS = {
   professional: {
     id: 'professional',
     name: 'Professional',
-    price: 60,
-    priceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL!,
+    monthlyPrice: 80,
+    annualPrice: 800,           // 2 months free ($80 × 10)
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL!,
+    annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL!,
     features: {
       invoicesPerMonth: 'unlimited',
       clients: 'unlimited',
@@ -34,15 +39,17 @@ export const PLANS = {
   business: {
     id: 'business',
     name: 'Business',
-    price: 79,
-    priceId: process.env.STRIPE_PRICE_ID_BUSINESS!,
+    monthlyPrice: 120,
+    annualPrice: 1200,          // 2 months free ($120 × 10)
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS!,
+    annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL!,
     features: {
       invoicesPerMonth: 'unlimited',
       clients: 'unlimited',
       whiteLabelBranding: true,
       advancedAI: true,
       teamCollaboration: true,
-      apiAccess: true,
+      budgetAlerts: true,
     },
   },
 } as const

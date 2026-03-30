@@ -165,10 +165,22 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const priceId = subscription.items.data[0]?.price.id
   let newPlan = 'starter'
 
-  if (priceId === process.env.STRIPE_PRICE_ID_PROFESSIONAL) {
+  // Check both monthly and annual price IDs for each plan
+  if (
+    priceId === process.env.STRIPE_PRICE_ID_PROFESSIONAL ||
+    priceId === process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL
+  ) {
     newPlan = 'professional'
-  } else if (priceId === process.env.STRIPE_PRICE_ID_BUSINESS) {
+  } else if (
+    priceId === process.env.STRIPE_PRICE_ID_BUSINESS ||
+    priceId === process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
+  ) {
     newPlan = 'business'
+  } else if (
+    priceId === process.env.STRIPE_PRICE_ID_STARTER ||
+    priceId === process.env.STRIPE_PRICE_ID_STARTER_ANNUAL
+  ) {
+    newPlan = 'starter'
   }
 
   let status = 'active'
