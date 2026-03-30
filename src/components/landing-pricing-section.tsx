@@ -159,7 +159,7 @@ export default function LandingPricingSection() {
             </ul>
 
             <Link
-              href="/pricing"
+              href={`/pricing?billing=${billing}`}
               className={`block w-full text-center py-3.5 rounded-xl font-bold text-sm transition-all ${
                 plan.highlighted
                   ? 'bg-white text-blue-600 hover:bg-blue-50'

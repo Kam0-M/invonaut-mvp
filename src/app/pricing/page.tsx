@@ -3,7 +3,11 @@ import PricingClientWrapper from '@/components/pricing/pricing-client-wrapper'
 
 export const dynamic = 'force-dynamic'
 
-export default async function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ billing?: string }>
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -26,6 +30,9 @@ export default async function PricingPage() {
     currentTier = profile?.subscription_tier || 'starter'
   }
 
+  const { billing: billingParam } = await searchParams
+  const initialBilling = billingParam === 'annual' ? 'annual' : 'monthly'
+
   const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER || ''
   const professionalPriceId = process.env.STRIPE_PRICE_ID_PROFESSIONAL || ''
   const businessPriceId = process.env.STRIPE_PRICE_ID_BUSINESS || ''
@@ -45,6 +52,7 @@ export default async function PricingPage() {
       starterAnnualPriceId={starterAnnualPriceId}
       professionalAnnualPriceId={professionalAnnualPriceId}
       businessAnnualPriceId={businessAnnualPriceId}
+      initialBilling={initialBilling}
     />
   )
 }
