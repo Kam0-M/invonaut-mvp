@@ -137,6 +137,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const { error } = await supabase
     .from('user_profiles')
     .update({
+      stripe_customer_id: session.customer as string,   // ← persist so hasEverSubscribed is reliable
       stripe_subscription_id: subscriptionId,
       subscription_tier: planId,
       subscription_status: subscriptionStatus,
