@@ -1,6 +1,10 @@
 import OpenAI from 'openai'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Lazy init — only created when AI is actually called, not at import time.
+// CRITICAL: Never initialize at module top level — crashes entire page when OPENAI_API_KEY is missing.
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 export type ReviewIssue = {
   severity: 'high' | 'medium' | 'low'
@@ -60,7 +64,7 @@ Respond ONLY with a valid JSON object in this exact shape:
 If the contract is well-protected with no significant issues, return an empty issues array and overallRisk of "low".
 Order issues by severity (high first). Maximum 8 issues.`
 
-  const response = await openai.chat.completions.create({
+  const response = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
       {

@@ -24,10 +24,11 @@ type PredictionResult = {
   reasoning: string
 }
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+// Lazy init — only created when AI is actually called, not at import time.
+// CRITICAL: Never initialize at module top level — crashes entire page when OPENAI_API_KEY is missing.
+function getOpenAI() {
+  return new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+}
 
 /**
  * Analyze client payment history
@@ -115,7 +116,7 @@ Respond in JSON format:
 Be transparent that this is a prediction based on patterns, not a guarantee.`
 
   try {
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
         {
