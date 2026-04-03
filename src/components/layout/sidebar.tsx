@@ -14,8 +14,10 @@ import {
   HelpCircle,
   CreditCard,
   Sparkles,
-  Receipt
+  Receipt,
+  Clock,
 } from 'lucide-react'
+import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
 interface SidebarProps {
   subscriptionTier?: string
@@ -25,25 +27,21 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
   const pathname = usePathname()
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Invoices', href: '/dashboard/invoices', icon: FileText },
-    { name: 'Clients', href: '/dashboard/clients', icon: Users },
-    { name: 'Contracts', href: '/dashboard/contracts', icon: ScrollText },
-    { name: 'Expenses', href: '/dashboard/expenses', icon: Receipt },
-    { name: 'Client Portal', href: '/dashboard/portal', icon: ExternalLink },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-    { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-    { name: 'Help', href: '/help', icon: HelpCircle },
+    { name: 'Dashboard',     href: '/dashboard',          icon: LayoutDashboard },
+    { name: 'Invoices',      href: '/dashboard/invoices', icon: FileText        },
+    { name: 'Clients',       href: '/dashboard/clients',  icon: Users           },
+    { name: 'Contracts',     href: '/dashboard/contracts',icon: ScrollText      },
+    { name: 'Expenses',      href: '/dashboard/expenses', icon: Receipt         },
+    { name: 'Time',          href: '/dashboard/time',     icon: Clock           },
+    { name: 'Client Portal', href: '/dashboard/portal',   icon: ExternalLink    },
+    { name: 'Analytics',     href: '/dashboard/analytics',icon: BarChart3       },
+    { name: 'Settings',      href: '/dashboard/settings', icon: Settings        },
+    { name: 'Billing',       href: '/dashboard/billing',  icon: CreditCard      },
+    { name: 'Help',          href: '/help',               icon: HelpCircle      },
   ]
 
-  // Only show upgrade for starter users
   if (subscriptionTier === 'starter') {
-    navigation.push({ 
-      name: 'Upgrade', 
-      href: '/pricing', 
-      icon: Sparkles 
-    })
+    navigation.push({ name: 'Upgrade', href: '/pricing', icon: Sparkles })
   }
 
   return (
@@ -61,14 +59,12 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
           <nav className="flex-1 space-y-2 pb-6">
             {navigation.map((item) => {
               const Icon = item.icon
-              // Exact match for Dashboard, startsWith for others
-              const isActive = item.href === '/dashboard' 
+              const isActive = item.href === '/dashboard'
                 ? pathname === '/dashboard'
                 : pathname?.startsWith(item.href)
-              
-              // Special styling for Upgrade button
               const isUpgrade = item.name === 'Upgrade'
-              
+              const isTime    = item.name === 'Time'
+
               return (
                 <Link
                   key={item.name}
@@ -85,15 +81,21 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
                   <Icon
                     className={cn(
                       'flex-shrink-0 h-5 w-5',
-                      isUpgrade || isActive 
-                        ? 'text-white' 
+                      isUpgrade || isActive
+                        ? 'text-white'
                         : 'text-gray-400 group-hover:text-blue-600'
                     )}
                   />
                   {item.name}
-                  {isActive && !isUpgrade && (
-                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white"></div>
+
+                  {/* Timer running indicator — only on the Time nav item */}
+                  {isTime && <TimerSidebarBadge isNavActive={!!isActive} />}
+
+                  {/* Active dot — shown on active items that aren't Time (Time uses the badge) */}
+                  {isActive && !isUpgrade && !isTime && (
+                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
                   )}
+
                   {isUpgrade && (
                     <div className="ml-auto">
                       <span className="text-xs font-black">→</span>

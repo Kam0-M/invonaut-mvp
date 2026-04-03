@@ -3,10 +3,11 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save } from 'lucide-react'
+import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import SubscriptionRequired from '@/components/subscription-required'
+import UnbilledEntriesPicker, { type PickedLineItem } from '@/components/time/unbilled-entries-picker'
 
 type Client = {
   id: string
@@ -41,6 +42,10 @@ export default function NewInvoicePage() {
   ])
   const [notes, setNotes] = useState('')
   const [taxRate, setTaxRate] = useState(0)
+
+  // Time tracking integration
+  const [showTimePicker,  setShowTimePicker]  = useState(false)
+  const [timeEntryIds,    setTimeEntryIds]    = useState<string[]>([])
 
   const subtotal = lineItems.reduce((sum, item) => sum + item.total, 0)
   const taxAmount = (subtotal * taxRate) / 100
@@ -188,6 +193,18 @@ export default function NewInvoicePage() {
     setClientSearchQuery('')
   }
 
+  // Called by UnbilledEntriesPicker when user confirms their selection.
+  // Merges picked entries as line items and records entry IDs for later billing.
+  const handleAddTimeEntries = (newItems: PickedLineItem[], entryIds: string[]) => {
+    setLineItems(prev => {
+      // If the only existing item is a blank starter row, replace it
+      const hasOnlyBlank = prev.length === 1 && prev[0].description.trim() === '' && prev[0].total === 0
+      const base = hasOnlyBlank ? [] : prev
+      return [...base, ...newItems]
+    })
+    setTimeEntryIds(prev => [...new Set([...prev, ...entryIds])])
+  }
+
   const handleSaveDraft = async () => {
     if (!clientId) {
       toast.error('Please select a client')
@@ -280,6 +297,25 @@ export default function NewInvoicePage() {
         .insert(itemsToInsert)
 
       if (itemsError) throw itemsError
+
+      // If this invoice was created from time entries, mark them as billed
+      // so they cannot be added to a second invoice.
+      if (timeEntryIds.length > 0) {
+        try {
+          await fetch('/api/time/update', {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify({
+              action:    'mark_billed',
+              entryIds:  timeEntryIds,
+              invoiceId: invoice.id,
+            }),
+          })
+        } catch {
+          // Non-fatal — the invoice was saved. Log but don't surface to user.
+          console.error('Could not mark time entries as billed. Mark them manually in /dashboard/time.')
+        }
+      }
 
       toast.success('Invoice created successfully!', { id: loadingToast, duration: 3000 })
       
@@ -480,6 +516,35 @@ export default function NewInvoicePage() {
             />
           </div>
 
+          {/* Add from Time Entries — shown when a client is selected */}
+          {clientId && (
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-gray-900 text-sm">Add from Time Entries</p>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  Pull in unbilled hours for this client as invoice line items
+                </p>
+                {timeEntryIds.length > 0 && (
+                  <p className="text-xs font-bold text-blue-600 mt-1">
+                    ✓ {timeEntryIds.length} time {timeEntryIds.length === 1 ? 'entry' : 'entries'} added
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTimePicker(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white
+                           text-sm font-bold hover:bg-blue-700 hover:shadow-lg transition-all flex-shrink-0"
+              >
+                <Clock className="w-4 h-4" />
+                {timeEntryIds.length > 0 ? 'Add more' : 'Add hours'}
+              </button>
+            </div>
+          )}
+
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -564,10 +629,10 @@ export default function NewInvoicePage() {
                       </label>
                       <Input
                         type="number"
-                        min="1"
-                        step="1"
+                        min="0"
+                        step="0.01"
                         value={item.quantity}
-                        onChange={(e) => updateLineItem(item.id, 'quantity', parseInt(e.target.value) || 0)}
+                        onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
                         disabled={isSaving}
                         required
                         className="h-10 text-sm border-2 border-gray-200"
@@ -698,6 +763,15 @@ export default function NewInvoicePage() {
           </div>
         </form>
       </div>
+
+      {/* Time entries picker modal */}
+      {showTimePicker && clientId && (
+        <UnbilledEntriesPicker
+          clientId={clientId}
+          onAdd={handleAddTimeEntries}
+          onClose={() => setShowTimePicker(false)}
+        />
+      )}
     </div>
   )
 }
