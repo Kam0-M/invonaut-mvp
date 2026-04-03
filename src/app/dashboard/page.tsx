@@ -225,6 +225,23 @@ export default async function DashboardPage() {
   const hasInvoices = invoices.length > 0
   const hasClients = clients.length > 0
 
+  // Unbilled time — total hours and dollar value not yet invoiced
+  const { data: timeEntriesRaw } = await supabase
+    .from('time_entries')
+    .select('duration_seconds, hourly_rate, billable, invoice_id')
+    .eq('user_id', user.id)
+    .eq('billable', true)
+    .is('invoice_id', null)
+
+  const unbilledEntries  = (timeEntriesRaw ?? []) as any[]
+  const unbilledSeconds  = unbilledEntries.reduce((s, e) => s + (e.duration_seconds ?? 0), 0)
+  const unbilledHours    = Math.round((unbilledSeconds / 3600) * 100) / 100
+  const unbilledValue    = unbilledEntries.reduce((s, e) => {
+    if (!e.hourly_rate || !e.duration_seconds) return s
+    return s + Math.round((e.duration_seconds / 3600) * e.hourly_rate * 100) / 100
+  }, 0)
+  const hasTimeEntries   = unbilledSeconds > 0
+
   const welcomeMessage = getWelcomeMessage()
 
   return (
@@ -609,6 +626,76 @@ export default async function DashboardPage() {
                 full={String(expiringSoonCount)}
                 colorClass={expiringSoonCount > 0 ? 'text-amber-900' : 'text-gray-700'}
               />
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Time Tracking — Unbilled Hours */}
+      {hasActiveSubscription && hasTimeEntries && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
+              <Clock className="w-5 h-5 text-blue-500" />
+              Unbilled Time
+            </h2>
+            <Link href="/dashboard/time" className="text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors">
+              View All →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+            {/* Unbilled Hours */}
+            <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-2xl p-8 border-2 border-sky-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <Clock className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-sky-700 uppercase tracking-wider bg-sky-200 px-3 py-1.5 rounded-full">Unbilled</span>
+              </div>
+              <p className="text-sm font-bold text-sky-700 mb-2 uppercase tracking-wide">Unbilled Hours</p>
+              <MetricCardValue
+                compact={`${unbilledHours}h`}
+                full={`${unbilledHours} hours`}
+                colorClass="text-sky-900"
+              />
+              <p className="text-xs text-sky-500 font-medium mt-2">Ready to invoice</p>
+            </div>
+
+            {/* Unbilled Value */}
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl p-8 border-2 border-teal-100 shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <DollarSign className="w-8 h-8 text-white" />
+                </div>
+                <span className="text-xs font-bold text-teal-700 uppercase tracking-wider bg-teal-200 px-3 py-1.5 rounded-full">
+                  {unbilledValue > 0 ? 'Earnable' : 'No rate set'}
+                </span>
+              </div>
+              <p className="text-sm font-bold text-teal-700 mb-2 uppercase tracking-wide">Unbilled Value</p>
+              {unbilledValue > 0 ? (
+                <>
+                  <MetricCardValue
+                    compact={formatCurrencyCompact(unbilledValue)}
+                    full={formatCurrencyFull(unbilledValue)}
+                    colorClass="text-teal-900"
+                  />
+                  <Link
+                    href="/dashboard/invoices/new"
+                    className="inline-flex items-center gap-1.5 mt-3 text-xs font-bold text-teal-700 hover:text-teal-900 transition-colors"
+                  >
+                    Invoice these hours →
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <p className="text-2xl font-black text-teal-300">—</p>
+                  <p className="text-xs text-teal-500 font-medium mt-1">
+                    Set hourly rates on clients to see value
+                  </p>
+                </>
+              )}
             </div>
 
           </div>
