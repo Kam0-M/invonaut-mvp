@@ -10,6 +10,16 @@
 import { Clock, DollarSign, TrendingUp, Users } from 'lucide-react'
 import { formatDuration, toDecimalHours, calcBillableAmount, formatCurrency } from '@/lib/utils/time-formatting'
 
+// Compact formatter — abbreviates large values so they never overflow their card.
+// Mirrors formatCurrencyCompact in dashboard/page.tsx.
+function formatCompact(amount: number): string {
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
+  if (amount >= 10_000)    return `$${(amount / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
+  }).format(amount)
+}
+
 type Client = { id: string; name: string; company: string | null }
 
 type TimeEntry = {
@@ -92,7 +102,8 @@ export default function WeeklySummary({ entries }: WeeklySummaryProps) {
     },
     {
       label: 'Unbilled Value',
-      value: formatCurrency(unbilledValue),
+      value: formatCompact(unbilledValue),
+      full:  formatCurrency(unbilledValue),
       sub:   'Ready to invoice',
       icon:  DollarSign,
       color: 'bg-green-50 text-green-600',
@@ -112,12 +123,17 @@ export default function WeeklySummary({ entries }: WeeklySummaryProps) {
       {/* Metric cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {metrics.map(m => (
-          <div key={m.label} className="bg-gray-50 rounded-xl p-4">
+          <div key={m.label} className="bg-gray-50 rounded-xl p-4 min-w-0">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${m.color}`}>
               <m.icon className="w-4 h-4" />
             </div>
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{m.label}</p>
-            <p className="text-2xl font-black text-gray-900 mt-0.5">{m.value}</p>
+            <p
+              className="text-2xl font-black text-gray-900 mt-0.5 truncate"
+              title={'full' in m ? m.full : m.value}
+            >
+              {m.value}
+            </p>
             <p className="text-xs text-gray-400 font-medium mt-0.5">{m.sub}</p>
           </div>
         ))}
@@ -137,8 +153,11 @@ export default function WeeklySummary({ entries }: WeeklySummaryProps) {
                 <div className="flex items-center gap-3 flex-shrink-0 ml-2">
                   <span className="text-sm font-bold text-gray-500">{formatDuration(c.seconds)}</span>
                   {c.unbilledValue > 0 && (
-                    <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
-                      {formatCurrency(c.unbilledValue)}
+                    <span
+                      className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full"
+                      title={formatCurrency(c.unbilledValue)}
+                    >
+                      {formatCompact(c.unbilledValue)}
                     </span>
                   )}
                 </div>
