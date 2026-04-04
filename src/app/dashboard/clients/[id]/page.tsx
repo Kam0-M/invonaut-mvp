@@ -3,6 +3,19 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft, Pencil, Mail, Phone, Building2, MapPin, Calendar, FileText } from 'lucide-react'
 
+// Compact formatter — prevents overflow on large totals in the revenue card
+function formatCompact(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
+  }).format(n)
+}
+
+function formatCurrencyFull(n: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+}
+
 export default async function ClientDetailPage({
   params,
 }: {
@@ -154,15 +167,18 @@ export default async function ClientDetailPage({
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+        <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 min-w-0">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center flex-shrink-0">
               <span className="text-3xl font-black text-green-600">$</span>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Total Revenue</p>
-              <p className="text-4xl font-black text-gray-900 tracking-tight">
-                ${totalRevenue.toFixed(2)}
+              <p
+                className="text-4xl font-black text-gray-900 tracking-tight truncate"
+                title={formatCurrencyFull(totalRevenue)}
+              >
+                {formatCompact(totalRevenue)}
               </p>
             </div>
           </div>

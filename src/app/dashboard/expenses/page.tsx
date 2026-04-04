@@ -14,6 +14,15 @@ type PageProps = {
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 
+// Compact formatter for summary cards — prevents overflow on large values
+const formatCompact = (n: number): string => {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
+  }).format(n)
+}
+
 export default async function ExpensesPage({ searchParams }: PageProps) {
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -106,14 +115,24 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
           {categoryTotals.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
               {/* Total card */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border-2 border-blue-100">
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 border-2 border-blue-100 min-w-0">
                 <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">Total</p>
-                <p className="text-2xl font-black text-blue-900">{formatCurrency(totalAmount)}</p>
+                <p
+                  className="text-2xl font-black text-blue-900 truncate"
+                  title={formatCurrency(totalAmount)}
+                >
+                  {formatCompact(totalAmount)}
+                </p>
               </div>
               {categoryTotals.slice(0, 3).map(cat => (
-                <div key={cat.value} className="bg-white rounded-2xl p-5 border-2 border-gray-100">
+                <div key={cat.value} className="bg-white rounded-2xl p-5 border-2 border-gray-100 min-w-0">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1 truncate">{cat.label}</p>
-                  <p className="text-2xl font-black text-gray-900">{formatCurrency(cat.total)}</p>
+                  <p
+                    className="text-2xl font-black text-gray-900 truncate"
+                    title={formatCurrency(cat.total)}
+                  >
+                    {formatCompact(cat.total)}
+                  </p>
                 </div>
               ))}
             </div>
