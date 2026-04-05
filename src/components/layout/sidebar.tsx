@@ -16,6 +16,7 @@ import {
   Sparkles,
   Receipt,
   Clock,
+  TrendingUp,
 } from 'lucide-react'
 import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
@@ -33,6 +34,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
     { name: 'Contracts',     href: '/dashboard/contracts',icon: ScrollText      },
     { name: 'Expenses',      href: '/dashboard/expenses', icon: Receipt         },
     { name: 'Time',          href: '/dashboard/time',     icon: Clock           },
+    { name: 'Cash Flow',     href: '/dashboard/cash',     icon: TrendingUp      },
     { name: 'Client Portal', href: '/dashboard/portal',   icon: ExternalLink    },
     { name: 'Analytics',     href: '/dashboard/analytics',icon: BarChart3       },
     { name: 'Settings',      href: '/dashboard/settings', icon: Settings        },

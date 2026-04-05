@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/weekly-time-summary",
       "schedule": "0 9 * * 1"
+    },
+    {
+      "path": "/api/cron/invoice-follow-ups",
+      "schedule": "0 9 * * *"
     }
   ]
 }
