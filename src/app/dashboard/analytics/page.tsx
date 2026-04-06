@@ -1,26 +1,25 @@
 // src/app/dashboard/analytics/page.tsx
 //
-// PURPOSE:
-//   Analytics is the "understand your business" page. Cash Management is the
-//   "manage your money" page. They're complementary:
-//     - Analytics: backward-looking intelligence — who are your best clients,
-//       how healthy is your invoice pipeline, where is money going
-//     - Cash Management: forward-looking — forecast, runway, what to do next
+// Interactive analytics page — server component driven by URL search params.
+// Sorting and limit selection happen server-side via ?sortBy= and ?limit=
+// so no client state is needed and the page stays fast.
 //
-// SECTIONS:
-//   1. All-time summary row (revenue, expenses, net profit)
-//   2. Client Intelligence — top clients by revenue + invoice health per client
-//   3. Invoice Health — collection rate, avg invoice size, pipeline breakdown
-//   4. Expense Breakdown — donut chart + category list
-//   5. Revenue vs Expenses — 12-month comparison chart
-//   6. "Go deeper" link to Cash Management
+// SORT OPTIONS:
+//   revenue  (default) — total paid invoice amount
+//   rate               — payment consistency (% of sent invoices paid)
+//   invoices           — total invoice count (most active relationship)
+//   overdue            — overdue invoice count (flags problem clients)
 //
-// All currency: formatCompact + title tooltip (overflow-safe).
-// No new tables needed — everything computed from invoices, clients, expenses.
+// LIMIT: 5, 10, 20
+//
+// BUG FIX: formatCompact now uses threshold 999_500 for M to prevent the
+//   $1000K display bug. Values between $999,500–$999,999 would previously
+//   show as "$1000K" because (999999/1000).toFixed(0) rounds to 1000.
+//   Fix: anything >= $999,500 shows as "$1.0M" instead.
 
-import { redirect }      from 'next/navigation'
-import { createClient }  from '@/lib/supabase/server'
-import Link              from 'next/link'
+import { redirect }       from 'next/navigation'
+import { createClient }   from '@/lib/supabase/server'
+import Link               from 'next/link'
 import { ArrowLeft, Users, TrendingUp, FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
 import { ExpenseBreakdownChart }   from '@/components/dashboard/expense-breakdown-chart'
 import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-chart'
@@ -32,9 +31,12 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 const formatCurrencyFull = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 
+// BUG FIX: threshold at 999_500 prevents $1000K edge case.
+// (999,999 / 1,000).toFixed(0) = "1000" → would show "$1000K" — wrong.
+// Anything >= $999,500 now shows as "$1.0M" instead.
 const formatCompact = (n: number): string => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
-  if (n >= 1_000_000)     return `$${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`   // ← was 1_000_000
   if (n >= 10_000)        return `$${(n / 1_000).toFixed(0)}K`
   return new Intl.NumberFormat('en-US', {
     style: 'currency', currency: 'USD', maximumFractionDigits: 0,
@@ -48,9 +50,35 @@ const categoryChartColors: Record<string, string> = {
   insurance: '#22C55E', taxes: '#EF4444', other: '#9CA3AF',
 }
 
+// ─── Sort config ──────────────────────────────────────────────────────────────
+
+type SortKey = 'revenue' | 'rate' | 'invoices' | 'overdue'
+type LimitVal = 5 | 10 | 20
+
+const SORT_OPTIONS: { key: SortKey; label: string; description: string }[] = [
+  { key: 'revenue',  label: 'Revenue',      description: 'Highest total paid value' },
+  { key: 'rate',     label: 'Pay Rate',      description: 'Most consistent payment' },
+  { key: 'invoices', label: 'Most Active',   description: 'Most invoices issued' },
+  { key: 'overdue',  label: 'Overdue Risk',  description: 'Most overdue invoices' },
+]
+
+const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default async function AnalyticsPage() {
+export default async function AnalyticsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sortBy?: string; limit?: string }>
+}) {
+  const params = await searchParams
+  const sortBy = (SORT_OPTIONS.map(s => s.key).includes(params.sortBy as SortKey)
+    ? params.sortBy
+    : 'revenue') as SortKey
+  const limit  = LIMIT_OPTIONS.includes(Number(params.limit) as LimitVal)
+    ? (Number(params.limit) as LimitVal)
+    : 10
+
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) redirect('/login')
@@ -64,7 +92,7 @@ export default async function AnalyticsPage() {
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
-  // ── Data fetching ─────────────────────────────────────────────────────────
+  // ── Data fetching (parallel) ──────────────────────────────────────────────
   const [{ data: invoicesRaw }, { data: clientsRaw }, { data: expensesRaw }] = await Promise.all([
     supabase
       .from('invoices')
@@ -88,71 +116,104 @@ export default async function AnalyticsPage() {
   const expenses = (expensesRaw ?? []) as { amount: number; category: string; date: string }[]
 
   // ── Summary numbers ───────────────────────────────────────────────────────
-  const totalRevenue  = invoices
-    .filter(i => i.displayStatus === 'paid')
-    .reduce((s, i) => s + Number(i.total_amount || 0), 0)
+  const paidInvoices    = invoices.filter(i => i.displayStatus === 'paid')
+  const sentInvoices    = invoices.filter(i => ['sent', 'paid', 'overdue'].includes(i.displayStatus))
+  const overdueInvoices = invoices.filter(i => i.displayStatus === 'overdue')
+  const draftInvoices   = invoices.filter(i => i.displayStatus === 'draft')
 
+  const totalRevenue  = paidInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0)
   const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0)
   const netProfit     = totalRevenue - totalExpenses
   const isProfitable  = netProfit >= 0
 
-  // ── Invoice health ────────────────────────────────────────────────────────
-  const sentInvoices     = invoices.filter(i => ['sent', 'paid', 'overdue'].includes(i.displayStatus))
-  const paidInvoices     = invoices.filter(i => i.displayStatus === 'paid')
-  const overdueInvoices  = invoices.filter(i => i.displayStatus === 'overdue')
-  const draftInvoices    = invoices.filter(i => i.displayStatus === 'draft')
-
-  const collectionRate   = sentInvoices.length > 0
+  const collectionRate = sentInvoices.length > 0
     ? Math.round((paidInvoices.length / sentInvoices.length) * 100)
     : null
 
-  const avgInvoiceSize   = paidInvoices.length > 0
+  const avgInvoiceSize = paidInvoices.length > 0
     ? paidInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0) / paidInvoices.length
     : 0
 
-  const overdueValue     = overdueInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0)
+  const overdueValue = overdueInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0)
 
-  // ── Client intelligence ───────────────────────────────────────────────────
-  // Build per-client stats from invoice data
-  const clientMap = new Map<string, {
-    name:         string
-    company:      string | null
-    totalRevenue: number
-    paidCount:    number
-    overdueCount: number
-    totalSent:    number
-  }>()
+  // ── Per-client stats ──────────────────────────────────────────────────────
+  type ClientStat = {
+    name:          string
+    company:       string | null
+    totalRevenue:  number
+    paidCount:     number
+    overdueCount:  number
+    totalSent:     number
+    totalInvoices: number
+    collectionRate: number | null
+  }
+
+  const clientMap = new Map<string, ClientStat>()
 
   clients.forEach(c => {
     clientMap.set(c.id, {
       name: c.name, company: c.company,
-      totalRevenue: 0, paidCount: 0, overdueCount: 0, totalSent: 0,
+      totalRevenue: 0, paidCount: 0, overdueCount: 0,
+      totalSent: 0, totalInvoices: 0, collectionRate: null,
     })
   })
 
   invoices.forEach(inv => {
     if (!inv.client_id) return
-    const entry = clientMap.get(inv.client_id)
-    if (!entry) return
+    const e = clientMap.get(inv.client_id)
+    if (!e) return
+    e.totalInvoices++
     if (inv.displayStatus === 'paid') {
-      entry.totalRevenue += Number(inv.total_amount || 0)
-      entry.paidCount++
-      entry.totalSent++
+      e.totalRevenue += Number(inv.total_amount || 0)
+      e.paidCount++
+      e.totalSent++
     } else if (inv.displayStatus === 'sent') {
-      entry.totalSent++
+      e.totalSent++
     } else if (inv.displayStatus === 'overdue') {
-      entry.overdueCount++
-      entry.totalSent++
+      e.overdueCount++
+      e.totalSent++
     }
   })
 
-  // Top 8 clients by revenue — only those with at least one paid invoice
-  const topClients = Array.from(clientMap.values())
-    .filter(c => c.totalRevenue > 0)
-    .sort((a, b) => b.totalRevenue - a.totalRevenue)
-    .slice(0, 8)
+  // Compute collectionRate per client
+  clientMap.forEach(c => {
+    c.collectionRate = c.totalSent > 0
+      ? Math.round((c.paidCount / c.totalSent) * 100)
+      : null
+  })
 
-  const maxClientRevenue = topClients[0]?.totalRevenue ?? 1
+  // Filter to clients with any data, then sort by selected key
+  const allClientStats = Array.from(clientMap.values()).filter(c => c.totalInvoices > 0)
+
+  const sortedClients = [...allClientStats].sort((a, b) => {
+    switch (sortBy) {
+      case 'rate':
+        // Clients with no sent invoices go to bottom
+        if (a.collectionRate === null && b.collectionRate === null) return b.totalRevenue - a.totalRevenue
+        if (a.collectionRate === null) return 1
+        if (b.collectionRate === null) return -1
+        return b.collectionRate - a.collectionRate
+      case 'invoices':
+        return b.totalInvoices - a.totalInvoices
+      case 'overdue':
+        // Sort by overdue count desc, then overdue value desc as tiebreaker
+        if (b.overdueCount !== a.overdueCount) return b.overdueCount - a.overdueCount
+        return b.totalRevenue - a.totalRevenue
+      case 'revenue':
+      default:
+        return b.totalRevenue - a.totalRevenue
+    }
+  }).slice(0, limit)
+
+  // Max for bar chart scaling
+  const maxValue = (() => {
+    switch (sortBy) {
+      case 'rate':     return 100
+      case 'invoices': return Math.max(...sortedClients.map(c => c.totalInvoices), 1)
+      case 'overdue':  return Math.max(...sortedClients.map(c => c.overdueCount), 1)
+      default:         return Math.max(...sortedClients.map(c => c.totalRevenue), 1)
+    }
+  })()
 
   // ── Expense breakdown ─────────────────────────────────────────────────────
   const categoryBreakdown = EXPENSE_CATEGORIES
@@ -191,7 +252,14 @@ export default async function AnalyticsPage() {
     return { month: label, revenue: rev, expenses: exp, profit: rev - exp }
   })
 
-  // ── JSX ───────────────────────────────────────────────────────────────────
+  // ── Helper: build URL preserving other params ─────────────────────────────
+  const buildUrl = (overrides: Record<string, string | number>) => {
+    const p = new URLSearchParams()
+    p.set('sortBy', overrides.sortBy as string ?? sortBy)
+    p.set('limit',  String(overrides.limit ?? limit))
+    return `/dashboard/analytics?${p.toString()}`
+  }
+
   return (
     <div className="space-y-8">
 
@@ -232,36 +300,13 @@ export default async function AnalyticsPage() {
           {/* ── 1. Summary row ─────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {[
-              {
-                label: 'Total Revenue',
-                value: formatCompact(totalRevenue),
-                full:  formatCurrencyFull(totalRevenue),
-                color: 'text-green-900',
-                bg:    'from-green-50 to-emerald-50 border-green-100',
-              },
-              {
-                label: 'Total Expenses',
-                value: formatCompact(totalExpenses),
-                full:  formatCurrencyFull(totalExpenses),
-                color: 'text-orange-900',
-                bg:    'from-orange-50 to-amber-50 border-orange-100',
-              },
-              {
-                label: isProfitable ? 'Net Profit' : 'Net Loss',
-                value: formatCompact(Math.abs(netProfit)),
-                full:  formatCurrencyFull(Math.abs(netProfit)),
-                color: isProfitable ? 'text-blue-900' : 'text-red-900',
-                bg:    isProfitable
-                  ? 'from-blue-50 to-indigo-50 border-blue-100'
-                  : 'from-red-50 to-rose-50 border-red-100',
-              },
+              { label: 'Total Revenue', value: formatCompact(totalRevenue), full: formatCurrencyFull(totalRevenue), color: 'text-green-900', bg: 'from-green-50 to-emerald-50 border-green-100' },
+              { label: 'Total Expenses', value: formatCompact(totalExpenses), full: formatCurrencyFull(totalExpenses), color: 'text-orange-900', bg: 'from-orange-50 to-amber-50 border-orange-100' },
+              { label: isProfitable ? 'Net Profit' : 'Net Loss', value: formatCompact(Math.abs(netProfit)), full: formatCurrencyFull(Math.abs(netProfit)), color: isProfitable ? 'text-blue-900' : 'text-red-900', bg: isProfitable ? 'from-blue-50 to-indigo-50 border-blue-100' : 'from-red-50 to-rose-50 border-red-100' },
             ].map(m => (
               <div key={m.label} className={`rounded-2xl p-6 border-2 bg-gradient-to-br ${m.bg} shadow-sm`}>
                 <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">{m.label}</p>
-                <p
-                  className={`text-3xl font-black tracking-tight truncate min-w-0 ${m.color}`}
-                  title={m.full}
-                >
+                <p className={`text-3xl font-black tracking-tight truncate min-w-0 ${m.color}`} title={m.full}>
                   {m.value}
                 </p>
               </div>
@@ -281,7 +326,6 @@ export default async function AnalyticsPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {/* Collection rate */}
               <div className="bg-gray-50 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -300,7 +344,6 @@ export default async function AnalyticsPage() {
                 </p>
               </div>
 
-              {/* Avg invoice size */}
               <div className="bg-gray-50 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-4 h-4 text-blue-600" />
@@ -315,7 +358,6 @@ export default async function AnalyticsPage() {
                 <p className="text-xs text-gray-400 font-medium mt-1">per paid invoice</p>
               </div>
 
-              {/* Overdue value */}
               <div className={`rounded-xl p-5 ${overdueValue > 0 ? 'bg-red-50' : 'bg-gray-50'}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <AlertCircle className={`w-4 h-4 ${overdueValue > 0 ? 'text-red-600' : 'text-gray-400'}`} />
@@ -334,7 +376,6 @@ export default async function AnalyticsPage() {
                 </p>
               </div>
 
-              {/* Drafts */}
               <div className="bg-gray-50 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-gray-400" />
@@ -349,7 +390,7 @@ export default async function AnalyticsPage() {
               </div>
             </div>
 
-            {/* Pipeline status bar */}
+            {/* Pipeline bar */}
             {invoices.length > 0 && (
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-2">
@@ -358,19 +399,16 @@ export default async function AnalyticsPage() {
                 </div>
                 <div className="h-3 bg-gray-100 rounded-full overflow-hidden flex">
                   {[
-                    { status: 'paid',    count: paidInvoices.length,    color: '#10B981' },
-                    { status: 'sent',    count: invoices.filter(i => i.displayStatus === 'sent').length, color: '#3B82F6' },
-                    { status: 'overdue', count: overdueInvoices.length,  color: '#EF4444' },
-                    { status: 'draft',   count: draftInvoices.length,    color: '#E5E7EB' },
+                    { s: 'paid',    count: paidInvoices.length,    color: '#10B981' },
+                    { s: 'sent',    count: invoices.filter(i => i.displayStatus === 'sent').length, color: '#3B82F6' },
+                    { s: 'overdue', count: overdueInvoices.length,  color: '#EF4444' },
+                    { s: 'draft',   count: draftInvoices.length,    color: '#E5E7EB' },
                   ].filter(s => s.count > 0).map(s => (
                     <div
-                      key={s.status}
-                      title={`${s.status}: ${s.count}`}
-                      className="h-full transition-all"
-                      style={{
-                        width:      `${(s.count / invoices.length) * 100}%`,
-                        background: s.color,
-                      }}
+                      key={s.s}
+                      title={`${s.s}: ${s.count}`}
+                      className="h-full"
+                      style={{ width: `${(s.count / invoices.length) * 100}%`, background: s.color }}
                     />
                   ))}
                 </div>
@@ -392,34 +430,129 @@ export default async function AnalyticsPage() {
           </div>
 
           {/* ── 3. Client Intelligence ─────────────────────────────────────── */}
-          {topClients.length > 0 && (
+          {allClientStats.length > 0 && (
             <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
+              {/* Section header + controls */}
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
+                <div className="flex items-center gap-3 flex-1">
                   <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
                     <Users className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Top Clients</h2>
-                    <p className="text-sm text-gray-500 font-medium">Ranked by revenue generated</p>
+                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Client Intelligence</h2>
+                    <p className="text-sm text-gray-500 font-medium">
+                      Showing top {Math.min(limit, allClientStats.length)} of {allClientStats.length} clients
+                    </p>
                   </div>
                 </div>
-                <Link href="/dashboard/clients" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
-                  View all →
+                <Link href="/dashboard/clients" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex-shrink-0">
+                  View all clients →
                 </Link>
               </div>
 
-              <div className="space-y-3">
-                {topClients.map((client, idx) => {
-                  const pct         = Math.round((client.totalRevenue / maxClientRevenue) * 100)
-                  const hasOverdue  = client.overdueCount > 0
-                  const rate        = client.totalSent > 0
-                    ? Math.round((client.paidCount / client.totalSent) * 100)
-                    : null
+              {/* Sort + Limit controls */}
+              <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+
+                {/* Sort by */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Rank by</p>
+                  <div className="flex flex-wrap gap-2">
+                    {SORT_OPTIONS.map(opt => (
+                      <Link
+                        key={opt.key}
+                        href={buildUrl({ sortBy: opt.key, limit })}
+                        title={opt.description}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          sortBy === opt.key
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        {opt.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Limit */}
+                <div className="flex-shrink-0">
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Show</p>
+                  <div className="flex gap-2">
+                    {LIMIT_OPTIONS.map(l => (
+                      <Link
+                        key={l}
+                        href={buildUrl({ sortBy, limit: l })}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                          limit === l
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
+                        }`}
+                      >
+                        Top {l}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Client list */}
+              <div className="space-y-4">
+                {sortedClients.map((client, idx) => {
+                  // Bar width based on sort key
+                  const barPct = (() => {
+                    switch (sortBy) {
+                      case 'rate':     return client.collectionRate ?? 0
+                      case 'invoices': return maxValue > 0 ? Math.round((client.totalInvoices / maxValue) * 100) : 0
+                      case 'overdue':  return maxValue > 0 ? Math.round((client.overdueCount  / maxValue) * 100) : 0
+                      default:         return maxValue > 0 ? Math.round((client.totalRevenue  / maxValue) * 100) : 0
+                    }
+                  })()
+
+                  // Primary metric label
+                  const primaryMetric = (() => {
+                    switch (sortBy) {
+                      case 'rate':
+                        return client.collectionRate !== null
+                          ? `${client.collectionRate}% paid`
+                          : '—'
+                      case 'invoices':
+                        return `${client.totalInvoices} invoice${client.totalInvoices !== 1 ? 's' : ''}`
+                      case 'overdue':
+                        return client.overdueCount > 0
+                          ? `${client.overdueCount} overdue`
+                          : 'None overdue'
+                      default:
+                        return client.totalRevenue > 0
+                          ? formatCompact(client.totalRevenue)
+                          : 'No revenue'
+                    }
+                  })()
+
+                  const primaryMetricFull = (() => {
+                    switch (sortBy) {
+                      case 'rate':     return client.collectionRate !== null ? `${client.collectionRate}% payment rate` : 'No paid invoices'
+                      case 'invoices': return `${client.totalInvoices} total invoices`
+                      case 'overdue':  return `${client.overdueCount} overdue invoices`
+                      default:         return formatCurrencyFull(client.totalRevenue)
+                    }
+                  })()
+
+                  // Secondary info (always shown regardless of sort)
+                  const rateForBadge = client.collectionRate
+                  const hasOverdue   = client.overdueCount > 0
+                  const showRateBadge = sortBy !== 'rate' && rateForBadge !== null
+
+                  const barColor = (() => {
+                    switch (sortBy) {
+                      case 'rate':    return rateForBadge !== null && rateForBadge >= 80 ? '#10B981' : rateForBadge !== null && rateForBadge >= 60 ? '#F59E0B' : '#EF4444'
+                      case 'overdue': return '#EF4444'
+                      default:        return undefined  // use gradient
+                    }
+                  })()
 
                   return (
-                    <div key={client.name} className="group">
-                      <div className="flex items-center gap-4 mb-1.5">
+                    <div key={client.name}>
+                      <div className="flex items-center gap-3 mb-1.5 flex-wrap">
                         {/* Rank */}
                         <span className={`text-xs font-black w-5 flex-shrink-0 ${
                           idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-700' : 'text-gray-300'
@@ -427,14 +560,14 @@ export default async function AnalyticsPage() {
                           #{idx + 1}
                         </span>
 
-                        {/* Name + company */}
+                        {/* Name */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-sm font-bold text-gray-900 truncate">{client.name}</span>
                             {client.company && (
                               <span className="text-xs text-gray-400 font-medium truncate">{client.company}</span>
                             )}
-                            {hasOverdue && (
+                            {hasOverdue && sortBy !== 'overdue' && (
                               <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 flex-shrink-0">
                                 {client.overdueCount} overdue
                               </span>
@@ -442,43 +575,55 @@ export default async function AnalyticsPage() {
                           </div>
                         </div>
 
-                        {/* Stats */}
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {rate !== null && (
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                              rate >= 80 ? 'text-green-700 bg-green-100'
-                              : rate >= 60 ? 'text-amber-700 bg-amber-100'
+                        {/* Stats row */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {showRateBadge && (
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                              rateForBadge! >= 80 ? 'text-green-700 bg-green-100'
+                              : rateForBadge! >= 60 ? 'text-amber-700 bg-amber-100'
                               : 'text-red-700 bg-red-100'
                             }`}>
-                              {rate}% paid
+                              {rateForBadge}% paid
+                            </span>
+                          )}
+                          {/* Always show revenue unless we're already ranking by revenue */}
+                          {sortBy !== 'revenue' && client.totalRevenue > 0 && (
+                            <span
+                              className="text-xs text-gray-400 font-bold"
+                              title={formatCurrencyFull(client.totalRevenue)}
+                            >
+                              {formatCompact(client.totalRevenue)}
                             </span>
                           )}
                           <span
-                            className="text-sm font-black text-gray-900"
-                            title={formatCurrencyFull(client.totalRevenue)}
+                            className={`text-sm font-black ${
+                              sortBy === 'overdue' && client.overdueCount > 0
+                                ? 'text-red-700'
+                                : sortBy === 'rate' && rateForBadge !== null
+                                ? rateForBadge >= 80 ? 'text-green-700' : rateForBadge >= 60 ? 'text-amber-700' : 'text-red-700'
+                                : 'text-gray-900'
+                            }`}
+                            title={primaryMetricFull}
                           >
-                            {formatCompact(client.totalRevenue)}
+                            {primaryMetric}
                           </span>
                         </div>
                       </div>
 
-                      {/* Revenue bar */}
-                      <div className="ml-9 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      {/* Bar */}
+                      <div className="ml-8 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-500 transition-all duration-500"
-                          style={{ width: `${pct}%` }}
+                          className="h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${barPct}%`,
+                            background: barColor ?? 'linear-gradient(to right, #14B8A6, #3B82F6)',
+                          }}
                         />
                       </div>
                     </div>
                   )
                 })}
               </div>
-
-              {topClients.length === 0 && (
-                <p className="text-gray-400 font-medium text-sm text-center py-8">
-                  No paid invoices yet. Client revenue will appear here once invoices are marked paid.
-                </p>
-              )}
             </div>
           )}
 
@@ -486,10 +631,7 @@ export default async function AnalyticsPage() {
           <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
             <div className="mb-6">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">Expense Breakdown</h2>
-              <p
-                className="text-sm text-gray-500 font-medium mt-1"
-                title={formatCurrencyFull(totalExpenses)}
-              >
+              <p className="text-sm text-gray-500 font-medium mt-1" title={formatCurrencyFull(totalExpenses)}>
                 Total: {formatCompact(totalExpenses)} across {expenses.length} expense{expenses.length !== 1 ? 's' : ''}
               </p>
             </div>
@@ -511,20 +653,14 @@ export default async function AnalyticsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
-                          <span
-                            className="text-sm font-black text-gray-900 flex-shrink-0"
-                            title={formatCurrencyFull(cat.value)}
-                          >
+                          <span className="text-sm font-black text-gray-900 flex-shrink-0" title={formatCurrencyFull(cat.value)}>
                             {formatCompact(cat.value)}
                           </span>
                         </div>
                         <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all"
-                            style={{
-                              width:      `${totalExpenses > 0 ? (cat.value / totalExpenses) * 100 : 0}%`,
-                              backgroundColor: cat.color,
-                            }}
+                            style={{ width: `${totalExpenses > 0 ? (cat.value / totalExpenses) * 100 : 0}%`, backgroundColor: cat.color }}
                           />
                         </div>
                       </div>
@@ -538,7 +674,7 @@ export default async function AnalyticsPage() {
             )}
           </div>
 
-          {/* ── 5. Revenue vs Expenses 12-month ────────────────────────────── */}
+          {/* ── 5. Revenue vs Expenses ─────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
             <div className="mb-6">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue vs Expenses</h2>
@@ -547,7 +683,7 @@ export default async function AnalyticsPage() {
             <RevenueVsExpenseChart data={revExpData} />
           </div>
 
-          {/* ── 6. Go deeper CTA ───────────────────────────────────────────── */}
+          {/* ── 6. Cash Management link ────────────────────────────────────── */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl border-2 border-blue-200 p-8 flex items-center justify-between gap-6 flex-wrap">
             <div>
               <h3 className="text-lg font-black text-gray-900 mb-1">Want the full financial picture?</h3>
@@ -557,8 +693,7 @@ export default async function AnalyticsPage() {
             </div>
             <Link
               href="/dashboard/cash"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold
-                         hover:bg-blue-700 hover:shadow-lg transition-all flex-shrink-0"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 hover:shadow-lg transition-all flex-shrink-0"
             >
               Open Cash Management →
             </Link>
