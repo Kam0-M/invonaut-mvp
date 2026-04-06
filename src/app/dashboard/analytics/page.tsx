@@ -138,6 +138,7 @@ export default async function AnalyticsPage({
 
   // ── Per-client stats ──────────────────────────────────────────────────────
   type ClientStat = {
+    id:            string
     name:          string
     company:       string | null
     totalRevenue:  number
@@ -152,6 +153,7 @@ export default async function AnalyticsPage({
 
   clients.forEach(c => {
     clientMap.set(c.id, {
+      id: c.id,
       name: c.name, company: c.company,
       totalRevenue: 0, paidCount: 0, overdueCount: 0,
       totalSent: 0, totalInvoices: 0, collectionRate: null,
@@ -542,16 +544,26 @@ export default async function AnalyticsPage({
                   const hasOverdue   = client.overdueCount > 0
                   const showRateBadge = sortBy !== 'rate' && rateForBadge !== null
 
-                  const barColor = (() => {
+                  // Consistent bar color per sort mode — no mixed gradient/solid
+                  const barStyle: React.CSSProperties = (() => {
                     switch (sortBy) {
-                      case 'rate':    return rateForBadge !== null && rateForBadge >= 80 ? '#10B981' : rateForBadge !== null && rateForBadge >= 60 ? '#F59E0B' : '#EF4444'
-                      case 'overdue': return '#EF4444'
-                      default:        return undefined  // use gradient
+                      case 'rate':
+                        if (rateForBadge === null) return { width: '0%', background: '#E5E7EB' }
+                        return {
+                          width: `${barPct}%`,
+                          background: rateForBadge >= 80 ? '#10B981' : rateForBadge >= 60 ? '#F59E0B' : '#EF4444',
+                        }
+                      case 'overdue':
+                        return { width: `${barPct}%`, background: client.overdueCount > 0 ? '#EF4444' : '#E5E7EB' }
+                      case 'invoices':
+                        return { width: `${barPct}%`, background: '#3B82F6' }
+                      default: // revenue
+                        return { width: `${barPct}%`, background: 'linear-gradient(to right, #14B8A6, #2563EB)' }
                     }
                   })()
 
                   return (
-                    <div key={client.name}>
+                    <div key={client.id}>
                       <div className="flex items-center gap-3 mb-1.5 flex-wrap">
                         {/* Rank */}
                         <span className={`text-xs font-black w-5 flex-shrink-0 ${
@@ -614,10 +626,7 @@ export default async function AnalyticsPage({
                       <div className="ml-8 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full transition-all duration-500"
-                          style={{
-                            width: `${barPct}%`,
-                            background: barColor ?? 'linear-gradient(to right, #14B8A6, #3B82F6)',
-                          }}
+                          style={barStyle}
                         />
                       </div>
                     </div>
