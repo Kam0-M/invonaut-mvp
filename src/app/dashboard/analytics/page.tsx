@@ -20,11 +20,13 @@
 import { redirect }       from 'next/navigation'
 import { createClient }   from '@/lib/supabase/server'
 import Link               from 'next/link'
-import { ArrowLeft, Users, TrendingUp, FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
+import { ArrowLeft, TrendingUp, FileText, CheckCircle2, AlertCircle, Clock } from 'lucide-react'
 import { ExpenseBreakdownChart }   from '@/components/dashboard/expense-breakdown-chart'
 import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-chart'
 import { EXPENSE_CATEGORIES }      from '@/lib/ai/expense-categorization'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
+import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
+import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -52,8 +54,9 @@ const categoryChartColors: Record<string, string> = {
 
 // ─── Sort config ──────────────────────────────────────────────────────────────
 
-type SortKey = 'revenue' | 'rate' | 'invoices' | 'overdue'
+type SortKey  = 'revenue' | 'rate' | 'invoices' | 'overdue'
 type LimitVal = 5 | 10 | 20
+type ViewMode = 'list' | 'table' | 'revenue' | 'rate'
 
 const SORT_OPTIONS: { key: SortKey; label: string; description: string }[] = [
   { key: 'revenue',  label: 'Revenue',      description: 'Highest total paid value' },
@@ -63,21 +66,25 @@ const SORT_OPTIONS: { key: SortKey; label: string; description: string }[] = [
 ]
 
 const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
+const VIEW_OPTIONS:  ViewMode[] = ['list', 'table', 'revenue', 'rate']
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sortBy?: string; limit?: string }>
+  searchParams: Promise<{ sortBy?: string; limit?: string; viewMode?: string }>
 }) {
-  const params = await searchParams
-  const sortBy = (SORT_OPTIONS.map(s => s.key).includes(params.sortBy as SortKey)
+  const params   = await searchParams
+  const sortBy   = (SORT_OPTIONS.map(s => s.key).includes(params.sortBy as SortKey)
     ? params.sortBy
     : 'revenue') as SortKey
-  const limit  = LIMIT_OPTIONS.includes(Number(params.limit) as LimitVal)
+  const limit    = LIMIT_OPTIONS.includes(Number(params.limit) as LimitVal)
     ? (Number(params.limit) as LimitVal)
     : 10
+  const viewMode = (VIEW_OPTIONS.includes(params.viewMode as ViewMode)
+    ? params.viewMode
+    : 'list') as ViewMode
 
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -198,24 +205,21 @@ export default async function AnalyticsPage({
       case 'invoices':
         return b.totalInvoices - a.totalInvoices
       case 'overdue':
-        // Sort by overdue count desc, then overdue value desc as tiebreaker
+        // Primary: most overdue invoices (desc)
         if (b.overdueCount !== a.overdueCount) return b.overdueCount - a.overdueCount
-        return b.totalRevenue - a.totalRevenue
+        // Tiebreaker: lowest payment rate = highest risk (asc).
+        // 33% pay rate is RISKIER than 67%, so 33% ranks higher.
+        // null = no sent invoices yet → treat as 100% (not a risk) → goes to bottom.
+        {
+          const aRate = a.collectionRate ?? 100
+          const bRate = b.collectionRate ?? 100
+          return aRate - bRate   // ascending: lower rate sorts first
+        }
       case 'revenue':
       default:
         return b.totalRevenue - a.totalRevenue
     }
   }).slice(0, limit)
-
-  // Max for bar chart scaling
-  const maxValue = (() => {
-    switch (sortBy) {
-      case 'rate':     return 100
-      case 'invoices': return Math.max(...sortedClients.map(c => c.totalInvoices), 1)
-      case 'overdue':  return Math.max(...sortedClients.map(c => c.overdueCount), 1)
-      default:         return Math.max(...sortedClients.map(c => c.totalRevenue), 1)
-    }
-  })()
 
   // ── Expense breakdown ─────────────────────────────────────────────────────
   const categoryBreakdown = EXPENSE_CATEGORIES
@@ -253,14 +257,6 @@ export default async function AnalyticsPage({
 
     return { month: label, revenue: rev, expenses: exp, profit: rev - exp }
   })
-
-  // ── Helper: build URL preserving other params ─────────────────────────────
-  const buildUrl = (overrides: Record<string, string | number>) => {
-    const p = new URLSearchParams()
-    p.set('sortBy', overrides.sortBy as string ?? sortBy)
-    p.set('limit',  String(overrides.limit ?? limit))
-    return `/dashboard/analytics?${p.toString()}`
-  }
 
   return (
     <div className="space-y-8">
@@ -433,207 +429,13 @@ export default async function AnalyticsPage({
 
           {/* ── 3. Client Intelligence ─────────────────────────────────────── */}
           {allClientStats.length > 0 && (
-            <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
-              {/* Section header + controls */}
-              <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">
-                <div className="flex items-center gap-3 flex-1">
-                  <div className="w-10 h-10 bg-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Users className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900 tracking-tight">Client Intelligence</h2>
-                    <p className="text-sm text-gray-500 font-medium">
-                      Showing top {Math.min(limit, allClientStats.length)} of {allClientStats.length} clients
-                    </p>
-                  </div>
-                </div>
-                <Link href="/dashboard/clients" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors flex-shrink-0">
-                  View all clients →
-                </Link>
-              </div>
-
-              {/* Sort + Limit controls */}
-              <div className="flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-
-                {/* Sort by */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Rank by</p>
-                  <div className="flex flex-wrap gap-2">
-                    {SORT_OPTIONS.map(opt => (
-                      <Link
-                        key={opt.key}
-                        href={buildUrl({ sortBy: opt.key, limit })}
-                        title={opt.description}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          sortBy === opt.key
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
-                        }`}
-                      >
-                        {opt.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Limit */}
-                <div className="flex-shrink-0">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Show</p>
-                  <div className="flex gap-2">
-                    {LIMIT_OPTIONS.map(l => (
-                      <Link
-                        key={l}
-                        href={buildUrl({ sortBy, limit: l })}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          limit === l
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
-                        }`}
-                      >
-                        Top {l}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Client list */}
-              <div className="space-y-4">
-                {sortedClients.map((client, idx) => {
-                  // Bar width based on sort key
-                  const barPct = (() => {
-                    switch (sortBy) {
-                      case 'rate':     return client.collectionRate ?? 0
-                      case 'invoices': return maxValue > 0 ? Math.round((client.totalInvoices / maxValue) * 100) : 0
-                      case 'overdue':  return maxValue > 0 ? Math.round((client.overdueCount  / maxValue) * 100) : 0
-                      default:         return maxValue > 0 ? Math.round((client.totalRevenue  / maxValue) * 100) : 0
-                    }
-                  })()
-
-                  // Primary metric label
-                  const primaryMetric = (() => {
-                    switch (sortBy) {
-                      case 'rate':
-                        return client.collectionRate !== null
-                          ? `${client.collectionRate}% paid`
-                          : '—'
-                      case 'invoices':
-                        return `${client.totalInvoices} invoice${client.totalInvoices !== 1 ? 's' : ''}`
-                      case 'overdue':
-                        return client.overdueCount > 0
-                          ? `${client.overdueCount} overdue`
-                          : 'None overdue'
-                      default:
-                        return client.totalRevenue > 0
-                          ? formatCompact(client.totalRevenue)
-                          : 'No revenue'
-                    }
-                  })()
-
-                  const primaryMetricFull = (() => {
-                    switch (sortBy) {
-                      case 'rate':     return client.collectionRate !== null ? `${client.collectionRate}% payment rate` : 'No paid invoices'
-                      case 'invoices': return `${client.totalInvoices} total invoices`
-                      case 'overdue':  return `${client.overdueCount} overdue invoices`
-                      default:         return formatCurrencyFull(client.totalRevenue)
-                    }
-                  })()
-
-                  // Secondary info (always shown regardless of sort)
-                  const rateForBadge = client.collectionRate
-                  const hasOverdue   = client.overdueCount > 0
-                  const showRateBadge = sortBy !== 'rate' && rateForBadge !== null
-
-                  // Consistent bar color per sort mode — no mixed gradient/solid
-                  const barStyle: React.CSSProperties = (() => {
-                    switch (sortBy) {
-                      case 'rate':
-                        if (rateForBadge === null) return { width: '0%', background: '#E5E7EB' }
-                        return {
-                          width: `${barPct}%`,
-                          background: rateForBadge >= 80 ? '#10B981' : rateForBadge >= 60 ? '#F59E0B' : '#EF4444',
-                        }
-                      case 'overdue':
-                        return { width: `${barPct}%`, background: client.overdueCount > 0 ? '#EF4444' : '#E5E7EB' }
-                      case 'invoices':
-                        return { width: `${barPct}%`, background: '#3B82F6' }
-                      default: // revenue
-                        return { width: `${barPct}%`, background: 'linear-gradient(to right, #14B8A6, #2563EB)' }
-                    }
-                  })()
-
-                  return (
-                    <div key={client.id}>
-                      <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-                        {/* Rank */}
-                        <span className={`text-xs font-black w-5 flex-shrink-0 ${
-                          idx === 0 ? 'text-amber-500' : idx === 1 ? 'text-gray-400' : idx === 2 ? 'text-amber-700' : 'text-gray-300'
-                        }`}>
-                          #{idx + 1}
-                        </span>
-
-                        {/* Name */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-gray-900 truncate">{client.name}</span>
-                            {client.company && (
-                              <span className="text-xs text-gray-400 font-medium truncate">{client.company}</span>
-                            )}
-                            {hasOverdue && sortBy !== 'overdue' && (
-                              <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full border border-red-200 flex-shrink-0">
-                                {client.overdueCount} overdue
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Stats row */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {showRateBadge && (
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                              rateForBadge! >= 80 ? 'text-green-700 bg-green-100'
-                              : rateForBadge! >= 60 ? 'text-amber-700 bg-amber-100'
-                              : 'text-red-700 bg-red-100'
-                            }`}>
-                              {rateForBadge}% paid
-                            </span>
-                          )}
-                          {/* Always show revenue unless we're already ranking by revenue */}
-                          {sortBy !== 'revenue' && client.totalRevenue > 0 && (
-                            <span
-                              className="text-xs text-gray-400 font-bold"
-                              title={formatCurrencyFull(client.totalRevenue)}
-                            >
-                              {formatCompact(client.totalRevenue)}
-                            </span>
-                          )}
-                          <span
-                            className={`text-sm font-black ${
-                              sortBy === 'overdue' && client.overdueCount > 0
-                                ? 'text-red-700'
-                                : sortBy === 'rate' && rateForBadge !== null
-                                ? rateForBadge >= 80 ? 'text-green-700' : rateForBadge >= 60 ? 'text-amber-700' : 'text-red-700'
-                                : 'text-gray-900'
-                            }`}
-                            title={primaryMetricFull}
-                          >
-                            {primaryMetric}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Bar */}
-                      <div className="ml-8 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-500"
-                          style={barStyle}
-                        />
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <ClientIntelligencePanel
+              allClientStats={allClientStats}
+              sortedClients={sortedClients}
+              sortBy={sortBy}
+              limit={limit}
+              viewMode={viewMode}
+            />
           )}
 
           {/* ── 4. Expense Breakdown ───────────────────────────────────────── */}
