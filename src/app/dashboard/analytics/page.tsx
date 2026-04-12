@@ -12,6 +12,19 @@
 //
 // LIMIT: 5, 10, 20
 //
+// ORIENTATION: v (default, vertical columns) | h (horizontal bars)
+//   Only applies to viewMode === 'revenue' and viewMode === 'rate' charts.
+//
+// SORT TIEBREAKERS (critical — ensures deterministic ranking order):
+//   revenue:  primary = totalRevenue DESC
+//   rate:     primary = collectionRate DESC, tiebreaker = totalRevenue DESC
+//             null rates always go to bottom
+//   invoices: primary = totalInvoices DESC, tiebreaker = totalRevenue DESC
+//   overdue:  primary = overdueCount DESC
+//             tiebreaker 1 = collectionRate ASC (lower rate = riskier)
+//             tiebreaker 2 = totalRevenue DESC
+//             null rates treated as 100 (not risky) → go to bottom
+//
 // BUG FIX: formatCompact now uses threshold 999_500 for M to prevent the
 //   $1000K display bug. Values between $999,500–$999,999 would previously
 //   show as "$1000K" because (999999/1000).toFixed(0) rounds to 1000.
@@ -34,11 +47,9 @@ const formatCurrencyFull = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 
 // BUG FIX: threshold at 999_500 prevents $1000K edge case.
-// (999,999 / 1,000).toFixed(0) = "1000" → would show "$1000K" — wrong.
-// Anything >= $999,500 now shows as "$1.0M" instead.
 const formatCompact = (n: number): string => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
-  if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`   // ← was 1_000_000
+  if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)        return `$${(n / 1_000).toFixed(0)}K`
   return new Intl.NumberFormat('en-US', {
     style: 'currency', currency: 'USD', maximumFractionDigits: 0,
@@ -54,9 +65,10 @@ const categoryChartColors: Record<string, string> = {
 
 // ─── Sort config ──────────────────────────────────────────────────────────────
 
-type SortKey  = 'revenue' | 'rate' | 'invoices' | 'overdue'
-type LimitVal = 5 | 10 | 20
-type ViewMode = 'list' | 'table' | 'revenue' | 'rate'
+type SortKey   = 'revenue' | 'rate' | 'invoices' | 'overdue'
+type LimitVal  = 5 | 10 | 20
+type ViewMode  = 'list' | 'table' | 'revenue' | 'rate'
+type OrientVal = 'v' | 'h'
 
 const SORT_OPTIONS: { key: SortKey; label: string; description: string }[] = [
   { key: 'revenue',  label: 'Revenue',      description: 'Highest total paid value' },
@@ -65,26 +77,30 @@ const SORT_OPTIONS: { key: SortKey; label: string; description: string }[] = [
   { key: 'overdue',  label: 'Overdue Risk',  description: 'Most overdue invoices' },
 ]
 
-const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
-const VIEW_OPTIONS:  ViewMode[] = ['list', 'table', 'revenue', 'rate']
+const LIMIT_OPTIONS:  LimitVal[]  = [5, 10, 20]
+const VIEW_OPTIONS:   ViewMode[]  = ['list', 'table', 'revenue', 'rate']
+const ORIENT_OPTIONS: OrientVal[] = ['v', 'h']
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sortBy?: string; limit?: string; viewMode?: string }>
+  searchParams: Promise<{ sortBy?: string; limit?: string; viewMode?: string; orientation?: string }>
 }) {
-  const params   = await searchParams
-  const sortBy   = (SORT_OPTIONS.map(s => s.key).includes(params.sortBy as SortKey)
+  const params      = await searchParams
+  const sortBy      = (SORT_OPTIONS.map(s => s.key).includes(params.sortBy as SortKey)
     ? params.sortBy
     : 'revenue') as SortKey
-  const limit    = LIMIT_OPTIONS.includes(Number(params.limit) as LimitVal)
+  const limit       = LIMIT_OPTIONS.includes(Number(params.limit) as LimitVal)
     ? (Number(params.limit) as LimitVal)
     : 10
-  const viewMode = (VIEW_OPTIONS.includes(params.viewMode as ViewMode)
+  const viewMode    = (VIEW_OPTIONS.includes(params.viewMode as ViewMode)
     ? params.viewMode
     : 'list') as ViewMode
+  const orientation = (ORIENT_OPTIONS.includes(params.orientation as OrientVal)
+    ? params.orientation
+    : 'v') as OrientVal
 
   const supabase = await createClient()
   const { data: { user }, error } = await supabase.auth.getUser()
@@ -145,14 +161,14 @@ export default async function AnalyticsPage({
 
   // ── Per-client stats ──────────────────────────────────────────────────────
   type ClientStat = {
-    id:            string
-    name:          string
-    company:       string | null
-    totalRevenue:  number
-    paidCount:     number
-    overdueCount:  number
-    totalSent:     number
-    totalInvoices: number
+    id:             string
+    name:           string
+    company:        string | null
+    totalRevenue:   number
+    paidCount:      number
+    overdueCount:   number
+    totalSent:      number
+    totalInvoices:  number
     collectionRate: number | null
   }
 
@@ -196,25 +212,36 @@ export default async function AnalyticsPage({
 
   const sortedClients = [...allClientStats].sort((a, b) => {
     switch (sortBy) {
+
+      // ── Pay Rate: highest rate first, ties broken by revenue DESC ──────────
+      // null collectionRate = no sent invoices at all → always goes to bottom
       case 'rate':
-        // Clients with no sent invoices go to bottom
         if (a.collectionRate === null && b.collectionRate === null) return b.totalRevenue - a.totalRevenue
         if (a.collectionRate === null) return 1
         if (b.collectionRate === null) return -1
-        return b.collectionRate - a.collectionRate
+        if (b.collectionRate !== a.collectionRate) return b.collectionRate - a.collectionRate
+        return b.totalRevenue - a.totalRevenue  // tiebreaker
+
+      // ── Most Active: most invoices first, ties broken by revenue DESC ──────
       case 'invoices':
-        return b.totalInvoices - a.totalInvoices
+        if (b.totalInvoices !== a.totalInvoices) return b.totalInvoices - a.totalInvoices
+        return b.totalRevenue - a.totalRevenue  // tiebreaker
+
+      // ── Overdue Risk ──────────────────────────────────────────────────────
+      // Primary:       overdueCount DESC (most overdue invoices = most risk)
+      // Tiebreaker 1:  collectionRate ASC (lower rate = historically riskier)
+      //                null rate → treated as 100% (no history of non-payment) → bottom
+      // Tiebreaker 2:  totalRevenue DESC (bigger client = bigger cash impact)
       case 'overdue':
-        // Primary: most overdue invoices (desc)
         if (b.overdueCount !== a.overdueCount) return b.overdueCount - a.overdueCount
-        // Tiebreaker: lowest payment rate = highest risk (asc).
-        // 33% pay rate is RISKIER than 67%, so 33% ranks higher.
-        // null = no sent invoices yet → treat as 100% (not a risk) → goes to bottom.
         {
           const aRate = a.collectionRate ?? 100
           const bRate = b.collectionRate ?? 100
-          return aRate - bRate   // ascending: lower rate sorts first
+          if (aRate !== bRate) return aRate - bRate   // ascending: lower rate = riskier = first
+          return b.totalRevenue - a.totalRevenue       // revenue tiebreaker
         }
+
+      // ── Revenue (default): highest paid revenue first ──────────────────────
       case 'revenue':
       default:
         return b.totalRevenue - a.totalRevenue
@@ -435,6 +462,7 @@ export default async function AnalyticsPage({
               sortBy={sortBy}
               limit={limit}
               viewMode={viewMode}
+              orientation={orientation}
             />
           )}
 
