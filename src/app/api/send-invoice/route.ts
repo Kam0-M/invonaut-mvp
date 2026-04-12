@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         tax_amount,
         total_amount,
         notes,
+        attachment_url,
         clients (
           id,
           name,
@@ -126,6 +127,27 @@ export async function POST(request: NextRequest) {
     // Convert ArrayBuffer to Buffer for Resend
     const pdfBuffer = Buffer.from(pdfArrayBuffer)
 
+    // ── Fetch optional attachment ──────────────────────────────────────────
+    // If the invoice has an attachment_url, download it and include it as a
+    // second email attachment alongside the PDF.
+    let secondAttachment: { filename: string; content: Buffer } | null = null
+    const attachmentUrl = (invoice as any).attachment_url
+    if (attachmentUrl) {
+      try {
+        const attachmentResponse = await fetch(attachmentUrl)
+        if (attachmentResponse.ok) {
+          const attachmentBuffer = Buffer.from(await attachmentResponse.arrayBuffer())
+          // Extract clean filename: strip leading {timestamp}- prefix if present
+          const rawName = decodeURIComponent(attachmentUrl.split('/').pop() || 'attachment')
+          const cleanName = rawName.replace(/^\d{13}-/, '') || rawName
+          secondAttachment = { filename: cleanName, content: attachmentBuffer }
+        }
+      } catch (err) {
+        // Non-fatal — log but still send the invoice PDF
+        console.error('Could not fetch invoice attachment for email:', err)
+      }
+    }
+
     const businessName = userProfile?.business_name || userProfile?.full_name || 'Invonaut'
     const subject = `Invoice ${invoice.invoice_number} from ${businessName}`
     
@@ -177,6 +199,7 @@ export async function POST(request: NextRequest) {
           filename: `invoice-${invoice.invoice_number}.pdf`,
           content: pdfBuffer,
         },
+        ...(secondAttachment ? [{ filename: secondAttachment.filename, content: secondAttachment.content }] : []),
       ],
     })
 
