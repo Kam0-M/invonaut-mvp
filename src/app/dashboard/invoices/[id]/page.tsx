@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Download, Pencil, Mail, User, Building2, Calendar, DollarSign } from 'lucide-react'
+import { ArrowLeft, Download, Pencil, Mail, User, Building2, Calendar, DollarSign, Paperclip } from 'lucide-react'
 import { SendInvoiceButton } from '@/components/invoices/send-invoice-button'
 import { DeleteInvoiceButton } from '@/components/invoices/delete-invoice-button'
 import { FollowUpButton } from '@/components/invoices/follow-up-button'
@@ -26,6 +26,7 @@ type Invoice = {
   tax_amount: number
   total_amount: number
   notes: string | null
+  attachment_url: string | null
   last_followed_up: string | null
   clients: {
     name: string
@@ -79,6 +80,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       tax_amount,
       total_amount,
       notes,
+      attachment_url,
       last_followed_up,
       clients!inner(name, email, company, address)
     `)
@@ -401,6 +403,31 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
             <p className="text-sm text-gray-600 whitespace-pre-line break-words font-medium">{normalizedInvoice.notes}</p>
           </div>
         )}
+
+        {/* Attachment */}
+        {normalizedInvoice.attachment_url && (() => {
+          const rawName = decodeURIComponent(normalizedInvoice.attachment_url.split('/').pop() || '')
+          const displayName = rawName.replace(/^\d{13}-/, '') || rawName
+          return (
+            <div className="border-t-2 border-gray-200 mt-8 pt-8">
+              <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-3">Attachment</h3>
+              <a
+                href={normalizedInvoice.attachment_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
+              >
+                <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                  <Paperclip className="w-4 h-4 text-blue-600" />
+                </div>
+                <span className="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors truncate max-w-xs">
+                  {displayName}
+                </span>
+                <span className="text-xs font-bold text-blue-500 flex-shrink-0">Download ↗</span>
+              </a>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Follow-Up History */}
