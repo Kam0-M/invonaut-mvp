@@ -3,24 +3,26 @@
 //
 // WHY THIS IS A CLIENT COMPONENT:
 //   The analytics page is a server component that reads URL params and fetches data.
-//   The controls (sort, limit, view mode) previously used <Link> tags which trigger
-//   full page navigations and always scroll to the top — annoying when the section
-//   is midway down the page.
-//
-//   By moving the controls into this client component, we use router.push() with
-//   { scroll: false } which updates the URL and re-runs the server component WITHOUT
-//   scrolling. The server re-renders with new params, the client component re-renders
-//   with the new sorted data — all without jumping to the top.
+//   Controls (sort, limit, view mode, orientation) use router.push() with
+//   { scroll: false } so the URL updates without jumping to the top of the page.
 //
 // VIEW MODES:
 //   list    — ranked horizontal bars (original)
-//   table   — frequency table with all columns (revenue, invoices, paid, overdue, rate)
-//   revenue — Recharts vertical bar chart, revenue per client
-//   rate    — horizontal progress bars colored by payment rate
+//   table   — frequency table with all columns
+//   revenue — bar chart, revenue per client
+//   rate    — bar chart, payment rate per client
+//
+// ORIENTATION (only applies to 'revenue' and 'rate' chart view modes):
+//   v (default) — vertical columns (bars going up, categories on X-axis)
+//   h           — horizontal bars (bars going right, categories on Y-axis)
+//
+// CHART NOTE:
+//   Recharts layout="horizontal" → vertical columns (what we want as default)
+//   Recharts layout="vertical"   → horizontal bars
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
-import { Users, BarChart2, Table2, TrendingUp, Percent } from 'lucide-react'
+import { Users, BarChart2, Table2, TrendingUp, Percent, BarChart3, LayoutList } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -44,6 +46,7 @@ export type ClientStat = {
 type SortKey   = 'revenue' | 'rate' | 'invoices' | 'overdue'
 type LimitVal  = 5 | 10 | 20
 type ViewMode  = 'list' | 'table' | 'revenue' | 'rate'
+type OrientVal = 'v' | 'h'
 
 interface Props {
   allClientStats: ClientStat[]
@@ -51,6 +54,7 @@ interface Props {
   sortBy:         SortKey
   limit:          LimitVal
   viewMode:       ViewMode
+  orientation:    OrientVal
 }
 
 // ─── Config ───────────────────────────────────────────────────────────────────
@@ -82,7 +86,7 @@ const fmtCompact = (n: number): string => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
 }
 
-// ─── Tooltip for Recharts ─────────────────────────────────────────────────────
+// ─── Tooltips ─────────────────────────────────────────────────────────────────
 
 const RevenueTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -94,21 +98,34 @@ const RevenueTooltip = ({ active, payload, label }: any) => {
   )
 }
 
+const RateTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  const rate = payload[0].value as number
+  const color = rate >= 80 ? '#047857' : rate >= 60 ? '#92400E' : '#991B1B'
+  return (
+    <div style={{ background: '#fff', border: '2px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}>
+      <p style={{ fontWeight: 700, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>{label}</p>
+      <p style={{ fontWeight: 900, color, fontSize: 16, margin: 0 }}>{rate}% paid</p>
+    </div>
+  )
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClientIntelligencePanel({
-  allClientStats, sortedClients, sortBy, limit, viewMode,
+  allClientStats, sortedClients, sortBy, limit, viewMode, orientation,
 }: Props) {
-  const router      = useRouter()
-  const pathname    = usePathname()
+  const router       = useRouter()
+  const pathname     = usePathname()
   const searchParams = useSearchParams()
 
   // Navigate without scrolling to top
-  const navigate = useCallback((overrides: Partial<{ sortBy: SortKey; limit: LimitVal; viewMode: ViewMode }>) => {
+  const navigate = useCallback((overrides: Partial<{ sortBy: SortKey; limit: LimitVal; viewMode: ViewMode; orientation: OrientVal }>) => {
     const p = new URLSearchParams(searchParams.toString())
-    if (overrides.sortBy  !== undefined) p.set('sortBy',   overrides.sortBy)
-    if (overrides.limit   !== undefined) p.set('limit',    String(overrides.limit))
-    if (overrides.viewMode !== undefined) p.set('viewMode', overrides.viewMode)
+    if (overrides.sortBy      !== undefined) p.set('sortBy',      overrides.sortBy)
+    if (overrides.limit       !== undefined) p.set('limit',       String(overrides.limit))
+    if (overrides.viewMode    !== undefined) p.set('viewMode',    overrides.viewMode)
+    if (overrides.orientation !== undefined) p.set('orientation', overrides.orientation)
     router.push(`${pathname}?${p.toString()}`, { scroll: false })
   }, [router, pathname, searchParams])
 
@@ -122,21 +139,52 @@ export default function ClientIntelligencePanel({
     }
   })()
 
-  // Recharts data for revenue chart — truncate long names
+  // ── Chart data ─────────────────────────────────────────────────────────────
+
+  // Revenue chart: truncate long names for axis labels
   const revenueChartData = sortedClients
     .filter(c => c.totalRevenue > 0)
     .map(c => ({
-      name:    c.name.length > 16 ? c.name.slice(0, 14) + '…' : c.name,
+      name:    c.name.length > 14 ? c.name.slice(0, 12) + '…' : c.name,
       revenue: c.totalRevenue,
       id:      c.id,
     }))
 
+  // Pay Rate chart: only clients with sent invoices
+  const rateChartData = sortedClients
+    .filter(c => c.totalSent > 0)
+    .map(c => ({
+      name: c.name.length > 14 ? c.name.slice(0, 12) + '…' : c.name,
+      rate: c.collectionRate ?? 0,
+      id:   c.id,
+    }))
+
+  // Rate bar colors by tier
+  const rateColor = (rate: number) =>
+    rate >= 80 ? '#10B981' : rate >= 60 ? '#F59E0B' : '#EF4444'
+
+  // Revenue Y-axis / X-axis tick formatter (same logic, reused)
+  const revTickFmt = (v: number) => {
+    if (v >= 999_500) return `$${(v/1_000_000).toFixed(1)}M`
+    if (v >= 10_000)  return `$${(v/1_000).toFixed(0)}K`
+    return `$${v}`
+  }
+
+  // ── Shared chart height ────────────────────────────────────────────────────
+  // vertical (columns): fixed 300px
+  // horizontal (bars):  dynamic based on client count, min 240px
+  const verticalChartHeight = 300
+  const horizontalChartHeight = (count: number) => Math.max(240, count * 44)
+
+  // ── Styles ─────────────────────────────────────────────────────────────────
   const ctrlBtn = (active: boolean) =>
     `px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
       active
         ? 'bg-blue-600 text-white shadow-sm'
         : 'bg-white border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600'
     }`
+
+  const isChartView = viewMode === 'revenue' || viewMode === 'rate'
 
   return (
     <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
@@ -205,6 +253,35 @@ export default function ClientIntelligencePanel({
             </div>
           </div>
         </div>
+
+        {/* Orientation toggle — only visible for chart views */}
+        {isChartView && (
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Orientation</p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => navigate({ orientation: 'v' })}
+                title="Vertical columns"
+                className={ctrlBtn(orientation === 'v')}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <BarChart3 className="w-3 h-3" />
+                  Vertical
+                </span>
+              </button>
+              <button
+                onClick={() => navigate({ orientation: 'h' })}
+                title="Horizontal bars"
+                className={ctrlBtn(orientation === 'h')}
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <LayoutList className="w-3 h-3" />
+                  Horizontal
+                </span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── VIEW: Ranked List ───────────────────────────────────────────────── */}
@@ -337,7 +414,7 @@ export default function ClientIntelligencePanel({
                           <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden flex-shrink-0">
                             <div
                               className="h-full rounded-full"
-                              style={{ width: `${c.collectionRate}%`, background: c.collectionRate >= 80 ? '#10B981' : c.collectionRate >= 60 ? '#F59E0B' : '#EF4444' }}
+                              style={{ width: `${c.collectionRate}%`, background: rateColor(c.collectionRate) }}
                             />
                           </div>
                           <span className={`text-xs font-black tabular-nums ${c.collectionRate >= 80 ? 'text-green-700' : c.collectionRate >= 60 ? 'text-amber-700' : 'text-red-700'}`}>
@@ -361,8 +438,57 @@ export default function ClientIntelligencePanel({
         <div>
           {revenueChartData.length === 0 ? (
             <p className="text-center text-gray-400 font-medium py-10">No paid revenue to chart yet.</p>
+          ) : orientation === 'v' ? (
+            /* VERTICAL (columns) — default */
+            <div style={{ width: '100%', height: verticalChartHeight }}>
+              <ResponsiveContainer width="100%" height="100%">
+                {/* @ts-ignore */}
+                <BarChart
+                  data={revenueChartData}
+                  layout="horizontal"
+                  margin={{ top: 16, right: 16, bottom: 64, left: 16 }}
+                  barCategoryGap="25%"
+                >
+                  {/* @ts-ignore */}
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                  {/* @ts-ignore */}
+                  <XAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="none"
+                    tick={{ fill: '#374151', fontSize: 11, fontWeight: 700 }}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-35}
+                    textAnchor="end"
+                    interval={0}
+                    height={64}
+                  />
+                  {/* @ts-ignore */}
+                  <YAxis
+                    type="number"
+                    stroke="none"
+                    tickFormatter={revTickFmt}
+                    tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 600 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={56}
+                  />
+                  {/* @ts-ignore */}
+                  <Tooltip content={<RevenueTooltip />} cursor={{ fill: '#F9FAFB' }} />
+                  {/* @ts-ignore */}
+                  <Bar dataKey="revenue" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    {revenueChartData.map((_, i) => (
+                      // @ts-ignore
+                      <Cell key={i} fill={i === 0 ? '#1D4ED8' : i === 1 ? '#2563EB' : '#3B82F6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div style={{ width: '100%', height: Math.max(240, revenueChartData.length * 40) }}>
+            /* HORIZONTAL (bars going right) */
+            <div style={{ width: '100%', height: horizontalChartHeight(revenueChartData.length) }}>
               <ResponsiveContainer width="100%" height="100%">
                 {/* @ts-ignore */}
                 <BarChart
@@ -377,11 +503,7 @@ export default function ClientIntelligencePanel({
                   <XAxis
                     type="number"
                     stroke="none"
-                    tickFormatter={(v: number) => {
-                      if (v >= 999_500) return `$${(v/1_000_000).toFixed(1)}M`
-                      if (v >= 10_000)  return `$${(v/1_000).toFixed(0)}K`
-                      return `$${v}`
-                    }}
+                    tickFormatter={revTickFmt}
                     tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 600 }}
                     tickLine={false}
                     axisLine={false}
@@ -414,47 +536,101 @@ export default function ClientIntelligencePanel({
 
       {/* ── VIEW: Pay Rate Chart ───────────────────────────────────────────── */}
       {viewMode === 'rate' && (
-        <div className="space-y-3">
-          {sortedClients
-            .filter(c => c.totalSent > 0)
-            .map((c, idx) => {
-              const rate = c.collectionRate ?? 0
-              const color = rate >= 80 ? '#10B981' : rate >= 60 ? '#F59E0B' : '#EF4444'
-              const label = rate >= 80 ? 'Reliable' : rate >= 60 ? 'Moderate' : 'At Risk'
-              return (
-                <div key={c.id} className="flex items-center gap-4">
-                  <span className={`text-xs font-black w-5 flex-shrink-0 text-right ${idx === 0 ? 'text-amber-500' : 'text-gray-300'}`}>
-                    #{idx + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1 gap-2">
-                      <span className="text-sm font-bold text-gray-900 truncate">{c.name}</span>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full`}
-                          style={{ background: color + '22', color }}>
-                          {label}
-                        </span>
-                        <span className="text-sm font-black tabular-nums" style={{ color }}>
-                          {rate}%
-                        </span>
-                      </div>
-                    </div>
-                    <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-700"
-                        style={{ width: `${rate}%`, background: color }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400 font-medium mt-1">
-                      {c.paidCount} of {c.totalSent} invoices paid
-                      {c.overdueCount > 0 && ` · ${c.overdueCount} currently overdue`}
-                    </p>
-                  </div>
-                </div>
-              )
-            })}
-          {sortedClients.filter(c => c.totalSent > 0).length === 0 && (
+        <div>
+          {rateChartData.length === 0 ? (
             <p className="text-center text-gray-400 font-medium py-10">No invoices sent yet.</p>
+          ) : orientation === 'v' ? (
+            /* VERTICAL (columns) — default */
+            <div style={{ width: '100%', height: verticalChartHeight }}>
+              <ResponsiveContainer width="100%" height="100%">
+                {/* @ts-ignore */}
+                <BarChart
+                  data={rateChartData}
+                  layout="horizontal"
+                  margin={{ top: 16, right: 16, bottom: 64, left: 0 }}
+                  barCategoryGap="25%"
+                >
+                  {/* @ts-ignore */}
+                  <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
+                  {/* @ts-ignore */}
+                  <XAxis
+                    type="category"
+                    dataKey="name"
+                    stroke="none"
+                    tick={{ fill: '#374151', fontSize: 11, fontWeight: 700 }}
+                    tickLine={false}
+                    axisLine={false}
+                    angle={-35}
+                    textAnchor="end"
+                    interval={0}
+                    height={64}
+                  />
+                  {/* @ts-ignore */}
+                  <YAxis
+                    type="number"
+                    domain={[0, 100]}
+                    stroke="none"
+                    tickFormatter={(v: number) => `${v}%`}
+                    tick={{ fill: '#9CA3AF', fontSize: 11, fontWeight: 600 }}
+                    tickLine={false}
+                    axisLine={false}
+                    width={40}
+                    ticks={[0, 25, 50, 75, 100]}
+                  />
+                  {/* @ts-ignore */}
+                  <Tooltip content={<RateTooltip />} cursor={{ fill: '#F9FAFB' }} />
+                  {/* @ts-ignore */}
+                  <Bar dataKey="rate" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    {rateChartData.map((entry, i) => (
+                      // @ts-ignore
+                      <Cell key={i} fill={rateColor(entry.rate)} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            /* HORIZONTAL — horizontal progress bars (original style, enhanced) */
+            <div className="space-y-3">
+              {rateChartData.map((entry, idx) => {
+                const color = rateColor(entry.rate)
+                const label = entry.rate >= 80 ? 'Reliable' : entry.rate >= 60 ? 'Moderate' : 'At Risk'
+                const client = sortedClients.find(c => c.id === entry.id)
+                return (
+                  <div key={entry.id} className="flex items-center gap-4">
+                    <span className={`text-xs font-black w-5 flex-shrink-0 text-right ${idx === 0 ? 'text-amber-500' : 'text-gray-300'}`}>
+                      #{idx + 1}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <span className="text-sm font-bold text-gray-900 truncate">{client?.name ?? entry.name}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                            style={{ background: color + '22', color }}>
+                            {label}
+                          </span>
+                          <span className="text-sm font-black tabular-nums" style={{ color }}>
+                            {entry.rate}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${entry.rate}%`, background: color }}
+                        />
+                      </div>
+                      {client && (
+                        <p className="text-xs text-gray-400 font-medium mt-1">
+                          {client.paidCount} of {client.totalSent} invoices paid
+                          {client.overdueCount > 0 && ` · ${client.overdueCount} currently overdue`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
       )}
