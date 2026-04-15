@@ -18,6 +18,7 @@ interface EditInvoiceFormProps {
   invoice: any
   invoiceItems: any[]
   clients: any[]
+  categories: { id: string; name: string; color: string }[]
 }
 
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
@@ -43,17 +44,19 @@ export default function EditInvoiceForm({
   invoice,
   invoiceItems,
   clients,
+  categories,
 }: EditInvoiceFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [isLoading, setIsLoading] = useState(false)
 
   // Form state
-  const [clientId,  setClientId]  = useState(invoice.client_id)
-  const [issueDate, setIssueDate] = useState(invoice.issue_date)
-  const [dueDate,   setDueDate]   = useState(invoice.due_date)
-  const [notes,     setNotes]     = useState(invoice.notes || '')
-  const [taxRate,   setTaxRate]   = useState(
+  const [clientId,    setClientId]    = useState(invoice.client_id)
+  const [issueDate,   setIssueDate]   = useState(invoice.issue_date)
+  const [dueDate,     setDueDate]     = useState(invoice.due_date)
+  const [notes,       setNotes]       = useState(invoice.notes || '')
+  const [categoryId,  setCategoryId]  = useState<string>(invoice.revenue_category_id || '')
+  const [taxRate,     setTaxRate]     = useState(
     invoice.tax_amount && invoice.subtotal
       ? ((invoice.tax_amount / invoice.subtotal) * 100).toFixed(2)
       : '0'
@@ -185,14 +188,15 @@ export default function EditInvoiceForm({
       const { error: invoiceError } = await supabase
         .from('invoices')
         .update({
-          client_id:      clientId,
-          issue_date:     issueDate,
-          due_date:       dueDate,
+          client_id:          clientId,
+          issue_date:         issueDate,
+          due_date:           dueDate,
           subtotal,
-          tax_amount:     taxAmount,
-          total_amount:   totalAmount,
+          tax_amount:         taxAmount,
+          total_amount:       totalAmount,
           notes,
-          attachment_url: finalAttachmentUrl,
+          attachment_url:     finalAttachmentUrl,
+          revenue_category_id: categoryId || null,
         })
         .eq('id', invoice.id)
 
@@ -326,6 +330,42 @@ export default function EditInvoiceForm({
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} disabled={isLoading}
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
           placeholder="Additional notes or payment instructions..." />
+      </div>
+
+      {/* Revenue Category */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Revenue Category <span className="text-xs text-gray-400">(Optional)</span>
+        </label>
+        {categories.length === 0 ? (
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+            <p className="text-sm text-gray-500 flex-1">No categories yet.</p>
+            <a href="/dashboard/settings" target="_blank" rel="noopener noreferrer"
+              className="text-sm font-bold text-blue-600 hover:underline flex-shrink-0">
+              Create one in Settings →
+            </a>
+          </div>
+        ) : (
+          <div className="relative flex items-center">
+            {categoryId && (
+              <div
+                className="absolute left-3 w-3 h-3 rounded-full pointer-events-none z-10 flex-shrink-0"
+                style={{ backgroundColor: categories.find(c => c.id === categoryId)?.color || '#6366F1' }}
+              />
+            )}
+            <select
+              value={categoryId}
+              onChange={e => setCategoryId(e.target.value)}
+              disabled={isLoading}
+              className={`w-full py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white ${categoryId ? 'pl-8 pr-3' : 'px-3'}`}
+            >
+              <option value="">No category</option>
+              {categories.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* ── Attachment ──────────────────────────────────────────────────────── */}

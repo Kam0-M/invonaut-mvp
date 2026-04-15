@@ -55,6 +55,8 @@ export default function NewInvoicePage() {
   ])
   const [notes, setNotes] = useState('')
   const [taxRate, setTaxRate] = useState(0)
+  const [categoryId, setCategoryId] = useState<string>('')
+  const [categories, setCategories] = useState<{ id: string; name: string; color: string }[]>([])
 
   // File attachment
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null)
@@ -118,6 +120,14 @@ export default function NewInvoicePage() {
 
         if (error) throw error
         setClients(data || [])
+
+        // Fetch revenue categories
+        const { data: catData } = await supabase
+          .from('revenue_categories')
+          .select('id, name, color')
+          .eq('user_id', user.id)
+          .order('name', { ascending: true })
+        setCategories(catData || [])
 
         if (preSelectedClientId) {
           setClientId(preSelectedClientId)
@@ -307,6 +317,7 @@ export default function NewInvoicePage() {
           total_amount:   totalAmount,
           notes:          notes || null,
           attachment_url: attachmentUrl,
+          revenue_category_id: categoryId || null,
         })
         .select()
         .single()
@@ -599,6 +610,44 @@ export default function NewInvoicePage() {
             <label htmlFor="taxRate" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">Tax Rate (%)</label>
             <Input id="taxRate" type="number" min="0" max="100" step="0.01" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} placeholder="0" disabled={isSaving}
               className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl" />
+          </div>
+
+          {/* Revenue Category */}
+          <div>
+            <label htmlFor="revenueCategory" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">
+              Revenue Category <span className="text-xs font-medium text-gray-400 normal-case">(Optional — tag this invoice by income source)</span>
+            </label>
+            {categories.length === 0 ? (
+              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                <p className="text-sm text-gray-500 font-medium flex-1">No categories yet.</p>
+                <a href="/dashboard/settings" target="_blank" rel="noopener noreferrer"
+                  className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0">
+                  Create one in Settings →
+                </a>
+              </div>
+            ) : (
+              <div className="relative">
+                {/* Color swatch preview for selected category */}
+                {categoryId && (
+                  <div
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full pointer-events-none z-10"
+                    style={{ backgroundColor: categories.find(c => c.id === categoryId)?.color || '#6366F1' }}
+                  />
+                )}
+                <select
+                  id="revenueCategory"
+                  value={categoryId}
+                  onChange={e => setCategoryId(e.target.value)}
+                  disabled={isSaving}
+                  className={`w-full h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white text-gray-900 focus:outline-none appearance-none pr-4 ${categoryId ? 'pl-8' : 'pl-4'}`}
+                >
+                  <option value="">No category</option>
+                  {categories.map(cat => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           {/* ── Attachment ──────────────────────────────────────────────────── */}
