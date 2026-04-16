@@ -60,6 +60,12 @@ export default async function EditInvoicePage({
     .eq('user_id', user.id)
     .order('name')
 
+  const { data: categories } = await supabase
+    .from('revenue_categories')
+    .select('id, name, color')
+    .eq('user_id', user.id)
+    .order('name', { ascending: true })
+
   return (
     <div className="space-y-8">
       {/* Premium Header */}
@@ -88,6 +94,7 @@ export default async function EditInvoicePage({
           invoice={invoice}
           invoiceItems={invoice.invoice_items || []}
           clients={clients || []}
+          categories={categories || []}
         />
       </div>
     </div>

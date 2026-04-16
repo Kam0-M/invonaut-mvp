@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import SettingsForm from '@/components/settings/settings-form'
+import RevenueCategoryManager from '@/components/settings/revenue-category-manager'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Tag } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -35,6 +36,14 @@ export default async function SettingsPage() {
   const hasActiveSubscription = !!profile?.stripe_subscription_id && 
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
   const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
+
+  // Revenue categories
+  const { data: categoriesRaw } = await supabase
+    .from('revenue_categories')
+    .select('id, name, description, color, created_at')
+    .eq('user_id', user.id)
+    .order('name', { ascending: true })
+  const initialCategories = categoriesRaw || []
 
   return (
     <div className="space-y-8">
@@ -75,6 +84,23 @@ export default async function SettingsPage() {
           address: profile?.address || null
         }}
       />
+
+      {/* Revenue Categories */}
+      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Tag className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue Categories</h2>
+            <p className="text-sm text-gray-500 font-medium mt-0.5">
+              Tag your income by source — consulting, delivery, subscriptions, and more
+            </p>
+          </div>
+        </div>
+        <RevenueCategoryManager initialCategories={initialCategories} />
+      </div>
+
     </div>
   )
 }

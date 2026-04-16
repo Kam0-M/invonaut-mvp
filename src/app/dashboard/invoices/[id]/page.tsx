@@ -28,6 +28,8 @@ type Invoice = {
   notes: string | null
   attachment_url: string | null
   last_followed_up: string | null
+  revenue_category_id: string | null
+  revenue_categories: { id: string; name: string; color: string } | null
   clients: {
     name: string
     email: string | null
@@ -82,6 +84,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       notes,
       attachment_url,
       last_followed_up,
+      revenue_category_id,
+      revenue_categories (id, name, color),
       clients!inner(name, email, company, address)
     `)
     .eq('id', id)
@@ -104,7 +108,10 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
     ...invoice,
     clients: Array.isArray(invoice.clients) && invoice.clients.length > 0 
       ? invoice.clients[0] 
-      : invoice.clients
+      : invoice.clients,
+    revenue_categories: Array.isArray(invoice.revenue_categories)
+      ? (invoice.revenue_categories[0] ?? null)
+      : (invoice.revenue_categories ?? null),
   }
 
   const { data: itemsData } = await supabase
@@ -324,6 +331,24 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                 <span className="text-sm font-bold text-gray-600">Invoice #:</span>
                 <span className="text-sm font-black text-gray-900">{normalizedInvoice.invoice_number}</span>
               </div>
+              {normalizedInvoice.revenue_categories && (
+                <div className="flex md:justify-end gap-3 items-center">
+                  <span className="text-sm font-bold text-gray-600">Category:</span>
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                    style={{
+                      backgroundColor: normalizedInvoice.revenue_categories.color + '22',
+                      color: normalizedInvoice.revenue_categories.color,
+                    }}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: normalizedInvoice.revenue_categories.color }}
+                    />
+                    {normalizedInvoice.revenue_categories.name}
+                  </span>
+                </div>
+              )}
               <div className="flex md:justify-end gap-3 items-center">
                 <Calendar className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-bold text-gray-600">Issue Date:</span>
