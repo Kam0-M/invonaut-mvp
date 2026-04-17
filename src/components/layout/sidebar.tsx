@@ -17,6 +17,7 @@ import {
   Receipt,
   Clock,
   TrendingUp,
+  Banknote,
 } from 'lucide-react'
 import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
@@ -28,9 +29,10 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
   const pathname = usePathname()
 
   const navigation = [
-    { name: 'Dashboard',     href: '/dashboard',          icon: LayoutDashboard },
-    { name: 'Invoices',      href: '/dashboard/invoices', icon: FileText        },
-    { name: 'Clients',       href: '/dashboard/clients',  icon: Users           },
+    { name: 'Dashboard',     href: '/dashboard',           icon: LayoutDashboard },
+    { name: 'Invoices',      href: '/dashboard/invoices',  icon: FileText        },
+    { name: 'Payments',      href: '/dashboard/payments',  icon: Banknote        },
+    { name: 'Clients',       href: '/dashboard/clients',   icon: Users           },
     { name: 'Contracts',     href: '/dashboard/contracts',icon: ScrollText      },
     { name: 'Expenses',      href: '/dashboard/expenses', icon: Receipt         },
     { name: 'Time',          href: '/dashboard/time',     icon: Clock           },

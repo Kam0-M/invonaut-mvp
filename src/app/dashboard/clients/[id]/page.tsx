@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link             from 'next/link'
 import {
   ArrowLeft, Pencil, Mail, Phone, Building2,
-  MapPin, Calendar, FileText,
+  MapPin, Calendar, FileText, Banknote,
 } from 'lucide-react'
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
 
@@ -30,8 +30,8 @@ function formatCurrencyFull(n: number): string {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'overview' | 'invoices' | 'files'
-const VALID_TABS: Tab[] = ['overview', 'invoices', 'files']
+type Tab = 'overview' | 'invoices' | 'files' | 'payments'
+const VALID_TABS: Tab[] = ['overview', 'invoices', 'files', 'payments']
 
 export default async function ClientDetailPage({
   params,
@@ -76,6 +76,25 @@ export default async function ClientDetailPage({
     .order('uploaded_at', { ascending: false })
 
   const initialFiles = (filesRaw || []) as ClientFile[]
+
+  // Direct payments for this client
+  const { data: directPaymentsRaw } = await supabase
+    .from('direct_payments')
+    .select(`
+      id, amount, payment_type, payment_method,
+      description, payment_date,
+      revenue_categories (id, name, color)
+    `)
+    .eq('client_id', id)
+    .eq('user_id', user.id)
+    .order('payment_date', { ascending: false })
+
+  const directPayments = (directPaymentsRaw || []).map((p: any) => ({
+    ...p,
+    revenue_categories: Array.isArray(p.revenue_categories)
+      ? (p.revenue_categories[0] ?? null)
+      : p.revenue_categories,
+  }))
 
   const tabHref = (t: Tab) => `/dashboard/clients/${id}?tab=${t}`
 
@@ -125,6 +144,9 @@ export default async function ClientDetailPage({
         </Link>
         <Link href={tabHref('invoices')} className={tabClass('invoices')}>
           Invoices{invoiceCount > 0 && <span className="ml-1.5 text-xs opacity-75">({invoiceCount})</span>}
+        </Link>
+        <Link href={tabHref('payments')} className={tabClass('payments')}>
+          Payments{directPayments.length > 0 && <span className="ml-1.5 text-xs opacity-75">({directPayments.length})</span>}
         </Link>
         <Link href={tabHref('files')} className={tabClass('files')}>
           Files{initialFiles.length > 0 && <span className="ml-1.5 text-xs opacity-75">({initialFiles.length})</span>}
@@ -290,6 +312,115 @@ export default async function ClientDetailPage({
                 <FileText className="w-4 h-4" />
                 Create First Invoice
               </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB: Payments ────────────────────────────────────────────────────── */}
+      {activeTab === 'payments' && (
+        <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Banknote className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Direct Payments</h2>
+                <p className="text-sm text-gray-500 font-medium">
+                  Cash, POS, mobile money, and prepayments from this client
+                </p>
+              </div>
+            </div>
+            <Link
+              href={`/dashboard/payments/new`}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all flex-shrink-0"
+            >
+              <Banknote className="w-4 h-4" />
+              Log Payment
+            </Link>
+          </div>
+
+          {directPayments.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Banknote className="w-8 h-8 text-gray-300" />
+              </div>
+              <p className="text-base font-medium text-gray-500 mb-2">No direct payments from this client yet</p>
+              <p className="text-sm text-gray-400">Log cash, POS, or mobile money payments received outside of invoices</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b-2 border-gray-200">
+                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Description</th>
+                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Category</th>
+                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Type</th>
+                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Method</th>
+                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Date</th>
+                    <th className="text-right py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Amount</th>
+                    <th className="text-right py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {directPayments.map((p: any) => (
+                    <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-4 px-4 font-bold text-gray-900 max-w-[200px] truncate">{p.description}</td>
+                      <td className="py-4 px-4">
+                        {p.revenue_categories ? (
+                          <span
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
+                            style={{
+                              backgroundColor: p.revenue_categories.color + '22',
+                              color: p.revenue_categories.color,
+                            }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: p.revenue_categories.color }} />
+                            {p.revenue_categories.name}
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                          p.payment_type === 'prepay'
+                            ? 'bg-purple-100 text-purple-700'
+                            : 'bg-green-100 text-green-700'
+                        }`}>
+                          {p.payment_type === 'prepay' ? 'Prepaid' : 'Cash'}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-sm text-gray-600 font-medium capitalize">{p.payment_method}</td>
+                      <td className="py-4 px-4 text-sm text-gray-600 font-medium">
+                        {new Date(p.payment_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                      <td className="py-4 px-4 text-right font-black text-gray-900">
+                        ${Number(p.amount).toFixed(2)}
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <Link href={`/dashboard/payments/${p.id}`} className="text-blue-600 hover:text-blue-800 font-bold hover:underline text-sm">
+                          View
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Total */}
+          {directPayments.length > 0 && (
+            <div className="mt-6 pt-4 border-t-2 border-gray-100 flex justify-end">
+              <div className="text-right">
+                <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Total Direct Payments</p>
+                <p className="text-2xl font-black text-gray-900">
+                  ${directPayments.reduce((s: number, p: any) => s + Number(p.amount), 0).toFixed(2)}
+                </p>
+              </div>
             </div>
           )}
         </div>
