@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Category ID is required' }, { status: 400 })
     }
 
-    // ── Option A: block deletion if any invoices reference this category ──────
+    // ── Option A: block deletion if any invoices or direct_payments reference this category ──
     const { count: invoiceCount, error: invoiceCountError } = await supabase
       .from('invoices')
       .select('id', { count: 'exact', head: true })
@@ -160,16 +160,26 @@ export async function DELETE(request: NextRequest) {
 
     if (invoiceCountError) throw invoiceCountError
 
-    // Phase 14 will add: check direct_payments here too
-    const totalUsage = invoiceCount || 0
+    const { count: paymentCount, error: paymentCountError } = await supabase
+      .from('direct_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('revenue_category_id', id)
+      .eq('user_id', user.id)
+
+    if (paymentCountError) throw paymentCountError
+
+    const totalUsage = (invoiceCount || 0) + (paymentCount || 0)
 
     if (totalUsage > 0) {
+      const parts = []
+      if (invoiceCount && invoiceCount > 0) parts.push(`${invoiceCount} invoice${invoiceCount !== 1 ? 's' : ''}`)
+      if (paymentCount && paymentCount > 0) parts.push(`${paymentCount} direct payment${paymentCount !== 1 ? 's' : ''}`)
       return NextResponse.json(
         {
           success: false,
           blocked: true,
           usageCount: totalUsage,
-          error: `This category is used by ${totalUsage} invoice${totalUsage !== 1 ? 's' : ''}. Reassign them before deleting.`,
+          error: `This category is used by ${parts.join(' and ')}. Reassign them before deleting.`,
         },
         { status: 409 }
       )
