@@ -36,6 +36,7 @@ import Link               from 'next/link'
 import { ArrowLeft, TrendingUp, FileText, CheckCircle2, AlertCircle, Clock, Banknote, Tag, CreditCard } from 'lucide-react'
 import { ExpenseBreakdownChart }   from '@/components/dashboard/expense-breakdown-chart'
 import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-chart'
+import { StackedRevenueChart }     from '@/components/analytics/stacked-revenue-chart'
 import { EXPENSE_CATEGORIES }      from '@/lib/ai/expense-categorization'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
@@ -345,7 +346,7 @@ export default async function AnalyticsPage({
     .filter(c => c.value > 0)
     .sort((a, b) => b.value - a.value)
 
-  // ── Revenue vs Expense 12-month (includes direct payments) ──────────────
+  // ── Revenue vs Expense 12-month (stacked: invoice + direct) ─────────────
   const now = new Date()
   const revExpData = Array.from({ length: 12 }, (_, idx) => {
     const d     = new Date(now.getFullYear(), now.getMonth() - (11 - idx), 1)
@@ -368,6 +369,23 @@ export default async function AnalyticsPage({
       .reduce((s, p) => s + Number(p.amount || 0), 0)
 
     const rev = invRev + dirRev
+
+    const exp = expenses
+      .filter(e => {
+        const dd = new Date(e.date + 'T12:00:00')
+        return dd.getFullYear() === year && dd.getMonth() === month
+      })
+      .reduce((s, e) => s + Number(e.amount || 0), 0)
+
+    return {
+      month:         label,
+      invoiceRev:    invRev,    // invoice income — blue stack
+      directRev:     dirRev,    // direct payment income — teal stack
+      revenue:       rev,       // kept for backward compat with cash page usage
+      expenses:      exp,
+      profit:        rev - exp,
+    }
+  })
 
     const exp = expenses
       .filter(e => {
@@ -601,27 +619,34 @@ export default async function AnalyticsPage({
               {revByCategory.length > 0 && (
                 <div className="mb-8">
                   <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Revenue by Category</p>
-                  <div className="space-y-3">
-                    {revByCategory.map(cat => (
-                      <div key={cat.name} className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
-                            <span className="text-sm font-black text-gray-900 flex-shrink-0" title={formatCurrencyFull(cat.total)}>
-                              {formatCompact(cat.total)}
-                            </span>
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-center">
+                    {/* Donut chart */}
+                    <ExpenseBreakdownChart
+                      data={revByCategory.map(c => ({ name: c.name, value: c.total, color: c.color }))}
+                    />
+                    {/* Ranked list */}
+                    <div className="space-y-3">
+                      {revByCategory.map(cat => (
+                        <div key={cat.name} className="flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
+                              <span className="text-sm font-black text-gray-900 flex-shrink-0" title={formatCurrencyFull(cat.total)}>
+                                {formatCompact(cat.total)}
+                              </span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-full rounded-full transition-all"
+                                style={{ width: `${totalRevenue > 0 ? (cat.total / totalRevenue) * 100 : 0}%`, backgroundColor: cat.color }} />
+                            </div>
                           </div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all"
-                              style={{ width: `${totalRevenue > 0 ? (cat.total / totalRevenue) * 100 : 0}%`, backgroundColor: cat.color }} />
-                          </div>
+                          <span className="text-xs font-bold text-gray-400 flex-shrink-0 w-10 text-right">
+                            {totalRevenue > 0 ? Math.round((cat.total / totalRevenue) * 100) : 0}%
+                          </span>
                         </div>
-                        <span className="text-xs font-bold text-gray-400 flex-shrink-0 w-10 text-right">
-                          {totalRevenue > 0 ? Math.round((cat.total / totalRevenue) * 100) : 0}%
-                        </span>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -729,9 +754,9 @@ export default async function AnalyticsPage({
           <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
             <div className="mb-6">
               <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue vs Expenses</h2>
-              <p className="text-sm text-gray-500 font-medium mt-1">Monthly comparison over the last 12 months</p>
+              <p className="text-sm text-gray-500 font-medium mt-1">Monthly comparison — invoice income (blue) + direct payments (teal) vs expenses</p>
             </div>
-            <RevenueVsExpenseChart data={revExpData} />
+            <StackedRevenueChart data={revExpData} />
           </div>
 
           {/* ── 6. Cash Management link ────────────────────────────────────── */}
