@@ -387,16 +387,6 @@ export default async function AnalyticsPage({
     }
   })
 
-    const exp = expenses
-      .filter(e => {
-        const dd = new Date(e.date + 'T12:00:00')
-        return dd.getFullYear() === year && dd.getMonth() === month
-      })
-      .reduce((s, e) => s + Number(e.amount || 0), 0)
-
-    return { month: label, revenue: rev, expenses: exp, profit: rev - exp }
-  })
-
   return (
     <div className="space-y-8">
 
