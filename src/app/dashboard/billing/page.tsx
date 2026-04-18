@@ -82,7 +82,7 @@ export default async function BillingPage({
     {
       id: 'starter',
       name: 'Starter',
-      monthlyPrice: 40,
+      monthlyPrice: 49,
       annualMonthlyPrice: 33,
       annualTotalPrice: 400,
       features: [
@@ -100,7 +100,7 @@ export default async function BillingPage({
     {
       id: 'professional',
       name: 'Professional',
-      monthlyPrice: 80,
+      monthlyPrice: 99,
       annualMonthlyPrice: 67,
       annualTotalPrice: 800,
       features: [
@@ -119,7 +119,7 @@ export default async function BillingPage({
     {
       id: 'business',
       name: 'Business',
-      monthlyPrice: 120,
+      monthlyPrice: 149,
       annualMonthlyPrice: 100,
       annualTotalPrice: 1200,
       features: [
