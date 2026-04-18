@@ -11,8 +11,8 @@ export const PLANS = {
   starter: {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 40,
-    annualPrice: 400,           // 2 months free ($40 × 10)
+    monthlyPrice: 49,
+    annualPrice: 490,           // 2 months free ($49 × 10)
     monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER!,
     annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL!,
     features: {
@@ -25,8 +25,8 @@ export const PLANS = {
   professional: {
     id: 'professional',
     name: 'Professional',
-    monthlyPrice: 80,
-    annualPrice: 800,           // 2 months free ($80 × 10)
+    monthlyPrice: 99,
+    annualPrice: 990,           // 2 months free ($99 × 10)
     monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL!,
     annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL!,
     features: {
@@ -39,8 +39,8 @@ export const PLANS = {
   business: {
     id: 'business',
     name: 'Business',
-    monthlyPrice: 120,
-    annualPrice: 1200,          // 2 months free ($120 × 10)
+    monthlyPrice: 149,
+    annualPrice: 1490,          // 2 months free ($149 × 10)
     monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS!,
     annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL!,
     features: {
