@@ -108,24 +108,46 @@ export default async function DashboardPage() {
 
   const clients = (clientData ?? []) as Client[]
 
+  // Fetch direct payments for unified revenue totals
+  const { data: directPaymentsRaw } = await supabase
+    .from('direct_payments')
+    .select('amount, payment_date')
+    .eq('user_id', user.id)
+
+  const directPayments = (directPaymentsRaw ?? []) as { amount: number; payment_date: string }[]
+
   const now = new Date()
 
   // Metrics
-  const totalRevenue = invoices
+  const invoiceRevenue = invoices
     .filter(inv => inv.displayStatus === 'paid')
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
+
+  const directRevenue = directPayments
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+
+  const totalRevenue = invoiceRevenue + directRevenue
 
   const pendingPayments = invoices
     .filter(inv => inv.displayStatus === 'sent')
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
 
-  const paidThisMonth = invoices
+  const paidThisMonthInvoices = invoices
     .filter(inv => inv.displayStatus === 'paid')
     .filter(inv => {
       const d = new Date(inv.issue_date + 'T12:00:00')
       return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
     })
     .reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0)
+
+  const paidThisMonthDirect = directPayments
+    .filter(p => {
+      const d = new Date(p.payment_date + 'T12:00:00')
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth()
+    })
+    .reduce((sum, p) => sum + Number(p.amount || 0), 0)
+
+  const paidThisMonth = paidThisMonthInvoices + paidThisMonthDirect
 
   const overdueCount = invoices.filter(inv => inv.displayStatus === 'overdue').length
 
