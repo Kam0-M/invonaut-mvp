@@ -113,10 +113,25 @@ export default async function CashPage() {
     inv.displayStatus === 'sent' || inv.displayStatus === 'overdue'
   )
 
+  // ── Direct payments (confirmed inflows already received) ──────────────────
+  const { data: directPaymentsRaw } = await supabase
+    .from('direct_payments')
+    .select('amount, payment_date')
+    .eq('user_id', user.id)
+
+  const directPayments = (directPaymentsRaw ?? []) as { amount: number; payment_date: string }[]
+
+  // Direct payments with a past payment_date are confirmed cash inflows
+  const confirmedDirectInflows = directPayments
+    .filter(p => new Date(p.payment_date + 'T12:00:00') <= now)
+    .reduce((s, p) => s + Number(p.amount || 0), 0)
+
   // ── Revenue and overdue totals ────────────────────────────────────────────
-  const totalRevenue = invoices
+  const invoiceRevenue = invoices
     .filter(inv => inv.displayStatus === 'paid')
     .reduce((s, inv) => s + Number(inv.total_amount || 0), 0)
+
+  const totalRevenue = invoiceRevenue + confirmedDirectInflows
 
   const overdueTotal = invoices
     .filter(inv => inv.displayStatus === 'overdue')
@@ -179,11 +194,12 @@ export default async function CashPage() {
   })
 
   // ── 90-day forecast (13 weekly data points) ───────────────────────────────
-  // Baseline: latest snapshot balance, or 0 if no snapshot exists.
+  // Baseline: latest snapshot balance + confirmed direct payment inflows (already received),
+  // or 0 if no snapshot exists.
   // Each week: balance += invoices due that week − avgWeeklyExpenses.
-  // We show the week label and projected balance at start-of-week.
   const forecastData = (() => {
-    const baseline = latestBalance ?? 0
+    const snapshotBase = latestBalance ?? 0
+    const baseline     = snapshotBase + confirmedDirectInflows
     const points   = []
     let running    = baseline
 
