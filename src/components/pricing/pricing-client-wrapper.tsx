@@ -55,9 +55,9 @@ export default function PricingClientWrapper({
     {
       id: 'starter',
       name: 'Starter',
-      monthlyPrice: 40,
-      annualMonthlyPrice: 33,   // $400/yr ÷ 12, rounded
-      annualTotalPrice: 400,
+      monthlyPrice: 49,
+      annualMonthlyPrice: 41,
+      annualTotalPrice: 490,
       description: 'Perfect for new freelancers',
       monthlyPriceId: starterPriceId,
       annualPriceId: starterAnnualPriceId,
@@ -75,9 +75,9 @@ export default function PricingClientWrapper({
     {
       id: 'professional',
       name: 'Professional',
-      monthlyPrice: 80,
-      annualMonthlyPrice: 67,
-      annualTotalPrice: 800,
+      monthlyPrice: 99,
+      annualMonthlyPrice: 83,
+      annualTotalPrice: 990,
       description: 'For established freelancers',
       monthlyPriceId: professionalPriceId,
       annualPriceId: professionalAnnualPriceId,
@@ -97,9 +97,9 @@ export default function PricingClientWrapper({
     {
       id: 'business',
       name: 'Business',
-      monthlyPrice: 120,
-      annualMonthlyPrice: 100,
-      annualTotalPrice: 1200,
+      monthlyPrice: 149,
+      annualMonthlyPrice: 124,
+      annualTotalPrice: 1490,
       description: 'For small agencies and studios',
       monthlyPriceId: businessPriceId,
       annualPriceId: businessAnnualPriceId,
