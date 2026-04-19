@@ -239,6 +239,105 @@ export default async function DashboardPage() {
 
   const recentExpenses = allExpenses.slice(0, 4)
 
+  // ── Activity feed data ────────────────────────────────────────────────────
+  // Gather recent events across invoices sent, direct payments, contract
+  // signatures, and follow-ups, then merge + sort by timestamp.
+
+  const { data: recentDirectPaymentsRaw } = await supabase
+    .from('direct_payments')
+    .select('id, amount, description, payment_date, created_at, revenue_categories(name)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const { data: recentSignaturesRaw } = await supabase
+    .from('contract_signatures')
+    .select('id, signer_name, signed_at, contracts!inner(title, user_id)')
+    .order('signed_at', { ascending: false })
+    .limit(5)
+
+  const { data: followUpInvoicesRaw } = await supabase
+    .from('invoices')
+    .select('id, invoice_number, last_followed_up, ai_risk_score, clients!inner(name)')
+    .eq('user_id', user.id)
+    .not('last_followed_up', 'is', null)
+    .order('last_followed_up', { ascending: false })
+    .limit(3)
+
+  // Build unified activity list
+  type ActivityItem = {
+    id:        string
+    type:      'invoice_sent' | 'payment_logged' | 'contract_signed' | 'follow_up'
+    icon:      string
+    title:     string
+    detail:    string
+    timestamp: string
+  }
+
+  const activityItems: ActivityItem[] = []
+
+  // Sent invoices (most recent 5)
+  invoices
+    .filter(inv => inv.displayStatus === 'sent' || inv.displayStatus === 'paid' || inv.displayStatus === 'overdue')
+    .slice(0, 5)
+    .forEach(inv => {
+      const client = Array.isArray(inv.clients) ? inv.clients[0] : inv.clients
+      activityItems.push({
+        id:        `inv-${inv.id}`,
+        type:      'invoice_sent',
+        icon:      '📄',
+        title:     'Invoice sent',
+        detail:    `${inv.invoice_number} · $${Number(inv.total_amount).toFixed(0)} · ${client?.name ?? 'Client'}`,
+        timestamp: inv.created_at,
+      })
+    })
+
+  // Direct payments
+  ;(recentDirectPaymentsRaw ?? []).forEach((p: any) => {
+    const cat = Array.isArray(p.revenue_categories) ? p.revenue_categories[0] : p.revenue_categories
+    activityItems.push({
+      id:        `pay-${p.id}`,
+      type:      'payment_logged',
+      icon:      '💵',
+      title:     'Payment logged',
+      detail:    `$${Number(p.amount).toFixed(0)} · ${p.description}${cat?.name ? ` · ${cat.name}` : ''}`,
+      timestamp: p.created_at,
+    })
+  })
+
+  // Contract signatures (only for this user's contracts)
+  ;(recentSignaturesRaw ?? []).forEach((sig: any) => {
+    const contract = Array.isArray(sig.contracts) ? sig.contracts[0] : sig.contracts
+    if (!contract || contract.user_id !== user.id) return
+    activityItems.push({
+      id:        `sig-${sig.id}`,
+      type:      'contract_signed',
+      icon:      '✅',
+      title:     'Contract signed',
+      detail:    `${contract.title} · ${sig.signer_name}`,
+      timestamp: sig.signed_at,
+    })
+  })
+
+  // Automated follow-ups
+  ;(followUpInvoicesRaw ?? []).forEach((inv: any) => {
+    if (!inv.last_followed_up) return
+    const client = Array.isArray(inv.clients) ? inv.clients[0] : inv.clients
+    activityItems.push({
+      id:        `fu-${inv.id}`,
+      type:      'follow_up',
+      icon:      '🤖',
+      title:     'Follow-up sent automatically',
+      detail:    `${inv.invoice_number} · ${client?.name ?? 'Client'}${inv.ai_risk_score ? ` · Risk ${inv.ai_risk_score}%` : ''}`,
+      timestamp: inv.last_followed_up,
+    })
+  })
+
+  // Sort by most recent, take top 8
+  const recentActivity = activityItems
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 8)
+
   const netProfit = totalRevenue - totalExpenses
   const isProfitable = netProfit >= 0
   const profitabilityPct = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : null
@@ -794,6 +893,59 @@ export default async function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Live Activity Feed */}
+      {recentActivity.length > 0 && (
+        <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-lg">⚡</span>
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Live Activity</h2>
+                <p className="text-sm text-gray-500 font-medium">Everything that has happened in your business</p>
+              </div>
+            </div>
+            <span className="flex items-center gap-1.5 text-xs font-bold text-green-600">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              Live
+            </span>
+          </div>
+          <div className="space-y-1">
+            {recentActivity.map((item, idx) => {
+              // Friendly relative time
+              const ts   = new Date(item.timestamp)
+              const diff = Math.floor((Date.now() - ts.getTime()) / 1000)
+              const timeLabel =
+                diff < 60        ? 'just now'
+                : diff < 3600    ? `${Math.floor(diff / 60)}m ago`
+                : diff < 86400   ? `${Math.floor(diff / 3600)}h ago`
+                : diff < 604800  ? `${Math.floor(diff / 86400)}d ago`
+                : ts.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+
+              const bgColor =
+                item.type === 'invoice_sent'    ? 'bg-blue-50 text-blue-600'
+                : item.type === 'payment_logged'  ? 'bg-teal-50 text-teal-600'
+                : item.type === 'contract_signed' ? 'bg-green-50 text-green-600'
+                : 'bg-amber-50 text-amber-600'
+
+              return (
+                <div key={item.id} className="flex items-center gap-4 px-3 py-3 rounded-xl hover:bg-gray-50 transition-colors group">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg flex-shrink-0 ${bgColor}`}>
+                    {item.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900">{item.title}</p>
+                    <p className="text-xs text-gray-400 font-medium truncate mt-0.5">{item.detail}</p>
+                  </div>
+                  <span className="text-xs text-gray-300 font-medium flex-shrink-0 group-hover:text-gray-400 transition-colors">{timeLabel}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Recent Invoices & Clients */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
