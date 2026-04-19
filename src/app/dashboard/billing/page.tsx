@@ -83,8 +83,8 @@ export default async function BillingPage({
       id: 'starter',
       name: 'Starter',
       monthlyPrice: 49,
-      annualMonthlyPrice: 33,
-      annualTotalPrice: 400,
+      annualMonthlyPrice: 41,   // $490/yr ÷ 12, rounded
+      annualTotalPrice: 490,
       features: [
         '25 invoices per month',
         'Unlimited clients',
@@ -101,8 +101,8 @@ export default async function BillingPage({
       id: 'professional',
       name: 'Professional',
       monthlyPrice: 99,
-      annualMonthlyPrice: 67,
-      annualTotalPrice: 800,
+      annualMonthlyPrice: 83,   // $990/yr ÷ 12, rounded
+      annualTotalPrice: 990,
       features: [
         'Unlimited invoices',
         'Unlimited clients',
@@ -120,8 +120,8 @@ export default async function BillingPage({
       id: 'business',
       name: 'Business',
       monthlyPrice: 149,
-      annualMonthlyPrice: 100,
-      annualTotalPrice: 1200,
+      annualMonthlyPrice: 124,  // $1,490/yr ÷ 12, rounded
+      annualTotalPrice: 1490,
       features: [
         'Everything in Professional',
         'Budget tracking & alerts',
