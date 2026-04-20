@@ -8,6 +8,7 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
 import MetricCardValue from '@/components/dashboard/metric-card-value'
 import ViewOnlyBanner from '@/components/view-only-banner'
+import DashboardAutoRefresh from '@/components/dashboard/dashboard-auto-refresh'
 
 type InvoiceRaw = {
   id: string
@@ -367,6 +368,9 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 max-w-7xl">
+
+      {/* Silent 30-second auto-refresh keeps activity feed live */}
+      <DashboardAutoRefresh />
 
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-10 shadow-2xl">
