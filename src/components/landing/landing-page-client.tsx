@@ -14,7 +14,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
-import { motion, useInView, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion'
+import { motion, useInView, useScroll, useMotionValueEvent, AnimatePresence, animate } from 'framer-motion'
 import {
   FileText, Banknote, BarChart2, Clock, FileCheck,
   TrendingUp, Receipt, Globe, Bot, ArrowRight,
@@ -22,6 +22,39 @@ import {
   ChevronRight, Zap, Shield, Layers,
 } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
+
+// ─── CSS injected for spinning border + gradient animations ──────────────────
+// We inject a <style> tag once so we don't need a globals.css edit.
+const GLOBAL_STYLES = `
+@keyframes spin-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
+@keyframes spin-ccw { from { transform: rotate(0deg); }   to { transform: rotate(-360deg); } }
+@keyframes grad-cycle {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+.spinning-card-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from 0deg, #2563EB, #0D9488, #6366F1, #2563EB);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spin-cw 3s linear infinite;
+  z-index: 0;
+}
+.automated-gradient {
+  background: linear-gradient(270deg, #2563EB, #0D9488, #4F46E5, #7C3AED, #0D9488, #2563EB);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: grad-cycle 5s ease infinite;
+}
+`
 
 // ─── Animation variants ────────────────────────────────────────────────────────
 
@@ -252,6 +285,8 @@ export default function LandingPageClient() {
 
   return (
     <div className="bg-white antialiased overflow-x-hidden">
+      {/* Inject keyframe animations once */}
+      <style dangerouslySetInnerHTML={{ __html: GLOBAL_STYLES }} />
 
       {/* ── Navigation ───────────────────────────────────────────────────────── */}
       <nav
@@ -318,7 +353,7 @@ export default function LandingPageClient() {
               >
                 From contract<br />
                 to cash.<br />
-                <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+                <span className="automated-gradient">
                   Automated.
                 </span>
               </motion.h1>
@@ -351,7 +386,9 @@ export default function LandingPageClient() {
               transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
               className="hidden lg:block"
             >
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-2xl p-6 relative">
+              {/* Spinning border wrapper */}
+              <div className="relative rounded-2xl spinning-card-border">
+                <div className="bg-white rounded-2xl p-6 relative z-10">
                 {/* Glow accent */}
                 <div className="absolute -top-px left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent" />
 
@@ -413,7 +450,8 @@ export default function LandingPageClient() {
                     <span className="text-xs font-bold text-gray-700">$9,450 / $13,000</span>
                   </div>
                 </div>
-              </div>
+              </div>{/* end bg-white inner */}
+              </div>{/* end spinning-card-border wrapper */}
             </motion.div>
           </div>
         </div>
@@ -701,7 +739,29 @@ export default function LandingPageClient() {
             </motion.div>
           </AnimSection>
           <AnimSection>
-            <motion.div variants={scaleIn}>
+            <motion.div variants={scaleIn} className="relative">
+              {/* Decorative spinning rings — one per plan, different speeds + positions */}
+              {/* Starter ring — slow, top-left */}
+              <div className="absolute -top-8 -left-8 w-24 h-24 pointer-events-none hidden md:block" aria-hidden="true">
+                <div className="w-full h-full rounded-full border-2 border-dashed border-blue-200 opacity-60"
+                  style={{ animation: 'spin-cw 12s linear infinite' }} />
+                <div className="absolute inset-3 rounded-full border border-blue-300 opacity-40"
+                  style={{ animation: 'spin-ccw 8s linear infinite' }} />
+              </div>
+              {/* Professional ring — fast, top-center */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-20 h-20 pointer-events-none hidden md:block" aria-hidden="true">
+                <div className="w-full h-full rounded-full border-2 border-dashed border-indigo-300 opacity-70"
+                  style={{ animation: 'spin-cw 5s linear infinite' }} />
+                <div className="absolute inset-2 rounded-full border border-teal-300 opacity-50"
+                  style={{ animation: 'spin-ccw 3.5s linear infinite' }} />
+              </div>
+              {/* Business ring — medium, top-right */}
+              <div className="absolute -top-6 -right-6 w-16 h-16 pointer-events-none hidden md:block" aria-hidden="true">
+                <div className="w-full h-full rounded-full border-2 border-dashed border-purple-200 opacity-60"
+                  style={{ animation: 'spin-ccw 9s linear infinite' }} />
+                <div className="absolute inset-2 rounded-full border border-blue-200 opacity-40"
+                  style={{ animation: 'spin-cw 6s linear infinite' }} />
+              </div>
               <LandingPricingSection />
             </motion.div>
           </AnimSection>
@@ -780,7 +840,7 @@ export default function LandingPageClient() {
           </div>
           <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs">© {new Date().getFullYear()} Invonaut. All rights reserved.</p>
-            <p className="text-xs">Built for freelancers who mean business.</p>
+            <p className="text-xs">Built for people who run their own business.</p>
           </div>
         </div>
       </footer>
