@@ -289,7 +289,7 @@ export default async function DashboardPage() {
         icon:      '📄',
         title:     'Invoice sent',
         detail:    `${inv.invoice_number} · $${Number(inv.total_amount).toFixed(0)} · ${client?.name ?? 'Client'}`,
-        timestamp: inv.created_at,
+        timestamp: inv.created_at ?? inv.issue_date,
       })
     })
 
