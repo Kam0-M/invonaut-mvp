@@ -1,7 +1,12 @@
 ﻿import Link from 'next/link'
 import { ArrowLeft, Book, HelpCircle, FileText, Users, Settings, Mail, Sparkles, DollarSign, TrendingUp, Zap, Shield, Bell, Palette } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 
-export default function HelpPage() {
+export default async function HelpPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const isLoggedIn = !!user
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
       <div className="max-w-6xl mx-auto space-y-8 py-8">
@@ -11,11 +16,11 @@ export default function HelpPage() {
         
         <div className="relative z-10">
           <Link 
-            href="/dashboard"
+            href={isLoggedIn ? '/dashboard' : '/'}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm text-white border-2 border-white/20 hover:bg-white/20 transition-all duration-200 font-bold mb-6 w-fit"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Dashboard
+            {isLoggedIn ? 'Back to Dashboard' : 'Back'}
           </Link>
           
           <div className="flex items-center gap-3 mb-4">

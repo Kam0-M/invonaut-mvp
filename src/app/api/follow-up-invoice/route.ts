@@ -204,10 +204,21 @@ export async function POST(request: NextRequest) {
       }, { status: 404 })
     }
 
+    // Check if invoice has been sent — drafts cannot receive reminders
+    if (invoice.status === 'draft') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'This invoice is still a draft and has not been sent. Send the invoice to your client before sending a follow-up reminder.',
+        },
+        { status: 400 }
+      )
+    }
+
     // Check if invoice is actually overdue
     const now = new Date()
-    const dueDate = new Date(invoice.due_date)
-    const isOverdue = dueDate < now && invoice.status === 'sent'
+    const dueDate = new Date(invoice.due_date + 'T12:00:00')
+    const isOverdue = dueDate < now
 
     if (!isOverdue) {
       return NextResponse.json(

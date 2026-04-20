@@ -1,20 +1,25 @@
 /**
  * Calculate the display status for an invoice
  * Automatically marks as 'overdue' if past due date and not paid
+ * Drafts are NEVER shown as overdue — they haven't been sent yet
  */
 export function getInvoiceDisplayStatus(invoice: {
     status: string;
     due_date: string;
   }): string {
-    // If already paid or cancelled, return as-is
-    if (invoice.status === 'paid' || invoice.status === 'cancelled') {
+    // If already paid, cancelled, or draft — return as-is (no overdue calc)
+    if (
+      invoice.status === 'paid' ||
+      invoice.status === 'cancelled' ||
+      invoice.status === 'draft'
+    ) {
       return invoice.status;
     }
     
-    // Check if overdue
+    // Check if overdue (only applies to sent invoices)
     const dueDate = new Date(invoice.due_date);
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
     
     if (dueDate < today) {
