@@ -622,28 +622,6 @@ function InteractiveProductDemo() {
   )
 }
 
-const COMPETITORS = ['Invonaut', 'FreshBooks', 'Wave', 'HoneyBook', 'Harvest'] as const
-
-type CompetitorFeatureRow = {
-  feature: string
-  values: readonly boolean[]
-  note: string | null
-}
-
-const COMP_FEATURES: readonly CompetitorFeatureRow[] = [
-  { feature: 'Invoice management', values: [true, true, true, true, true], note: null },
-  { feature: 'Cash + POS + mobile payment log', values: [true, false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Automated follow-up reminders', values: [true, false, false, false, false], note: 'Invonaut only' },
-  { feature: 'AI payment risk scoring', values: [true, false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Time tracking → invoice', values: [true, true, false, false, true], note: null },
-  { feature: 'Contract lifecycle + e-signature', values: [true, false, false, true, false], note: null },
-  { feature: '90-day cash flow forecast', values: [true, false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Revenue intelligence breakdown', values: [true, false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Expense tracking + budget alerts', values: [true, true, true, false, false], note: null },
-  { feature: 'Branded client portal', values: [true, true, false, true, false], note: null },
-  { feature: 'No integrations required', values: [true, false, false, false, false], note: 'All-in-one' },
-]
-
 const DOT_LIGHT = {
   backgroundImage: 'radial-gradient(circle, rgba(37,99,235,0.07) 1px, transparent 1px)',
   backgroundSize: '28px 28px',
@@ -938,19 +916,8 @@ export default function LandingPageClient() {
     <div className="bg-white antialiased overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_STYLES }} />
 
-      {/* ── Announcement bar ─────────────────────────────────────────────────── */}
-      <div className="fixed top-0 w-full z-[60] bg-gradient-to-r from-blue-600 to-teal-600 text-white text-center py-2 px-4">
-        <p className="text-xs font-semibold tracking-wide">
-          <span className="opacity-70 mr-2">✦</span>
-          New: Revenue categories, direct payments &amp; AI analytics — now live
-          <Link href="/signup" className="ml-2 underline underline-offset-2 font-bold hover:opacity-80 transition-opacity">
-            Try free →
-          </Link>
-        </p>
-      </div>
-
       {/* ── Navigation ───────────────────────────────────────────────────────── */}
-      <nav className="fixed w-full top-8 z-50 transition-all duration-300" style={{
+      <nav className="fixed w-full top-0 z-50 transition-all duration-300" style={{
         background:    navScrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.95)',
         backdropFilter:'blur(12px)',
         borderBottom:  navScrolled ? '1px solid rgba(0,0,0,0.08)' : '1px solid transparent',
@@ -990,7 +957,7 @@ export default function LandingPageClient() {
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <section className="pt-36 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 85% 65% at 25% 35%, rgba(219,234,254,0.75) 0%, transparent 65%), radial-gradient(ellipse 55% 45% at 75% 65%, rgba(204,251,241,0.35) 0%, transparent 65%)' }} />
         <div className="absolute inset-0" style={DOT_LIGHT} />
 
@@ -1007,7 +974,7 @@ export default function LandingPageClient() {
               </motion.div>
 
               <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl xl:text-7xl font-black text-gray-900 tracking-tight leading-[0.95] mb-5">
-                Money in your<br />business shouldn&apos;t<br />feel this<br />
+                Money in your<br />business shouldn&apos;t<br />feel<br />
                 <span className="automated-gradient">unpredictable.</span>
               </motion.h1>
 
