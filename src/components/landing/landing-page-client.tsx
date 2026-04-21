@@ -48,21 +48,58 @@ const GLOBAL_STYLES = `
   0%   { opacity: 0; transform: translateY(-8px) scale(0.97); }
   100% { opacity: 1; transform: translateY(0)    scale(1);    }
 }
+/* Main card border — 130-degree arc (longer train), 9s (slower) */
 .spinning-track-border {
   background:
     linear-gradient(white, white) padding-box,
     conic-gradient(
       from var(--border-angle),
-      #2563EB 0deg,
-      #0D9488 55deg,
-      rgba(37,99,235,0.06) 110deg,
-      rgba(37,99,235,0.06) 300deg,
-      #2563EB 360deg
+      #2563EB   0deg,
+      #0D9488   80deg,
+      #2563EB   130deg,
+      rgba(37,99,235,0.05) 170deg,
+      rgba(37,99,235,0.05) 350deg,
+      #2563EB   360deg
     ) border-box;
   border: 2px solid transparent;
   border-radius: 16px;
-  animation: border-rotate 3s linear infinite;
+  animation: border-rotate 9s linear infinite;
 }
+/* Button border — same train, 6s */
+.button-track-border {
+  background:
+    linear-gradient(rgb(37,99,235), rgb(37,99,235)) padding-box,
+    conic-gradient(
+      from var(--border-angle),
+      rgba(255,255,255,0.9)  0deg,
+      rgba(13,212,170,0.9)   80deg,
+      rgba(255,255,255,0.9)  130deg,
+      rgba(255,255,255,0.1)  170deg,
+      rgba(255,255,255,0.1)  350deg,
+      rgba(255,255,255,0.9)  360deg
+    ) border-box;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  animation: border-rotate 6s linear infinite;
+}
+/* Non-highlighted plan button border — blue bg with teal train */
+.button-track-border-alt {
+  background:
+    linear-gradient(white, white) padding-box,
+    conic-gradient(
+      from var(--border-angle),
+      #2563EB   0deg,
+      #0D9488   80deg,
+      #2563EB   130deg,
+      rgba(37,99,235,0.06) 170deg,
+      rgba(37,99,235,0.06) 350deg,
+      #2563EB   360deg
+    ) border-box;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  animation: border-rotate 6s linear infinite;
+}
+/* "Automated." hero text */
 .automated-gradient {
   background: linear-gradient(270deg, #2563EB, #0D9488, #4F46E5, #2563EB);
   background-size: 300% 300%;
@@ -70,6 +107,13 @@ const GLOBAL_STYLES = `
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: grad-cycle 4s ease infinite;
+}
+/* "Most Popular" badge */
+.most-popular-badge {
+  background: linear-gradient(270deg, #F59E0B, #F97316, #EF4444, #F59E0B);
+  background-size: 300% 300%;
+  animation: grad-cycle 3s ease infinite;
+  color: white;
 }
 .feed-item-enter {
   animation: feed-pulse 0.45s cubic-bezier(0.22,1,0.36,1) forwards;
@@ -282,27 +326,301 @@ const PROCESSES = [
   { Icon: TrendingUp, action: '90-day cash forecast',        detail: 'Balance projection recalculated live',        schedule: 'On open'    },
 ]
 
-// ─── Competitor comparison data ───────────────────────────────────────────────
-// Honest, verifiable feature comparisons vs real direct competitors.
-// No Tabs (different market). Focus on income capture, automation, all-in-one.
+// ─── Interactive Product Demo ─────────────────────────────────────────────────
+// Tabbed demo showing 4 key product views: Invoice, Payment, Cash Flow, Contracts
+// No fake data — framed as "what the system looks like"
 
-const COMPETITORS = ['Invonaut', 'FreshBooks', 'Wave', 'HoneyBook', 'Harvest']
-
-const COMP_FEATURES = [
-  { feature: 'Invoice management',              values: [true,  true,  true,  true,  true ], note: null },
-  { feature: 'Cash + POS + mobile payment log', values: [true,  false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Automated follow-up reminders',   values: [true,  false, false, false, false], note: 'Invonaut only' },
-  { feature: 'AI payment risk scoring',         values: [true,  false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Time tracking → invoice',         values: [true,  true,  false, false, true ], note: null },
-  { feature: 'Contract lifecycle + e-signature',values: [true,  false, false, true,  false], note: null },
-  { feature: '90-day cash flow forecast',       values: [true,  false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Revenue intelligence breakdown',  values: [true,  false, false, false, false], note: 'Invonaut only' },
-  { feature: 'Expense tracking + budget alerts',values: [true,  true,  true,  false, false], note: null },
-  { feature: 'Branded client portal',           values: [true,  true,  false, true,  false], note: null },
-  { feature: 'No integrations required',        values: [true,  false, false, false, false], note: 'All-in-one' },
+const DEMO_TABS = [
+  { id: 'invoice',   label: 'Invoices',       Icon: FileText   },
+  { id: 'payment',   label: 'Payments',       Icon: Banknote   },
+  { id: 'cashflow',  label: 'Cash Flow',      Icon: TrendingUp },
+  { id: 'contract',  label: 'Contracts',      Icon: FileCheck  },
 ]
 
-// ─── Background patterns ──────────────────────────────────────────────────────
+function InvoiceDemo() {
+  const invoices = [
+    { num: 'INV-00089', client: 'Acme Corp',      amount: '$4,200', status: 'sent',    risk: 72, daysAgo: 'Sent 3 days ago'   },
+    { num: 'INV-00088', client: 'Taylor Design',  amount: '$1,800', status: 'overdue', risk: 88, daysAgo: '9 days overdue'    },
+    { num: 'INV-00087', client: 'Northside Media',amount: '$6,500', status: 'paid',    risk: 0,  daysAgo: 'Paid yesterday'    },
+    { num: 'INV-00086', client: 'Bright Labs',    amount: '$950',   status: 'overdue', risk: 65, daysAgo: '4 days overdue'    },
+  ]
+  const statusStyle: Record<string, string> = {
+    sent:    'bg-blue-100 text-blue-700',
+    overdue: 'bg-red-100 text-red-700',
+    paid:    'bg-green-100 text-green-700',
+  }
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Invoice pipeline</p>
+        <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+          <Bot className="w-3 h-3" />AI scoring active
+        </div>
+      </div>
+      {invoices.map((inv, i) => (
+        <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.35, ease: EASE }}
+          className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-white transition-all group">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm font-bold text-gray-900">{inv.client}</span>
+              <span className="text-xs text-gray-400">{inv.num}</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-0.5">{inv.daysAgo}</p>
+          </div>
+          <span className="text-sm font-black text-gray-900">{inv.amount}</span>
+          {inv.status !== 'paid' && (
+            <div className="flex items-center gap-1 bg-amber-50 rounded-lg px-2 py-1 flex-shrink-0">
+              <Zap className="w-3 h-3 text-amber-500" />
+              <span className="text-xs font-bold text-amber-600">{inv.risk}%</span>
+            </div>
+          )}
+          <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${statusStyle[inv.status]}`}>
+            {inv.status}
+          </span>
+        </motion.div>
+      ))}
+      <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-center gap-2">
+        <Bell className="w-4 h-4 text-blue-600 flex-shrink-0" />
+        <p className="text-xs text-blue-700 font-medium">
+          AI detected 2 high-risk invoices. Reminder scheduled for tomorrow at 9am.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function PaymentDemo() {
+  const payments = [
+    { desc: 'Airport Transfer',    amount: '$320',    method: 'Cash',   cat: 'Transport',  time: 'Today'     },
+    { desc: 'Website Maintenance', amount: '$1,200',  method: 'Bank',   cat: 'Services',   time: 'Yesterday' },
+    { desc: 'Product Sale',        amount: '$85',     method: 'POS',    cat: 'Retail',     time: '2 days ago'},
+    { desc: 'Monthly Retainer',    amount: '$2,500',  method: 'Prepay', cat: 'Consulting', time: '3 days ago'},
+  ]
+  const methodColor: Record<string, string> = {
+    Cash: 'bg-teal-100 text-teal-700', Bank: 'bg-blue-100 text-blue-700',
+    POS: 'bg-purple-100 text-purple-700', Prepay: 'bg-amber-100 text-amber-700',
+  }
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">All income sources</p>
+        <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full">$4,105 this week</span>
+      </div>
+      <div className="space-y-2">
+        {payments.map((p, i) => (
+          <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ delay: i * 0.08, ease: EASE }}
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-teal-100 transition-all">
+            <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
+              <DollarSign className="w-4 h-4 text-teal-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">{p.desc}</p>
+              <p className="text-xs text-gray-400">{p.cat} · {p.time}</p>
+            </div>
+            <span className="text-sm font-black text-gray-900">{p.amount}</span>
+            <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${methodColor[p.method]}`}>{p.method}</span>
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {[{label:'Invoice income', val:'$4,200', color:'text-blue-600'}, {label:'Direct payments', val:'$4,105', color:'text-teal-600'}].map(s => (
+          <div key={s.label} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+            <p className="text-xs text-gray-400 font-medium">{s.label}</p>
+            <p className={`text-lg font-black ${s.color}`}>{s.val}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function CashFlowDemo() {
+  const weeks = ['Now', 'W1', 'W2', 'W3', 'W4', 'W5', 'W6', 'W7', 'W8', 'W9', 'W10', 'W11', 'W12']
+  const balances = [9450, 11200, 8900, 13400, 12100, 15600, 13800, 16200, 14500, 17800, 16200, 19100, 18400]
+  const maxBal = Math.max(...balances)
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">90-day cash forecast</p>
+        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">AI-powered</span>
+      </div>
+      <div className="flex items-end gap-1 h-28 mb-3">
+        {weeks.map((w, i) => (
+          <motion.div key={i} className="flex-1 flex flex-col items-center gap-1"
+            initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }}
+            transition={{ delay: i * 0.04, duration: 0.4, ease: EASE }}
+            style={{ transformOrigin: 'bottom' }}>
+            <div className="w-full rounded-t-sm"
+              style={{ height: `${(balances[i] / maxBal) * 100}%`, background: i === 0 ? '#2563EB' : `rgba(37,99,235,${0.25 + (i/12)*0.5})` }} />
+          </motion.div>
+        ))}
+      </div>
+      <div className="flex justify-between text-xs text-gray-400 mb-4">
+        <span>Now</span><span>Week 6</span><span>Week 12</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {[
+          { label: 'Current balance', val: '$9,450',  color: 'text-blue-600' },
+          { label: 'Runway',          val: '4.2 mo',  color: 'text-teal-600' },
+          { label: 'Forecast peak',   val: '$19,100', color: 'text-green-600' },
+        ].map(s => (
+          <div key={s.label} className="bg-gray-50 rounded-xl p-3 border border-gray-100 text-center">
+            <p className="text-xs text-gray-400 font-medium mb-0.5">{s.label}</p>
+            <p className={`text-base font-black ${s.color}`}>{s.val}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ContractDemo() {
+  const contracts = [
+    { title: 'Web Design Agreement',    client: 'Acme Corp',      status: 'active',  value: '$12,000', daysLeft: 42  },
+    { title: 'Monthly Retainer',        client: 'Taylor Design',  status: 'active',  value: '$3,600',  daysLeft: 18  },
+    { title: 'Consulting Agreement',    client: 'Bright Labs',    status: 'expiring',value: '$8,500',  daysLeft: 6   },
+    { title: 'Brand Identity Project',  client: 'Northside Media',status: 'draft',   value: '$5,200',  daysLeft: null},
+  ]
+  const statusStyle: Record<string, string> = {
+    active: 'bg-green-100 text-green-700', expiring: 'bg-amber-100 text-amber-700', draft: 'bg-gray-100 text-gray-500',
+  }
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contract lifecycle</p>
+        <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full">$29,300 active</span>
+      </div>
+      <div className="space-y-2">
+        {contracts.map((c, i) => (
+          <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ delay: i * 0.08, ease: EASE }}
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-blue-100 transition-all">
+            <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
+              <FileCheck className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">{c.title}</p>
+              <p className="text-xs text-gray-400">{c.client}</p>
+            </div>
+            <span className="text-sm font-bold text-gray-700 flex-shrink-0">{c.value}</span>
+            {c.daysLeft && c.status === 'expiring' && (
+              <span className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full flex-shrink-0">
+                {c.daysLeft}d left
+              </span>
+            )}
+            <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${statusStyle[c.status]}`}>{c.status}</span>
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center gap-2">
+        <Bell className="w-4 h-4 text-amber-600 flex-shrink-0" />
+        <p className="text-xs text-amber-700 font-medium">Consulting Agreement expiring in 6 days. Renewal reminder sent automatically.</p>
+      </div>
+    </div>
+  )
+}
+
+function InteractiveProductDemo() {
+  const [activeTab, setActiveTab] = useState('invoice')
+  const demoContent: Record<string, React.ReactNode> = {
+    invoice:  <InvoiceDemo />,
+    payment:  <PaymentDemo />,
+    cashflow: <CashFlowDemo />,
+    contract: <ContractDemo />,
+  }
+  return (
+    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-6xl mx-auto">
+        <AnimSection className="text-center mb-12">
+          <motion.div variants={fadeUp}>
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">See it in action</p>
+            <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
+              Your entire business.<br />One screen.
+            </h2>
+            <p className="text-lg text-gray-500 font-medium mt-4 max-w-xl mx-auto">
+              This is what Invonaut looks like when it&apos;s running. Not a mock — this is the actual interface.
+            </p>
+          </motion.div>
+        </AnimSection>
+
+        <AnimSection>
+          <motion.div variants={scaleIn}>
+            {/* Browser chrome */}
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-2xl overflow-hidden">
+              {/* Browser bar */}
+              <div className="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+                <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 font-mono border border-gray-200">
+                  invonaut.app/dashboard
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                  <span className="text-xs text-gray-400 font-medium">Live</span>
+                </div>
+              </div>
+
+              <div className="flex">
+                {/* Sidebar */}
+                <div className="w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 hidden sm:flex">
+                  {[FileText, Banknote, BarChart2, Clock, FileCheck, TrendingUp, Receipt].map((Icon, i) => (
+                    <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center ${i < 2 ? 'bg-blue-600' : 'hover:bg-gray-700'} cursor-pointer transition-colors`}>
+                      <Icon className="w-4 h-4 text-white opacity-70" />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Main content */}
+                <div className="flex-1 p-6 min-h-[420px]">
+                  {/* Tab bar */}
+                  <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+                    {DEMO_TABS.map(tab => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          activeTab === tab.id
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                      >
+                        <tab.Icon className="w-3 h-3" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Content area */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.25, ease: EASE }}
+                    >
+                      {demoContent[activeTab]}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom label */}
+            <p className="text-center text-xs text-gray-400 font-medium mt-4">
+              Click the tabs to explore — this is what your dashboard looks like from day one.
+            </p>
+          </motion.div>
+        </AnimSection>
+      </div>
+    </section>
+  )
+}
 
 const DOT_LIGHT = {
   backgroundImage: 'radial-gradient(circle, rgba(37,99,235,0.07) 1px, transparent 1px)',
@@ -598,34 +916,59 @@ export default function LandingPageClient() {
     <div className="bg-white antialiased overflow-x-hidden">
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_STYLES }} />
 
+      {/* ── Announcement bar ─────────────────────────────────────────────────── */}
+      <div className="fixed top-0 w-full z-[60] bg-gradient-to-r from-blue-600 to-teal-600 text-white text-center py-2 px-4">
+        <p className="text-xs font-semibold tracking-wide">
+          <span className="opacity-70 mr-2">✦</span>
+          New: Revenue categories, direct payments &amp; AI analytics — now live
+          <Link href="/signup" className="ml-2 underline underline-offset-2 font-bold hover:opacity-80 transition-opacity">
+            Try free →
+          </Link>
+        </p>
+      </div>
+
       {/* ── Navigation ───────────────────────────────────────────────────────── */}
-      <nav className="fixed w-full top-0 z-50 transition-all duration-300" style={{
+      <nav className="fixed w-full top-8 z-50 transition-all duration-300" style={{
         background:    navScrolled ? 'rgba(255,255,255,0.97)' : 'rgba(255,255,255,0.95)',
         backdropFilter:'blur(12px)',
         borderBottom:  navScrolled ? '1px solid rgba(0,0,0,0.08)' : '1px solid transparent',
         boxShadow:     navScrolled ? '0 1px 20px rgba(0,0,0,0.06)' : 'none',
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-14">
             <Link href="/" className="flex items-center gap-2.5">
               <img src="/invonaut-logo.png" alt="Invonaut" className="w-8 h-8 rounded-full" />
-              <span className="text-xl font-black tracking-tight text-gray-900">Invonaut</span>
+              <div>
+                <span className="text-xl font-black tracking-tight text-gray-900">Invonaut</span>
+                <span className="hidden sm:inline text-xs text-gray-400 font-medium ml-2">Finance OS</span>
+              </div>
             </Link>
-            <div className="hidden md:flex items-center gap-7">
-              <Link href="#platform"     className="text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors">Platform</Link>
-              <Link href="#how-it-works" className="text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors">How It Works</Link>
-              <Link href="#pricing"      className="text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors">Pricing</Link>
+            <div className="hidden md:flex items-center gap-1">
+              {[
+                { href: '#platform',     label: 'Platform'    },
+                { href: '#how-it-works', label: 'How It Works'},
+                { href: '#pricing',      label: 'Pricing'     },
+              ].map(link => (
+                <Link key={link.href} href={link.href}
+                  className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm px-3 py-1.5 rounded-lg transition-all">
+                  {link.label}
+                </Link>
+              ))}
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/login"   className="text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors hidden sm:block">Sign in</Link>
-              <Link href="/signup"  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all hover:shadow-lg">Start free trial</Link>
+              <Link href="/login" className="text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors hidden sm:block">Sign in</Link>
+              <Link href="/signup"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold text-sm transition-all hover:shadow-lg inline-flex items-center gap-1.5">
+                Start free
+                <span className="text-blue-200 text-xs font-normal">14 days</span>
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <section className="pt-24 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <section className="pt-36 pb-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
         <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 85% 65% at 25% 35%, rgba(219,234,254,0.75) 0%, transparent 65%), radial-gradient(ellipse 55% 45% at 75% 65%, rgba(204,251,241,0.35) 0%, transparent 65%)' }} />
         <div className="absolute inset-0" style={DOT_LIGHT} />
 
@@ -637,18 +980,18 @@ export default function LandingPageClient() {
               <motion.div variants={fadeUp}>
                 <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-3 py-1.5 mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Autonomous Finance OS</span>
+                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Built for freelancers &amp; small businesses</span>
                 </div>
               </motion.div>
 
               <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl xl:text-7xl font-black text-gray-900 tracking-tight leading-[0.95] mb-5">
-                From contract<br />to cash.<br />
-                <span className="automated-gradient">Automated.</span>
+                Money in your<br />business shouldn&apos;t<br />feel this<br />
+                <span className="automated-gradient">unpredictable.</span>
               </motion.h1>
 
               <motion.p variants={fadeUp} className="text-lg text-gray-500 font-medium leading-relaxed mb-8 max-w-lg">
-                Invonaut captures every dollar in — invoices, cash, POS, mobile money — then chases late payers,
-                forecasts your runway, and runs your collections while you sleep.
+                Late invoices. Cash you can&apos;t see. Contracts that expire quietly.
+                Invonaut catches all of it — and handles most of it for you, automatically.
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
@@ -903,8 +1246,8 @@ export default function LandingPageClient() {
         </div>
       </section>
 
-      {/* ── NEW: Competitor comparison (gray) ────────────────────────────────── */}
-      <CompetitorComparison />
+      {/* ── Interactive product demo ──────────────────────────────────────────── */}
+      <InteractiveProductDemo />
 
       {/* ── White label callout (white) ──────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
@@ -1000,19 +1343,6 @@ export default function LandingPageClient() {
           </AnimSection>
           <AnimSection>
             <motion.div variants={scaleIn} className="relative">
-              {/* Pricing decorative orbital rings — different speeds, different positions */}
-              <div className="absolute -top-8 -left-8 w-20 h-20 pointer-events-none hidden md:block" aria-hidden="true">
-                <div className="w-full h-full rounded-full border-2 border-dashed border-blue-200 opacity-50" style={{ animation: 'spin-cw 14s linear infinite' }} />
-                <div className="absolute inset-3 rounded-full border border-teal-200 opacity-35" style={{ animation: 'spin-ccw 10s linear infinite' }} />
-              </div>
-              <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-16 h-16 pointer-events-none hidden md:block" aria-hidden="true">
-                <div className="w-full h-full rounded-full border-2 border-dashed border-blue-300 opacity-60" style={{ animation: 'spin-cw 5s linear infinite' }} />
-                <div className="absolute inset-2 rounded-full border border-teal-300 opacity-45" style={{ animation: 'spin-ccw 3.5s linear infinite' }} />
-              </div>
-              <div className="absolute -top-6 -right-6 w-14 h-14 pointer-events-none hidden md:block" aria-hidden="true">
-                <div className="w-full h-full rounded-full border-2 border-dashed border-blue-200 opacity-50" style={{ animation: 'spin-ccw 9s linear infinite' }} />
-                <div className="absolute inset-2 rounded-full border border-blue-300 opacity-35" style={{ animation: 'spin-cw 6s linear infinite' }} />
-              </div>
               <LandingPricingSection />
             </motion.div>
           </AnimSection>
