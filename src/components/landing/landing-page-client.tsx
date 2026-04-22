@@ -622,6 +622,28 @@ function InteractiveProductDemo() {
   )
 }
 
+const COMPETITORS = ['Invonaut', 'FreshBooks', 'Wave', 'HoneyBook', 'Harvest'] as const
+
+type CompetitorFeatureRow = {
+  feature: string
+  values: readonly boolean[]
+  note: string | null
+}
+
+const COMP_FEATURES: readonly CompetitorFeatureRow[] = [
+  { feature: 'Invoice management', values: [true, true, true, true, true], note: null },
+  { feature: 'Cash + POS + mobile payment log', values: [true, false, false, false, false], note: 'Invonaut only' },
+  { feature: 'Automated follow-up reminders', values: [true, false, false, false, false], note: 'Invonaut only' },
+  { feature: 'AI payment risk scoring', values: [true, false, false, false, false], note: 'Invonaut only' },
+  { feature: 'Time tracking to invoice', values: [true, true, false, false, true], note: null },
+  { feature: 'Contract lifecycle + e-signature', values: [true, false, false, true, false], note: null },
+  { feature: '90-day cash flow forecast', values: [true, false, false, false, false], note: 'Invonaut only' },
+  { feature: 'Revenue intelligence breakdown', values: [true, false, false, false, false], note: 'Invonaut only' },
+  { feature: 'Expense tracking + budget alerts', values: [true, true, true, false, false], note: null },
+  { feature: 'Branded client portal', values: [true, true, false, true, false], note: null },
+  { feature: 'No integrations required', values: [true, false, false, false, false], note: 'All-in-one' },
+]
+
 const DOT_LIGHT = {
   backgroundImage: 'radial-gradient(circle, rgba(37,99,235,0.07) 1px, transparent 1px)',
   backgroundSize: '28px 28px',
