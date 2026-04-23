@@ -9,6 +9,7 @@ import { getWelcomeMessage } from '@/lib/utils/get-welcome-message'
 import MetricCardValue from '@/components/dashboard/metric-card-value'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import DashboardAutoRefresh from '@/components/dashboard/dashboard-auto-refresh'
+import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
 
 type InvoiceRaw = {
   id: string
@@ -364,6 +365,21 @@ export default async function DashboardPage() {
   }, 0)
   const hasTimeEntries   = unbilledSeconds > 0
 
+  // Onboarding checklist data
+  const hasSentInvoice = invoices.some(inv => inv.status === 'sent' || inv.displayStatus === 'paid' || inv.displayStatus === 'overdue')
+  const { data: portalSettingsRaw } = await supabase
+    .from('portal_settings')
+    .select('user_id')
+    .eq('user_id', user.id)
+    .single()
+  const hasPortal = !!portalSettingsRaw
+  const { data: directPaymentCheckRaw } = await supabase
+    .from('direct_payments')
+    .select('id')
+    .eq('user_id', user.id)
+    .limit(1)
+  const hasPayment = (directPaymentCheckRaw ?? []).length > 0
+
   const welcomeMessage = getWelcomeMessage()
 
   return (
@@ -371,6 +387,17 @@ export default async function DashboardPage() {
 
       {/* Silent 30-second auto-refresh keeps activity feed live */}
       <DashboardAutoRefresh />
+
+      {/* Onboarding checklist — shown to new users until dismissed or all done */}
+      {hasActiveSubscription && (
+        <OnboardingChecklist
+          hasClients={hasClients}
+          hasSentInvoice={hasSentInvoice}
+          hasTimeEntry={hasTimeEntries}
+          hasPayment={hasPayment}
+          hasPortal={hasPortal}
+        />
+      )}
 
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-10 shadow-2xl">
