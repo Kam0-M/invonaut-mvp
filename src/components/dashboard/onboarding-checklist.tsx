@@ -1,13 +1,14 @@
 'use client'
 // src/components/dashboard/onboarding-checklist.tsx
 //
-// Shows only when the user has no data yet (new user).
-// Tracks 5 onboarding steps. Dismissible via localStorage.
-// Steps link directly to the action.
+// Shows only when the user has an active subscription.
+// Tracks 5 onboarding steps. Dismissible — restores via a "Setup guide" pill.
+// Tasks auto-check as user completes them (props recomputed on every dashboard refresh).
+// Celebration fires when all 5 steps are done.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { CheckCircle2, Circle, ChevronRight, X, Zap } from 'lucide-react'
+import { CheckCircle2, Circle, ChevronRight, X, Zap, PartyPopper, RotateCcw } from 'lucide-react'
 
 interface Props {
   hasClients:     boolean
@@ -20,8 +21,11 @@ interface Props {
 export default function OnboardingChecklist({
   hasClients, hasSentInvoice, hasTimeEntry, hasPayment, hasPortal,
 }: Props) {
-  const [dismissed, setDismissed] = useState(false)
-  const [mounted,   setMounted]   = useState(false)
+  const [dismissed,    setDismissed]    = useState(false)
+  const [celebrating,  setCelebrating]  = useState(false)
+  const [showRestore,  setShowRestore]  = useState(false)
+  const [mounted,      setMounted]      = useState(false)
+  const prevAllDone = useRef(false)
 
   useEffect(() => {
     setMounted(true)
@@ -60,12 +64,90 @@ export default function OnboardingChecklist({
   const allDone        = completedCount === steps.length
   const progress       = (completedCount / steps.length) * 100
 
+  // Detect when all tasks are newly completed → trigger celebration
+  useEffect(() => {
+    if (!mounted) return
+    if (allDone && !prevAllDone.current && !dismissed) {
+      setCelebrating(true)
+      // Auto-dismiss after celebration
+      const t = setTimeout(() => {
+        localStorage.setItem('invonaut_onboarding_dismissed', 'true')
+        setDismissed(true)
+        setCelebrating(false)
+      }, 4000)
+      return () => clearTimeout(t)
+    }
+    prevAllDone.current = allDone
+  }, [allDone, mounted, dismissed])
+
   const handleDismiss = () => {
     localStorage.setItem('invonaut_onboarding_dismissed', 'true')
     setDismissed(true)
+    setShowRestore(true)
   }
 
-  if (!mounted || dismissed || allDone) return null
+  const handleRestore = () => {
+    localStorage.removeItem('invonaut_onboarding_dismissed')
+    setDismissed(false)
+    setShowRestore(false)
+  }
+
+  if (!mounted) return null
+
+  // Celebration screen — shown when all tasks just completed
+  if (celebrating) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50 to-blue-50 shadow-sm">
+        <style>{`
+          @keyframes inv-confetti-pop {
+            0%   { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            60%  { transform: scale(1.15) rotate(4deg);  opacity: 1; }
+            100% { transform: scale(1)   rotate(0deg);   opacity: 1; }
+          }
+          @keyframes inv-confetti-float {
+            0%, 100% { transform: translateY(0px) rotate(0deg);   }
+            33%       { transform: translateY(-6px) rotate(3deg);  }
+            66%       { transform: translateY(-3px) rotate(-2deg); }
+          }
+          .inv-celebrate-icon { animation: inv-confetti-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+          .inv-celebrate-float { animation: inv-confetti-float 2s ease-in-out infinite; }
+        `}</style>
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: 'radial-gradient(circle, #10B981 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+        }} />
+        <div className="relative z-10 p-8 text-center">
+          <div className="inv-celebrate-icon inv-celebrate-float inline-flex w-16 h-16 rounded-2xl bg-emerald-500 items-center justify-center mb-4 shadow-lg shadow-emerald-200">
+            <PartyPopper className="w-8 h-8 text-white" />
+          </div>
+          <h3 className="text-xl font-black text-gray-900 mb-2">You're all set! 🎉</h3>
+          <p className="text-sm text-gray-600 font-medium max-w-xs mx-auto">
+            You've completed every setup step. Invonaut is fully running for your business — the system is watching from here.
+          </p>
+          <div className="flex justify-center gap-2 mt-4">
+            {[...Array(5)].map((_, i) => (
+              <CheckCircle2 key={i} className="w-5 h-5 text-emerald-500" style={{ animationDelay: `${i * 0.1}s` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Dismissed — show a small restore pill so they can bring it back
+  if (dismissed) {
+    if (allDone) return null  // No point restoring if everything is done
+    return (
+      <button
+        onClick={handleRestore}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition-all shadow-sm"
+        title="Restore setup guide"
+      >
+        <RotateCcw className="w-3.5 h-3.5" />
+        Setup guide ({completedCount}/{steps.length})
+      </button>
+    )
+  }
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white shadow-sm">

@@ -46,7 +46,11 @@ export default function PricingClientWrapper({
     return hasEverSubscribed ? 'Subscribe Now' : 'Start Free Trial'
   }
 
-  const trialText = !isLoggedIn || !hasEverSubscribed ? 'First 14 days free' : 'Subscribe today'
+  const getTrialText = (planId: string) => {
+    if (hasActiveSubscription && currentTier === planId) return '✓ Your current plan'
+    if (!isLoggedIn || !hasEverSubscribed) return 'First 14 days free'
+    return 'Subscribe today'
+  }
   const footerText = !isLoggedIn || !hasEverSubscribed
     ? 'All plans include 14-day free trial · No credit card required · Cancel anytime'
     : 'Flexible billing · Cancel anytime · Instant access'
@@ -211,8 +215,12 @@ export default function PricingClientWrapper({
                   )}
                 </div>
 
-                <p className={`text-sm font-semibold mb-8 ${plan.highlighted ? 'text-teal-200' : 'text-green-700'}`}>
-                  {trialText}
+                <p className={`text-sm font-semibold mb-8 ${
+                  hasActiveSubscription && currentTier === plan.id
+                    ? plan.highlighted ? 'text-teal-200' : 'text-blue-600'
+                    : plan.highlighted ? 'text-teal-200' : 'text-green-700'
+                }`}>
+                  {getTrialText(plan.id)}
                 </p>
 
                 <ul className="space-y-3 mb-8 flex-1">

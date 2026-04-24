@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { ArrowLeft, Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle } from 'lucide-react'
+import { Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle } from 'lucide-react'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractStatusBadge from '@/components/contracts/contract-status-badge'
 
@@ -71,10 +71,6 @@ export default async function ContractsPage() {
         <div className="relative z-10 p-8 sm:p-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
             <div>
-              <Link href="/dashboard"
-                className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors mb-4">
-                <ArrowLeft className="w-4 h-4" />Dashboard
-              </Link>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <FileCheck className="w-5 h-5 text-white" />

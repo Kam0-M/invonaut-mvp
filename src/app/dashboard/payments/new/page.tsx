@@ -324,10 +324,12 @@ export default function NewPaymentPage() {
                 disabled={isSaving}
                 className={`h-12 pl-10 pr-10 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl ${selectedClient && !clientSearchQuery ? 'font-medium text-green-700' : ''}`}
               />
+              {/* Show Check when client selected and not actively searching */}
               {selectedClient && !clientSearchQuery && (
-                <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600" />
+                <Check className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-600 pointer-events-none" />
               )}
-              {(clientSearchQuery || clientId) && (
+              {/* Show X only when user is actively typing a search query */}
+              {clientSearchQuery && (
                 <button type="button" onClick={() => { setClientSearchQuery(''); setClientId('') }}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   <X className="w-4 h-4" />

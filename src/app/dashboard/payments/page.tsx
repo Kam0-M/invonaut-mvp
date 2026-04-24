@@ -2,7 +2,7 @@
 import { redirect }     from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link             from 'next/link'
-import { ArrowLeft, Plus, Banknote, TrendingUp, CreditCard, Smartphone } from 'lucide-react'
+import { Plus, Banknote, TrendingUp, CreditCard, Smartphone, Building2 } from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
 
@@ -57,6 +57,7 @@ export default async function PaymentsPage() {
   const cashCount   = payments.filter((p: any) => p.payment_method === 'cash').length
   const mobileCount = payments.filter((p: any) => p.payment_method === 'mobile').length
   const posCount    = payments.filter((p: any) => p.payment_method === 'pos').length
+  const bankCount   = payments.filter((p: any) => p.payment_method === 'bank').length
 
   return (
     <div className="space-y-0">
@@ -73,10 +74,6 @@ export default async function PaymentsPage() {
         <div className="relative z-10 p-8 sm:p-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
             <div>
-              <Link href="/dashboard"
-                className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors mb-4">
-                <ArrowLeft className="w-4 h-4" />Dashboard
-              </Link>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center flex-shrink-0">
                   <Banknote className="w-5 h-5 text-white" />
@@ -96,12 +93,13 @@ export default async function PaymentsPage() {
           </div>
 
           {payments.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-8 border-t border-white/[0.08]">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-8 pt-8 border-t border-white/[0.08]">
               {[
-                { label: 'Total income',   value: formatCompact(totalIncome),     icon: TrendingUp,  color: 'text-teal-400' },
-                { label: 'This month',     value: formatCompact(thisMonthIncome), icon: Banknote,    color: 'text-blue-400' },
-                { label: 'Cash payments',  value: String(cashCount),              icon: Banknote,    color: 'text-amber-400' },
-                { label: 'Mobile / POS',   value: String(mobileCount + posCount), icon: Smartphone,  color: 'text-purple-400' },
+                { label: 'Total income',    value: formatCompact(totalIncome),     icon: TrendingUp,  color: 'text-teal-400'   },
+                { label: 'This month',      value: formatCompact(thisMonthIncome), icon: Banknote,    color: 'text-blue-400'   },
+                { label: 'Cash payments',   value: String(cashCount),              icon: Banknote,    color: 'text-amber-400'  },
+                { label: 'Bank transfers',  value: String(bankCount),              icon: Building2,   color: 'text-green-400'  },
+                { label: 'Mobile / POS',    value: String(mobileCount + posCount), icon: Smartphone,  color: 'text-purple-400' },
               ].map(s => (
                 <div key={s.label} className="flex items-center gap-3">
                   <s.icon className={`w-4 h-4 ${s.color} flex-shrink-0`} />
