@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { InvoiceList } from '@/components/invoices/invoice-list'
-import { ArrowLeft, Plus, FileText, Lock, Zap, TrendingUp, Clock, CheckCircle2 } from 'lucide-react'
+import { Plus, FileText, Lock, Zap, TrendingUp, Clock, CheckCircle2 } from 'lucide-react'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 
@@ -59,10 +59,6 @@ export default async function InvoicesPage() {
         <div className="relative z-10 p-8 sm:p-10">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
             <div>
-              <Link href="/dashboard"
-                className="inline-flex items-center gap-2 text-white/60 hover:text-white text-sm font-medium transition-colors mb-4">
-                <ArrowLeft className="w-4 h-4" />Dashboard
-              </Link>
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
                   <FileText className="w-5 h-5 text-white" />
@@ -123,8 +119,19 @@ export default async function InvoicesPage() {
       {/* Empty state */}
       {invoices.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {/* Top accent */}
-          <div className="h-1 bg-gradient-to-r from-blue-600 to-teal-500" />
+          {/* Animated cycling top accent */}
+          <style>{`
+            @keyframes inv-gradient-shift {
+              0%, 100% { background-position: 0% 50%; }
+              50% { background-position: 100% 50%; }
+            }
+            .inv-animated-bar {
+              background: linear-gradient(90deg, #2563EB, #0D9488, #7C3AED, #DB2777, #2563EB);
+              background-size: 300% 100%;
+              animation: inv-gradient-shift 4s ease-in-out infinite;
+            }
+          `}</style>
+          <div className="h-1 inv-animated-bar" />
           <div className="p-12 sm:p-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
               <FileText className="w-8 h-8 text-blue-600" />
