@@ -32,7 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           businessName={businessName}
         />
         <main className="flex-1 overflow-y-auto bg-gray-50">
-          <div className="p-6 lg:p-8">
+          <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
             {children}
           </div>
         </main>
