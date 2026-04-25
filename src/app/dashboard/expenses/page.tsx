@@ -79,57 +79,33 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
   })).filter(c => c.total > 0).sort((a, b) => b.total - a.total)
 
   return (
-    <div className="space-y-0">
+    <div className="space-y-6">
 
-      {/* Dark hero header */}
-      <div className="relative overflow-hidden rounded-2xl mb-8"
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }} />
-        <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.05]"
-          style={{ background: 'radial-gradient(circle, #F97316 0%, transparent 70%)' }} />
-
-        <div className="relative z-10 p-8 sm:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center flex-shrink-0">
-                  <Receipt className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Expenses</h1>
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Expenses</p>
+          {expenses.length > 0 && (
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-black text-orange-600">{formatCompact(totalAmount)}</span>
+                <span className="text-xs text-gray-400 font-medium">Total</span>
               </div>
-              <p className="text-white/50 font-medium text-sm mt-1">
-                {expenses.length === 0
-                  ? 'Log expenses with AI-suggested categories and upload receipts'
-                  : `${expenses.length} expense${expenses.length !== 1 ? 's' : ''} · ${formatCompact(totalAmount)} total`}
-              </p>
-            </div>
-            {hasActiveSubscription && (
-              <Link href="/dashboard/expenses/new"
-                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-bold text-sm hover:shadow-lg hover:scale-[1.02] transition-all w-full sm:w-auto">
-                <Plus className="w-4 h-4" />Add Expense
-              </Link>
-            )}
-          </div>
-
-          {/* Summary cards in header when data exists */}
-          {hasActiveSubscription && categoryTotals.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-8 border-t border-white/[0.08]">
-              <div>
-                <p className="text-lg font-black text-orange-400 leading-none" title={formatCurrency(totalAmount)}>{formatCompact(totalAmount)}</p>
-                <p className="text-xs text-white/40 font-medium mt-0.5">Total expenses</p>
-              </div>
-              {categoryTotals.slice(0, 3).map(cat => (
-                <div key={cat.value}>
-                  <p className="text-lg font-black text-white/80 leading-none" title={formatCurrency(cat.total)}>{formatCompact(cat.total)}</p>
-                  <p className="text-xs text-white/40 font-medium mt-0.5 truncate">{cat.label}</p>
+              {categoryTotals.slice(0, 2).map(cat => (
+                <div key={cat.value} className="flex items-center gap-1.5">
+                  <span className="text-sm font-black text-gray-700">{formatCompact(cat.total)}</span>
+                  <span className="text-xs text-gray-400 font-medium">{cat.label}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
+        {hasActiveSubscription && (
+          <Link href="/dashboard/expenses/new"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm transition-all hover:shadow-md">
+            <Plus className="w-4 h-4" />Add Expense
+          </Link>
+        )}
       </div>
 
       {!hasActiveSubscription ? (

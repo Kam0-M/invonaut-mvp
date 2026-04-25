@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle } from 'lucide-react'
+import CoreTabBar from '@/components/layout/core-tab-bar'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractStatusBadge from '@/components/contracts/contract-status-badge'
 
@@ -57,68 +58,51 @@ export default async function ContractsPage() {
   const totalValue = contracts.reduce((s, c) => s + Number(c.total_value || 0), 0)
 
   return (
-    <div className="space-y-0">
-      {/* Dark hero header */}
-      <div className="relative overflow-hidden rounded-2xl mb-8"
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }} />
-        <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.05]"
-          style={{ background: 'radial-gradient(circle, #7C3AED 0%, transparent 70%)' }} />
+    <div className="space-y-6">
+      <CoreTabBar />
 
-        <div className="relative z-10 p-8 sm:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <FileCheck className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Contracts</h1>
-              </div>
-              <p className="text-white/50 font-medium text-sm mt-1">
-                {contracts.length === 0
-                  ? 'Create contracts from templates and get them signed without leaving Invonaut'
-                  : `${contracts.length} contract${contracts.length !== 1 ? 's' : ''} · ${formatCompact(totalValue)} total value`}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 sm:items-end">
-              {hasActiveSubscription ? (
-                <Link href="/dashboard/contracts/new"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm hover:shadow-lg hover:scale-[1.02] transition-all w-full sm:w-auto">
-                  <Plus className="w-4 h-4" />New Contract
-                </Link>
-              ) : (
-                <button disabled className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/10 text-white/40 font-bold text-sm cursor-not-allowed w-full sm:w-auto">
-                  <Lock className="w-4 h-4" />New Contract
-                </button>
-              )}
-              {expiringCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="text-xs text-amber-400 font-bold">{expiringCount} expiring within 14 days</span>
-                </div>
-              )}
-            </div>
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contract lifecycle</p>
+            {totalValue > 0 && (
+              <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
+                {formatCompact(totalValue)} active
+              </span>
+            )}
           </div>
-
           {contracts.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mt-8 pt-8 border-t border-white/[0.08]">
+            <div className="flex items-center gap-4">
               {[
-                { label: 'Active',    value: String(activeCount),   icon: CheckCircle2, color: 'text-green-400' },
-                { label: 'Expiring',  value: String(expiringCount), icon: AlertTriangle, color: 'text-amber-400' },
-                { label: 'Total',     value: String(contracts.length), icon: FileCheck,  color: 'text-blue-400' },
+                { label: 'Active',   value: String(activeCount),   color: 'text-emerald-600' },
+                { label: 'Expiring', value: String(expiringCount), color: expiringCount > 0 ? 'text-amber-600' : 'text-gray-400' },
+                { label: 'Total',    value: String(contracts.length), color: 'text-gray-900' },
               ].map(s => (
-                <div key={s.label} className="flex items-center gap-3">
-                  <s.icon className={`w-4 h-4 ${s.color} flex-shrink-0`} />
-                  <div>
-                    <p className={`text-lg font-black ${s.color} leading-none`}>{s.value}</p>
-                    <p className="text-xs text-white/40 font-medium mt-0.5">{s.label}</p>
-                  </div>
+                <div key={s.label} className="flex items-center gap-1.5">
+                  <span className={`text-sm font-black ${s.color}`}>{s.value}</span>
+                  <span className="text-xs text-gray-400 font-medium">{s.label}</span>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {expiringCount > 0 && (
+            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              {expiringCount} expiring soon
+            </div>
+          )}
+          {hasActiveSubscription ? (
+            <Link href="/dashboard/contracts/new"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+              <Plus className="w-4 h-4" />New Contract
+            </Link>
+          ) : (
+            <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed">
+              <Lock className="w-4 h-4" />New Contract
+            </button>
           )}
         </div>
       </div>
@@ -126,28 +110,25 @@ export default async function ContractsPage() {
       {!hasActiveSubscription && <ViewOnlyBanner />}
 
       {contracts.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-blue-600 to-teal-500" />
-          <div className="p-12 sm:p-16 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-6">
-              <FileCheck className="w-8 h-8 text-blue-600" />
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="h-1 inv-animated-bar" />
+          <div className="p-12 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
+              <FileCheck className="w-7 h-7 text-blue-600" />
             </div>
-            <h3 className="text-2xl font-black text-gray-900 mb-3">No contracts yet</h3>
-            <p className="text-gray-500 font-medium max-w-md mx-auto mb-2">
-              {hasActiveSubscription
-                ? 'Create a contract from a professional template, send it with a single link, and your client signs directly — no DocuSign needed. Invonaut watches for expiry dates and reminds both parties automatically.'
-                : 'Subscribe to create contracts with legally-binding e-signatures built in.'}
+            <h3 className="text-lg font-black text-gray-900 mb-2">No contracts yet</h3>
+            <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
+              Create a contract from a template, send it with one link, and your client signs directly. Invonaut watches expiry dates and reminds both parties automatically.
             </p>
-            <p className="text-sm text-gray-400 mb-8">Automatic reminders at 30, 15, 7, and 1 day before expiry.</p>
             {hasActiveSubscription ? (
               <Link href="/dashboard/contracts/new"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold hover:shadow-lg hover:scale-[1.02] transition-all">
-                <Plus className="w-5 h-5" />Create Your First Contract
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+                <Plus className="w-4 h-4" />Create Your First Contract
               </Link>
             ) : (
               <Link href="/pricing"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold hover:shadow-lg transition-all">
-                <Lock className="w-5 h-5" />Start 14-Day Free Trial
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all">
+                <Lock className="w-4 h-4" />Start Free Trial
               </Link>
             )}
           </div>

@@ -116,34 +116,17 @@ export default async function TimePage() {
   // ── Main view ────────────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Dark hero header */}
-      <div className="relative overflow-hidden rounded-2xl"
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        <div className="absolute inset-0 opacity-[0.06]" style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }} />
-        <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.05]"
-          style={{ background: 'radial-gradient(circle, #7C3AED 0%, transparent 70%)' }} />
-        <div className="relative z-10 p-8 sm:p-10">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Time Tracking</h1>
-              </div>
-              <p className="text-white/50 font-medium text-sm mt-1">
-                Track billable hours and convert them to invoice line items with one click
-              </p>
-            </div>
-            <Link href="/dashboard/time/new"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm hover:shadow-lg hover:scale-[1.02] transition-all w-full sm:w-auto">
-              <Plus className="w-4 h-4" />Manual Entry
-            </Link>
-          </div>
+
+      {/* Page header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Time Tracking</p>
+          <p className="text-sm text-gray-500 font-medium">Track billable hours · convert to invoices with one click</p>
         </div>
+        <Link href="/dashboard/time/new"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+          <Plus className="w-4 h-4" />Manual Entry
+        </Link>
       </div>
 
       {/* Live timer */}

@@ -39,6 +39,7 @@ import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-ch
 import UpcomingPaymentsList        from '@/components/cash/upcoming-payments-list'
 import TaxReserveEstimate          from '@/components/cash/tax-reserve-estimate'
 import MetricCardValue             from '@/components/dashboard/metric-card-value'
+import CoreTabBar                  from '@/components/layout/core-tab-bar'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -240,27 +241,20 @@ export default async function CashPage() {
   const isProfitable = netProfit >= 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
+      <CoreTabBar />
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200
-                       bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg
-                       transition-all font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Dashboard</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Cash Management</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Your financial command center
-            </p>
-          </div>
+      {/* Page header */}
+      <div>
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">90-day cash forecast</p>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-black text-gray-900">{formatCompact(totalRevenue)}</span>
+          <span className="text-xs text-gray-400 font-medium">Total revenue</span>
+          <span className="text-gray-200">·</span>
+          <span className="text-sm font-black text-emerald-600">{formatCompact(netProfit)}</span>
+          <span className="text-xs text-gray-400 font-medium">Net profit</span>
+          <span className="text-gray-200">·</span>
+          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">AI-powered</span>
         </div>
       </div>
 
