@@ -4,162 +4,88 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { 
-  LayoutDashboard,
-  FileText,
-  ScrollText,
-  Users,
-  ExternalLink,
-  Settings,
-  BarChart3,
-  HelpCircle,
-  CreditCard,
-  Sparkles,
-  Receipt,
-  Clock,
-  TrendingUp,
-  Banknote,
-  ChevronLeft,
-  ChevronRight,
+import {
+  LayoutDashboard, FileText, ScrollText, Users, ExternalLink,
+  Settings, BarChart3, HelpCircle, CreditCard, Sparkles,
+  Receipt, Clock, TrendingUp, Banknote,
 } from 'lucide-react'
 import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
-interface SidebarProps {
-  subscriptionTier?: string
-}
+interface SidebarProps { subscriptionTier?: string }
+
+const NAV = [
+  { name: 'Dashboard',     href: '/dashboard',           icon: LayoutDashboard },
+  { name: 'Invoices',      href: '/dashboard/invoices',  icon: FileText        },
+  { name: 'Payments',      href: '/dashboard/payments',  icon: Banknote        },
+  { name: 'Clients',       href: '/dashboard/clients',   icon: Users           },
+  { name: 'Contracts',     href: '/dashboard/contracts', icon: ScrollText      },
+  { name: 'Expenses',      href: '/dashboard/expenses',  icon: Receipt         },
+  { name: 'Time',          href: '/dashboard/time',      icon: Clock           },
+  { name: 'Cash Flow',     href: '/dashboard/cash',      icon: TrendingUp      },
+  { name: 'Client Portal', href: '/dashboard/portal',    icon: ExternalLink    },
+  { name: 'Analytics',     href: '/dashboard/analytics', icon: BarChart3       },
+  { name: 'Settings',      href: '/dashboard/settings',  icon: Settings        },
+  { name: 'Billing',       href: '/dashboard/billing',   icon: CreditCard      },
+  { name: 'Help',          href: '/help',                icon: HelpCircle      },
+]
 
 export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
-  const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const pathname  = usePathname()
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => {
-    setMounted(true)
-    setCollapsed(localStorage.getItem('invonaut_sidebar_collapsed') === 'true')
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
 
-  const toggleCollapsed = () => {
-    const next = !collapsed
-    setCollapsed(next)
-    localStorage.setItem('invonaut_sidebar_collapsed', String(next))
-  }
-
-  const navigation = [
-    { name: 'Dashboard',     href: '/dashboard',           icon: LayoutDashboard },
-    { name: 'Invoices',      href: '/dashboard/invoices',  icon: FileText        },
-    { name: 'Payments',      href: '/dashboard/payments',  icon: Banknote        },
-    { name: 'Clients',       href: '/dashboard/clients',   icon: Users           },
-    { name: 'Contracts',     href: '/dashboard/contracts', icon: ScrollText      },
-    { name: 'Expenses',      href: '/dashboard/expenses',  icon: Receipt         },
-    { name: 'Time',          href: '/dashboard/time',      icon: Clock           },
-    { name: 'Cash Flow',     href: '/dashboard/cash',      icon: TrendingUp      },
-    { name: 'Client Portal', href: '/dashboard/portal',    icon: ExternalLink    },
-    { name: 'Analytics',     href: '/dashboard/analytics', icon: BarChart3       },
-    { name: 'Settings',      href: '/dashboard/settings',  icon: Settings        },
-    { name: 'Billing',       href: '/dashboard/billing',   icon: CreditCard      },
-    { name: 'Help',          href: '/help',                icon: HelpCircle      },
-  ]
-
-  if (subscriptionTier === 'starter') {
-    navigation.push({ name: 'Upgrade', href: '/pricing', icon: Sparkles })
-  }
-
-  // Avoid layout shift before mount by rendering expanded (SSR default)
-  const isCollapsed = mounted && collapsed
+  const nav = subscriptionTier === 'starter'
+    ? [...NAV, { name: 'Upgrade', href: '/pricing', icon: Sparkles }]
+    : NAV
 
   return (
-    <div className={cn(
-      'hidden md:flex md:flex-col flex-shrink-0 transition-all duration-300',
-      isCollapsed ? 'md:w-16' : 'md:w-64'
-    )}>
-      <div className="flex flex-col flex-grow pt-8 bg-white overflow-y-auto border-r-2 border-gray-100">
-        {/* Logo + collapse toggle */}
-        <div className={cn('mb-8 flex items-center', isCollapsed ? 'px-3 justify-center' : 'px-6 justify-between')}>
-          {!isCollapsed && (
-            <Link href="/dashboard" className="flex items-center">
-              <span className="text-2xl font-black text-gray-900 tracking-tight">Invonaut</span>
-            </Link>
-          )}
-          <button
-            onClick={toggleCollapsed}
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={cn(
-              'flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-all',
-              isCollapsed ? 'w-10 h-10' : 'w-7 h-7'
-            )}
-          >
-            {isCollapsed
-              ? <ChevronRight className="w-4 h-4" />
-              : <ChevronLeft className="w-4 h-4" />
-            }
-          </button>
+    /* Always icon-only — matches demo exactly */
+    <div className="hidden md:flex md:w-16 md:flex-col flex-shrink-0">
+      <div className="flex flex-col flex-grow bg-gray-900 overflow-y-auto">
+
+        {/* Logo mark */}
+        <div className="h-16 flex items-center justify-center flex-shrink-0 border-b border-white/[0.06]">
+          <Link href="/dashboard" title="Dashboard"
+            className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors">
+            <span className="text-white font-black text-sm">IN</span>
+          </Link>
         </div>
 
-        {/* Navigation */}
-        <div className="flex flex-col flex-grow px-2">
-          <nav className="flex-1 space-y-1 pb-6">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = item.href === '/dashboard'
-                ? pathname === '/dashboard'
-                : pathname?.startsWith(item.href)
-              const isUpgrade = item.name === 'Upgrade'
-              const isTime    = item.name === 'Time'
+        {/* Nav icons */}
+        <nav className="flex-1 flex flex-col items-center gap-1 py-4 px-2">
+          {nav.map((item) => {
+            const Icon     = item.icon
+            const isActive = item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname?.startsWith(item.href)
+            const isUpgrade = item.name === 'Upgrade'
+            const isTime    = item.name === 'Time'
 
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  title={isCollapsed ? item.name : undefined}
-                  className={cn(
-                    'group flex items-center rounded-xl transition-all duration-200',
-                    isCollapsed ? 'justify-center px-0 py-3' : 'gap-3 px-4 py-3',
-                    'text-sm font-bold',
-                    isUpgrade
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:scale-105'
-                      : isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-200'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      'flex-shrink-0 h-5 w-5',
-                      isUpgrade || isActive
-                        ? 'text-white'
-                        : 'text-gray-400 group-hover:text-blue-600'
-                    )}
-                  />
-
-                  {!isCollapsed && (
-                    <>
-                      {item.name}
-
-                      {/* Timer running indicator — only on the Time nav item */}
-                      {isTime && <TimerSidebarBadge isNavActive={!!isActive} />}
-
-                      {/* Active dot */}
-                      {isActive && !isUpgrade && !isTime && (
-                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-white" />
-                      )}
-
-                      {isUpgrade && (
-                        <div className="ml-auto">
-                          <span className="text-xs font-black">→</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-
-                  {/* Timer badge in collapsed mode */}
-                  {isCollapsed && isTime && (
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                title={item.name}
+                className={cn(
+                  'relative w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-150',
+                  isUpgrade
+                    ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+                    : isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-500 hover:text-white hover:bg-white/10'
+                )}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {isTime && mounted && (
+                  <span className="absolute top-1.5 right-1.5">
                     <TimerSidebarBadge isNavActive={!!isActive} />
-                  )}
-                </Link>
-              )
-            })}
-          </nav>
-        </div>
+                  </span>
+                )}
+              </Link>
+            )
+          })}
+        </nav>
       </div>
     </div>
   )
