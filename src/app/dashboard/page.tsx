@@ -10,6 +10,7 @@ import MetricCardValue from '@/components/dashboard/metric-card-value'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import DashboardAutoRefresh from '@/components/dashboard/dashboard-auto-refresh'
 import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
+import DashboardAiStrip from '@/components/dashboard/dashboard-ai-strip'
 
 type InvoiceRaw = {
   id: string
@@ -444,6 +445,18 @@ export default async function DashboardPage() {
 
       {/* View-only banner */}
       {!hasActiveSubscription && <ViewOnlyBanner />}
+
+      {/* AI Insight Strip */}
+      {hasActiveSubscription && (
+        <DashboardAiStrip
+          overdueCount={overdueCount}
+          pendingPayments={pendingPayments}
+          expiringSoonCount={expiringSoonCount}
+          unbilledValue={unbilledValue}
+          totalRevenue={totalRevenue}
+          paidThisMonth={paidThisMonth}
+        />
+      )}
 
       {/* Invoice Metric Cards */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">

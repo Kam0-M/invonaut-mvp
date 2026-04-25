@@ -171,56 +171,76 @@ export default function DirectPaymentList({ payments }: Props) {
           <p className="text-sm font-medium text-gray-400">No payments match your filters</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-50">
-          {filtered.map(payment => {
-            const MethodIcon = PAYMENT_METHOD_CONFIG[payment.payment_method]?.icon ?? Banknote
+        <div className="p-4 space-y-2">
+          {filtered.map((payment, idx) => {
+            const MethodIcon  = PAYMENT_METHOD_CONFIG[payment.payment_method]?.icon ?? Banknote
             const methodLabel = PAYMENT_METHOD_CONFIG[payment.payment_method]?.label ?? payment.payment_method
+
+            const methodColors: Record<string, string> = {
+              cash:   'bg-amber-50 text-amber-600',
+              bank:   'bg-green-50 text-green-600',
+              mobile: 'bg-purple-50 text-purple-600',
+              pos:    'bg-blue-50 text-blue-600',
+            }
+            const iconColor = methodColors[payment.payment_method] ?? 'bg-gray-100 text-gray-500'
+
             return (
-              <Link key={payment.id} href={`/dashboard/payments/${payment.id}`}
-                className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group">
-
-                {/* Method icon */}
-                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50 transition-colors">
-                  <MethodIcon className="w-5 h-5 text-gray-500 group-hover:text-blue-600 transition-colors" />
-                </div>
-
-                {/* Main info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-bold text-gray-900 truncate">{payment.description}</p>
-                    {payment.payment_type === 'prepay' && (
-                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 flex-shrink-0">
-                        Prepaid
-                      </span>
-                    )}
+              <div
+                key={payment.id}
+                className="inv-row-in relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+                style={{ animationDelay: `${idx * 30}ms` }}
+              >
+                <div className="flex items-center gap-4 px-5 py-4">
+                  {/* Method icon */}
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${iconColor}`}>
+                    <MethodIcon className="w-5 h-5" />
                   </div>
-                  <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                    {payment.revenue_categories && (
-                      <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
-                        <span className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ backgroundColor: payment.revenue_categories.color }} />
-                        {payment.revenue_categories.name}
+
+                  {/* Main info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-bold text-gray-900 truncate">{payment.description}</p>
+                      {/* Method badge */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${iconColor} border-current border-opacity-20`}>
+                        {methodLabel}
                       </span>
-                    )}
-                    {payment.clients && (
-                      <span className="text-xs text-gray-400 font-medium">{payment.clients.name}</span>
-                    )}
-                    <span className="text-xs text-gray-400 font-medium flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(payment.payment_date)}
+                      {payment.payment_type === 'prepay' && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                          Prepaid
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      {payment.revenue_categories && (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-500">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: payment.revenue_categories.color }} />
+                          {payment.revenue_categories.name}
+                        </span>
+                      )}
+                      {payment.clients && (
+                        <span className="text-xs text-gray-400 font-medium">{payment.clients.name}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Date */}
+                  <div className="hidden sm:block flex-shrink-0 text-right min-w-[80px]">
+                    <span className="text-xs text-gray-400 font-medium">{formatDate(payment.payment_date)}</span>
+                  </div>
+
+                  {/* Amount */}
+                  <div className="flex-shrink-0 text-right min-w-[80px]">
+                    <span className="text-base font-black text-gray-900 group-hover:text-teal-600 transition-colors">
+                      {formatCurrency(Number(payment.amount))}
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">{methodLabel}</span>
                   </div>
+
+                  <span className="text-xs font-bold text-gray-300 group-hover:text-blue-400 transition-colors flex-shrink-0">→</span>
                 </div>
 
-                {/* Amount */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-base font-black text-gray-900">
-                    {formatCurrency(Number(payment.amount))}
-                  </span>
-                  <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-400 transition-colors" />
-                </div>
-              </Link>
+                <Link href={`/dashboard/payments/${payment.id}`} className="absolute inset-0 rounded-2xl" aria-label={`View payment: ${payment.description}`} />
+              </div>
             )
           })}
         </div>
