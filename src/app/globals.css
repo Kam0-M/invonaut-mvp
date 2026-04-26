@@ -37,7 +37,93 @@ body {
   }
 }
 
-/* ── Global micro-interaction foundation ──────────────────────────────── */
+/* ── Manus animation system ───────────────────────────────────────────── */
+
+/* Orbit border — AI Command Center scanning ring */
+@property --inv-orbit-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes inv-orbit-spin {
+  to { --inv-orbit-angle: 360deg; }
+}
+.inv-orbit-border {
+  position: relative;
+  border-radius: 1rem;
+  background: conic-gradient(
+    from var(--inv-orbit-angle),
+    transparent 0deg,
+    transparent 200deg,
+    #06B6D4 230deg,
+    #2563EB 270deg,
+    #06B6D4 310deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+  padding: 1.5px;
+  animation: inv-orbit-spin 10s linear infinite;
+}
+.inv-orbit-border > * {
+  border-radius: calc(1rem - 1.5px);
+}
+
+/* Glow effect on AI Command Center */
+.inv-ai-glow {
+  box-shadow: 0 0 40px rgba(6, 182, 212, 0.12), 0 4px 24px rgba(0,0,0,0.06);
+}
+
+/* Page section entrance */
+@keyframes inv-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.inv-fade-up {
+  animation: inv-fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered section delays */
+.inv-fade-up-1 { animation-delay: 0ms; }
+.inv-fade-up-2 { animation-delay: 80ms; }
+.inv-fade-up-3 { animation-delay: 160ms; }
+.inv-fade-up-4 { animation-delay: 240ms; }
+.inv-fade-up-5 { animation-delay: 320ms; }
+
+/* Activity feed item slide-in */
+@keyframes inv-slide-in {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.inv-slide-in {
+  animation: inv-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Insight cycle — fade between AI insights */
+@keyframes inv-insight-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.inv-insight-in {
+  animation: inv-insight-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* AI pulse glow — scanning dot */
+@keyframes inv-pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.5); opacity: 1; }
+  50%       { box-shadow: 0 0 0 6px rgba(6, 182, 212, 0); opacity: 0.6; }
+}
+.inv-pulse-glow {
+  animation: inv-pulse-glow 2.5s ease-in-out infinite;
+}
+
+/* Number breath — subtle life on metric values */
+@keyframes inv-breath {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.82; }
+}
+.inv-breath {
+  animation: inv-breath 6s ease-in-out infinite;
+}
 
 /* Skeleton shimmer — used across all loading states */
 @keyframes inv-shimmer {
