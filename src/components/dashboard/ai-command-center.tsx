@@ -122,18 +122,18 @@ export default function AICommandCenter({
   const t = theme[current.severity]
 
   return (
-    <div className="relative rounded-2xl overflow-hidden border border-blue-200/60 inv-fade-up inv-fade-up-1"
-      style={{ boxShadow: '0 0 40px rgba(0,102,255,0.08), 0 4px 24px rgba(0,0,0,0.06)' }}>
-
-      {/* ── Scanning beam background ─────────────────────────────────────── */}
-      {/* A slow translucent gradient arc marches left↔right across the panel.
-          It reads as "the system is continuously processing" without obscuring content. */}
+    <div
+      className="relative rounded-2xl overflow-hidden border border-blue-200/60 inv-fade-up inv-fade-up-1 inv-glow-blue"
+    >
+      {/* ── Scanning beam ─────────────────────────────────────────────────
+          Rendered directly inside the container with no opaque sibling covering it.
+          Uses mix-blend-multiply so it shows through any background. */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden>
         <div className="inv-scanning-beam" />
       </div>
 
-      {/* Main content — sits above the beam */}
-      <div className="relative z-10 bg-gradient-to-br from-slate-50/95 to-blue-50/80 p-6 sm:p-8">
+      {/* Content — semi-transparent background so beam shows through */}
+      <div className="relative z-10 bg-gray-50/85 backdrop-blur-[2px] p-6 sm:p-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
