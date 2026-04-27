@@ -39,30 +39,43 @@ body {
 
 /* ── Manus animation system ───────────────────────────────────────────── */
 
-/* ── Scanning beam — AI Command Center background ──────────────────────── */
-@keyframes inv-beam-march {
-  0%   { transform: translateX(-50%); }
-  50%  { transform: translateX(80%);  }
-  100% { transform: translateX(-50%); }
+/* ── Shimmer sweep — AI Command Center ─────────────────────────────────── */
+/* A thin diagonal highlight slides left→right across the panel every 5s,
+   like light catching a glass surface. Crisp defined edge = visible at
+   low opacity. Uses a pseudo-element approach via a wrapper div. */
+@keyframes inv-shimmer-sweep {
+  0%   { transform: translateX(-120%) skewX(-12deg); opacity: 0;   }
+  8%   { opacity: 1; }
+  60%  { transform: translateX(220%)  skewX(-12deg); opacity: 0.6; }
+  61%  { opacity: 0; }
+  100% { transform: translateX(220%)  skewX(-12deg); opacity: 0;   }
 }
-.inv-scanning-beam {
+.inv-shimmer-sweep-wrap {
   position: absolute;
-  top: -30%;
-  left: 0;
-  width: 60%;
-  height: 160%;
-  background: radial-gradient(
-    ellipse at 50% 50%,
-    rgba(0, 212, 170, 0.28) 0%,
-    rgba(0, 102, 255, 0.22) 30%,
-    rgba(0, 212, 170, 0.14) 55%,
-    transparent 75%
-  );
-  filter: blur(24px);
-  animation: inv-beam-march 16s ease-in-out infinite;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
   pointer-events: none;
-  will-change: transform;
-  mix-blend-mode: normal;
+}
+.inv-shimmer-sweep-wrap::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  left: 0;
+  width: 35%;
+  height: 140%;
+  background: linear-gradient(
+    105deg,
+    transparent        0%,
+    transparent       30%,
+    rgba(255,255,255, 0.07) 45%,
+    rgba(0, 212, 170, 0.18) 50%,
+    rgba(255,255,255, 0.07) 55%,
+    transparent       70%,
+    transparent      100%
+  );
+  animation: inv-shimmer-sweep 5s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 /* ── Panel glow variants ───────────────────────────────────────────────── */
