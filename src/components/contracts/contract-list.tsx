@@ -60,14 +60,18 @@ function avatarColor(name: string) {
 }
 
 export default function ContractList({ contracts }: Props) {
-  const [search,       setSearch]       = useState('')
-  const [typeFilter,   setTypeFilter]   = useState('all')
+  const [search,     setSearch]     = useState('')
+  const [typeFilter, setTypeFilter] = useState('all')
 
-  // Collect unique template types present in data
-  const availableTypes = useMemo(() => {
-    const types = Array.from(new Set(contracts.map(c => c.template_type).filter(Boolean)))
-    return types.sort()
-  }, [contracts])
+  // All 6 predefined types always shown — user uses search for custom types
+  const ALL_TYPES = [
+    { key: 'service_agreement', label: 'Service Agreement' },
+    { key: 'nda',               label: 'NDA'               },
+    { key: 'project_proposal',  label: 'Project Proposal'  },
+    { key: 'retainer',          label: 'Retainer'          },
+    { key: 'work_for_hire',     label: 'Work for Hire'     },
+    { key: 'subcontractor',     label: 'Subcontractor'     },
+  ]
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
@@ -85,54 +89,54 @@ export default function ContractList({ contracts }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Search + filter row */}
-      <div className="flex items-center gap-3 flex-wrap">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Search by title or client…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-9 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Type filter */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0">
+      {/* Search + filter bar */}
+      <div className="flex flex-col gap-3">
+      {/* Search bar — compact to leave room for type filters */}
+      <div className="relative w-full sm:max-w-xs">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <input
+          type="text"
+          placeholder="Search title or client…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full pl-9 pr-9 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
+        />
+        {search && (
           <button
-            onClick={() => setTypeFilter('all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              typeFilter === 'all'
+            onClick={() => setSearch('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Type filter — all 6 always shown, wraps on small screens */}
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-wrap">
+        <button
+          onClick={() => setTypeFilter('all')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+            typeFilter === 'all'
+              ? 'bg-white text-blue-600 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <Filter className="w-3 h-3" />All Types
+        </button>
+        {ALL_TYPES.map(t => (
+          <button
+            key={t.key}
+            onClick={() => setTypeFilter(t.key)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              typeFilter === t.key
                 ? 'bg-white text-blue-600 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            <Filter className="w-3 h-3" />All types
+            {t.label}
           </button>
-          {availableTypes.map(type => (
-            <button
-              key={type}
-              onClick={() => setTypeFilter(type)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
-                typeFilter === type
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {templateLabels[type] ?? type}
-            </button>
-          ))}
-        </div>
+        ))}
+      </div>
       </div>
 
       {/* Results count */}
