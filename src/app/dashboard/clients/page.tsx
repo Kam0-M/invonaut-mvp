@@ -52,7 +52,7 @@ export default async function ClientsPage() {
         </div>
         {hasActiveSubscription ? (
           <Link href="/dashboard/clients/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition-all hover:shadow-md">
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
             <Plus className="w-4 h-4" />Add Client
           </Link>
         ) : (
@@ -77,12 +77,12 @@ export default async function ClientsPage() {
             </p>
             {hasActiveSubscription ? (
               <Link href="/dashboard/clients/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition-all hover:shadow-md">
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
                 <Plus className="w-4 h-4" />Add Your First Client
               </Link>
             ) : (
               <Link href="/pricing"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all">
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary rounded-xl text-sm transition-all">
                 <Lock className="w-4 h-4" />Start Free Trial
               </Link>
             )}

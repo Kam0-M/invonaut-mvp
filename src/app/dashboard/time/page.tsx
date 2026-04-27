@@ -124,7 +124,7 @@ export default async function TimePage() {
           <p className="text-sm text-gray-500 font-medium">Track billable hours · convert to invoices with one click</p>
         </div>
         <Link href="/dashboard/time/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
           <Plus className="w-4 h-4" />Manual Entry
         </Link>
       </div>

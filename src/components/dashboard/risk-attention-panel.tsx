@@ -21,7 +21,7 @@ export default function RiskAttentionPanel({ overdueCount, expiringSoon, followU
   const allClear = overdueCount === 0 && expiringSoon === 0
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden inv-fade-up inv-fade-up-4">
+    <div className={`bg-white border rounded-2xl overflow-hidden inv-fade-up inv-fade-up-4 transition-all duration-200 hover:-translate-y-0.5 inv-glow-red ${allClear ? 'border-gray-100' : 'border-red-100'}`}>
       {/* Header */}
       <div className={`p-5 border-b border-gray-50 ${allClear ? 'bg-teal-50/40' : 'bg-red-50/30'}`}>
         <div className="flex items-center gap-3">

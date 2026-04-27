@@ -82,7 +82,7 @@ export default async function PaymentsPage() {
           )}
         </div>
         <Link href="/dashboard/payments/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition-all hover:shadow-md">
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
           <Plus className="w-4 h-4" />Log Payment
         </Link>
       </div>
@@ -100,7 +100,7 @@ export default async function PaymentsPage() {
               Log cash, POS, bank transfers, and prepayments — income that doesn't need an invoice. Tag with a category to unlock analytics.
             </p>
             <Link href="/dashboard/payments/new"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm transition-all hover:shadow-md">
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
               <Plus className="w-4 h-4" />Log Your First Payment
             </Link>
           </div>

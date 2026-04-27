@@ -33,11 +33,19 @@ const fmt = (n: number) => {
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg border border-cyan-400/30 text-xs">
+    <div className="bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg border border-white/10 text-xs">
       <p className="font-bold text-gray-300 mb-0.5">{payload[0].payload.month}</p>
-      <p className="font-black text-cyan-300">{fmt(payload[0].value)}</p>
+      <p className="font-black text-teal-300">{fmt(payload[0].value)}</p>
     </div>
   )
+}
+
+// Y-axis formatter: always compact, never runs numbers together
+const yFmt = (v: number) => {
+  if (v === 0)        return '$0'
+  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`
+  if (v >= 1_000)     return `$${Math.round(v / 1_000)}K`
+  return `$${v}`
 }
 
 export default function RevenueStorySection({ data, currentMonth, previousMonth }: Props) {
@@ -117,23 +125,36 @@ export default function RevenueStorySection({ data, currentMonth, previousMonth 
       <div className="p-6">
         <div className="w-full h-48">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={animated} margin={{ top: 4, right: 0, left: -16, bottom: 0 }}>
+            <BarChart data={animated} margin={{ top: 4, right: 8, left: 8, bottom: 0 }} barCategoryGap="32%">
               <defs>
-                <linearGradient id="rev-grad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stopColor="#2563EB" stopOpacity={0.85} />
-                  <stop offset="100%" stopColor="#06B6D4" stopOpacity={0.4}  />
+                <linearGradient id="rev-grad-story" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stopColor="#0066FF" stopOpacity={0.85} />
+                  <stop offset="100%" stopColor="#00D4AA" stopOpacity={0.5}  />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
-              <XAxis dataKey="month" stroke="#CBD5E1" tick={{ fontSize: 10, fill: '#94A3B8' }} />
-              <YAxis stroke="#CBD5E1" tick={{ fontSize: 10, fill: '#94A3B8' }} tickFormatter={v => `$${(v/1000).toFixed(0)}K`} />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(6,182,212,0.06)' }} />
-              <Bar dataKey="displayRevenue" radius={[6, 6, 0, 0]} isAnimationActive={false}>
+              <XAxis
+                dataKey="month"
+                stroke="none"
+                tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                stroke="none"
+                tick={{ fontSize: 11, fill: '#9CA3AF', fontWeight: 600 }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={yFmt}
+                width={48}
+              />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,102,255,0.04)' }} />
+              <Bar dataKey="displayRevenue" radius={[6, 6, 0, 0]} maxBarSize={52} isAnimationActive={false}>
                 {animated.map((entry, i) => (
                   <Cell
                     key={i}
-                    fill={entry.isCurrentMonth ? '#06B6D4' : 'url(#rev-grad)'}
-                    opacity={entry.isCurrentMonth ? 1 : 0.75}
+                    fill={entry.isCurrentMonth ? '#00D4AA' : 'url(#rev-grad-story)'}
+                    opacity={entry.isCurrentMonth ? 1 : 0.8}
                   />
                 ))}
               </Bar>
