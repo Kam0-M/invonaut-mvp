@@ -40,32 +40,82 @@ body {
 /* ── Manus animation system ───────────────────────────────────────────── */
 
 /* ── Scanning beam — AI Command Center background ──────────────────────── */
-/* A wide soft gradient arc slowly marches left → right → left across the panel.
-   It reads as "the system is processing" while remaining fully behind content. */
 @keyframes inv-beam-march {
-  0%   { transform: translateX(-60%); }
-  50%  { transform: translateX(100%); }
-  100% { transform: translateX(-60%); }
+  0%   { transform: translateX(-55%) scaleX(1); }
+  50%  { transform: translateX(90%)  scaleX(1.1); }
+  100% { transform: translateX(-55%) scaleX(1); }
 }
 .inv-scanning-beam {
   position: absolute;
-  top: 0;
+  top: -20%;
   left: 0;
-  width: 70%;
-  height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    rgba(0, 102, 255, 0.04) 20%,
-    rgba(0, 212, 170, 0.07) 45%,
-    rgba(0, 102, 255, 0.05) 60%,
+  width: 65%;
+  height: 140%;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(0, 212, 170, 0.12) 0%,
+    rgba(0, 102, 255, 0.10) 35%,
+    rgba(0, 212, 170, 0.06) 60%,
     transparent 80%
   );
-  border-radius: 50%;
-  filter: blur(28px);
-  animation: inv-beam-march 14s ease-in-out infinite;
+  filter: blur(32px);
+  animation: inv-beam-march 16s ease-in-out infinite;
   pointer-events: none;
+  will-change: transform;
 }
+
+/* ── Panel glow variants ───────────────────────────────────────────────── */
+.inv-glow-red {
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.10), 0 4px 16px rgba(0,0,0,0.05);
+}
+.inv-glow-teal {
+  box-shadow: 0 0 32px rgba(0, 212, 170, 0.12), 0 4px 16px rgba(0,0,0,0.05);
+}
+.inv-glow-blue {
+  box-shadow: 0 0 40px rgba(0, 102, 255, 0.10), 0 4px 24px rgba(0,0,0,0.06);
+}
+
+/* ── Sidebar active state gradient cycling ─────────────────────────────── */
+@keyframes inv-sidebar-active {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+.inv-sidebar-active {
+  background: linear-gradient(135deg, #0066FF, #0052CC, #0066FF);
+  background-size: 200% 200%;
+  animation: inv-sidebar-active 8s ease-in-out infinite;
+}
+
+/* ── Primary gradient buttons ──────────────────────────────────────────── */
+/* Blue primary — bg-btn-blue */
+.btn-primary {
+  background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+  color: white;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 102, 255, 0.25);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #0052CC 0%, #003DA6 100%);
+  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.35);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: scale(0.98) translateY(0); }
+
+/* Teal secondary */
+.btn-secondary {
+  background: linear-gradient(135deg, #00D4AA 0%, #00B894 100%);
+  color: white;
+  font-weight: 700;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 212, 170, 0.25);
+}
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #00B894 0%, #009B7D 100%);
+  box-shadow: 0 4px 12px rgba(0, 212, 170, 0.35);
+  transform: translateY(-1px);
+}
+.btn-secondary:active { transform: scale(0.98) translateY(0); }
 
 /* Page section entrance */
 @keyframes inv-fade-up {

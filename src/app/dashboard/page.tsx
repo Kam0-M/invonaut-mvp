@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { FileText, Users, TrendingUp, Lock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import { getWelcomeMessage }       from '@/lib/utils/get-welcome-message'
+import { getContextualMessage } from '@/lib/utils/get-welcome-message'
 import ViewOnlyBanner              from '@/components/view-only-banner'
 import DashboardAutoRefresh        from '@/components/dashboard/dashboard-auto-refresh'
 import OnboardingChecklist         from '@/components/dashboard/onboarding-checklist'
@@ -192,7 +192,17 @@ export default async function DashboardPage() {
   const hour          = now.getHours()
   const timeGreeting  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
   const firstName     = profile?.full_name?.split(' ')[0] || profile?.business_name || user.email?.split('@')[0] || 'there'
-  const motivational  = getWelcomeMessage()
+  const isNewUser     = invoices.length === 0 && directPayments.length === 0
+  const motivational  = getContextualMessage({
+    overdueCount,
+    pendingPayments,
+    paidThisMonth,
+    totalRevenue,
+    unbilledValue,
+    expiringSoon,
+    hasClients:   clients.length > 0,
+    isNewUser,
+  })
 
   const statusPill: Record<string, string> = {
     draft:   'bg-gray-100 text-gray-600',
@@ -223,7 +233,7 @@ export default async function DashboardPage() {
         </div>
         {!hasActiveSubscription && (
           <Link href="/pricing"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all flex-shrink-0">
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl btn-primary text-sm transition-all flex-shrink-0">
             <Lock className="w-3.5 h-3.5" />Start Free Trial
           </Link>
         )}

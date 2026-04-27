@@ -102,7 +102,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
         </div>
         {hasActiveSubscription && (
           <Link href="/dashboard/expenses/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-sm transition-all hover:shadow-md">
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
             <Plus className="w-4 h-4" />Add Expense
           </Link>
         )}
@@ -120,7 +120,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
               Log expenses with AI-suggested categories, upload receipts, and set monthly budget limits. Get automatic alerts at 80% and 100% of each limit.
             </p>
             <Link href="/pricing"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold hover:shadow-lg transition-all">
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-primary rounded-xl hover:shadow-lg transition-all">
               View Plans
             </Link>
           </div>

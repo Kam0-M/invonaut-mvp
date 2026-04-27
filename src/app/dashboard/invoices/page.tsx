@@ -80,7 +80,7 @@ export default async function InvoicesPage() {
         <div>
           {hasActiveSubscription ? (
             <Link href="/dashboard/invoices/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
               <Plus className="w-4 h-4" />New Invoice
             </Link>
           ) : (
@@ -107,12 +107,12 @@ export default async function InvoicesPage() {
             </p>
             {hasActiveSubscription ? (
               <Link href="/dashboard/invoices/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all hover:shadow-md">
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
                 <Plus className="w-4 h-4" />Create Your First Invoice
               </Link>
             ) : (
               <Link href="/pricing"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all">
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary rounded-xl text-sm transition-all">
                 <Lock className="w-4 h-4" />Start Free Trial
               </Link>
             )}

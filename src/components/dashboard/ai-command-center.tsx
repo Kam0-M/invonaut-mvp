@@ -152,11 +152,11 @@ export default function AICommandCenter({
           {hasActiveSubscription && (
             <div className="hidden sm:flex items-center gap-2">
               <Link href="/dashboard/invoices/new"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition-all hover:shadow-md active:scale-[0.98]">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs transition-all hover:shadow-md active:scale-[0.98]">
                 <Plus className="w-3 h-3" />Invoice
               </Link>
               <Link href="/dashboard/payments/new"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-bold text-xs transition-all hover:shadow-md active:scale-[0.98]">
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-secondary text-xs transition-all hover:shadow-md active:scale-[0.98]">
                 <Plus className="w-3 h-3" />Payment
               </Link>
             </div>

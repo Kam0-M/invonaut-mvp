@@ -21,7 +21,7 @@ export default function OpportunityPanel({ unbilledHours, unbilledValue, activeC
   const hasOpportunities = unbilledValue > 0 || contractValue > 0
 
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden inv-fade-up inv-fade-up-4">
+    <div className="bg-white border border-teal-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-4 transition-all duration-200 hover:-translate-y-0.5 inv-glow-teal">
       {/* Header */}
       <div className="p-5 border-b border-gray-50 bg-teal-50/30">
         <div className="flex items-center gap-3">
