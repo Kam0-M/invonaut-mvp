@@ -153,26 +153,26 @@ export default async function DashboardPage() {
   const activity: ActivityItem[] = []
 
   invoices.filter((i: any) => ['sent','paid','overdue'].includes(i.displayStatus)).slice(0, 5).forEach((inv: any) => {
-    activity.push({ id: `inv-${inv.id}`, type: 'invoice', icon: '📄',
+    activity.push({ id: `inv-${inv.id}`, type: 'invoice',
       title: 'Invoice sent', detail: `${inv.invoice_number} · ${fmt(inv.total_amount)} · ${inv.clients?.name ?? 'Client'}`,
       timestamp: inv.created_at ?? inv.issue_date })
   })
   directPayments.slice(0, 5).forEach((p: any) => {
     const cat = Array.isArray(p.revenue_categories) ? p.revenue_categories[0] : p.revenue_categories
-    activity.push({ id: `pay-${p.id}`, type: 'payment', icon: '💵',
+    activity.push({ id: `pay-${p.id}`, type: 'payment',
       title: 'Payment logged', detail: `${fmt(Number(p.amount))} · ${p.description}${cat?.name ? ` · ${cat.name}` : ''}`,
       timestamp: p.created_at })
   })
   ;(recentSigsRaw ?? []).forEach((sig: any) => {
     const contract = Array.isArray(sig.contracts) ? sig.contracts[0] : sig.contracts
     if (!contract || contract.user_id !== user.id) return
-    activity.push({ id: `sig-${sig.id}`, type: 'contract', icon: '✅',
+    activity.push({ id: `sig-${sig.id}`, type: 'contract',
       title: 'Contract signed', detail: `${contract.title} · ${sig.signer_name}`, timestamp: sig.signed_at })
   })
   ;(followUpRaw ?? []).forEach((inv: any) => {
     if (!inv.last_followed_up) return
     const client = Array.isArray(inv.clients) ? inv.clients[0] : inv.clients
-    activity.push({ id: `fu-${inv.id}`, type: 'followup', icon: '🤖',
+    activity.push({ id: `fu-${inv.id}`, type: 'followup',
       title: 'Follow-up sent automatically',
       detail: `${inv.invoice_number} · ${client?.name ?? 'Client'}${inv.ai_risk_score ? ` · Risk ${inv.ai_risk_score}%` : ''}`,
       timestamp: inv.last_followed_up })

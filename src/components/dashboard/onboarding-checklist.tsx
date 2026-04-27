@@ -120,7 +120,7 @@ export default function OnboardingChecklist({
           <div className="inv-celebrate-icon inv-celebrate-float inline-flex w-16 h-16 rounded-2xl bg-emerald-500 items-center justify-center mb-4 shadow-lg shadow-emerald-200">
             <PartyPopper className="w-8 h-8 text-white" />
           </div>
-          <h3 className="text-xl font-black text-gray-900 mb-2">You're all set! 🎉</h3>
+          <h3 className="text-xl font-black text-gray-900 mb-2">You're all set!</h3>
           <p className="text-sm text-gray-600 font-medium max-w-xs mx-auto">
             You've completed every setup step. Invonaut is fully running for your business — the system is watching from here.
           </p>

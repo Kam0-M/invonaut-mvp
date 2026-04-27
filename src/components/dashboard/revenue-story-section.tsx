@@ -24,16 +24,18 @@ interface Props {
   previousMonth: number
 }
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
-const fmtK = (n: number) => n >= 1000 ? `$${(n / 1000).toFixed(1)}K` : fmt(n)
+const fmt = (n: number) => {
+  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
+  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+}
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-gray-900 text-white px-3 py-2 rounded-lg shadow-lg border border-cyan-400/30 text-xs">
       <p className="font-bold text-gray-300 mb-0.5">{payload[0].payload.month}</p>
-      <p className="font-black text-cyan-300">{fmtK(payload[0].value)}</p>
+      <p className="font-black text-cyan-300">{fmt(payload[0].value)}</p>
     </div>
   )
 }
@@ -83,8 +85,8 @@ export default function RevenueStorySection({ data, currentMonth, previousMonth 
             </div>
             <p className="text-sm text-gray-500 font-medium">
               {isGrowing
-                ? `${fmtK(currentMonth)} collected. Momentum is ${trendPct > 15 ? 'accelerating' : 'building'}.`
-                : `${fmtK(currentMonth)} collected. Consider reviewing your pipeline.`}
+                ? `${fmt(currentMonth)} collected. Momentum is ${trendPct > 15 ? 'accelerating' : 'building'}.`
+                : `${fmt(currentMonth)} collected. Consider reviewing your pipeline.`}
             </p>
           </div>
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center shadow-md flex-shrink-0">
@@ -96,11 +98,11 @@ export default function RevenueStorySection({ data, currentMonth, previousMonth 
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 bg-white/60 rounded-xl border border-gray-200/70">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">This month</p>
-            <p className="text-lg font-black text-gray-900 mt-0.5">{fmtK(currentMonth)}</p>
+            <p className="text-lg font-black text-gray-900 mt-0.5">{fmt(currentMonth)}</p>
           </div>
           <div className="p-3 bg-white/60 rounded-xl border border-gray-200/70">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Last month</p>
-            <p className="text-lg font-black text-gray-900 mt-0.5">{fmtK(previousMonth)}</p>
+            <p className="text-lg font-black text-gray-900 mt-0.5">{fmt(previousMonth)}</p>
           </div>
           <div className={`p-3 rounded-xl border ${isGrowing ? 'bg-teal-50 border-teal-200' : 'bg-red-50 border-red-200'}`}>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Change</p>
@@ -139,11 +141,10 @@ export default function RevenueStorySection({ data, currentMonth, previousMonth 
           </ResponsiveContainer>
         </div>
 
-        {/* Insight footer */}
         <div className="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
           <p className="text-xs text-gray-600">
-            <span className="font-bold text-blue-600">📊 Insight: </span>
-            Your 6-month average is {fmtK(avg6)}. This month is{' '}
+            <span className="font-bold text-blue-700">Insight: </span>
+            Your 6-month average is {fmt(avg6)}. This month is{' '}
             <span className={`font-bold ${currentMonth >= avg6 ? 'text-teal-600' : 'text-amber-600'}`}>
               {currentMonth >= avg6 ? 'above' : 'below'} trend.
             </span>

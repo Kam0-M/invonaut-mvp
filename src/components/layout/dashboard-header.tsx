@@ -5,7 +5,7 @@ import Link         from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User }    from '@supabase/supabase-js'
-import { LogOut, Menu, X, ChevronDown } from 'lucide-react'
+import { LogOut, Menu, X, ChevronDown, Settings } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardHeaderProps {
@@ -34,9 +34,9 @@ export default function DashboardHeader({
   const displayName = businessName || user.email || ''
 
   const tierBadge: Record<string, { label: string; cls: string }> = {
-    starter:      { label: 'Starter',      cls: 'bg-gray-100 text-gray-600'                  },
-    professional: { label: 'Professional', cls: 'bg-blue-50 text-blue-700'                   },
-    business:     { label: 'Business',     cls: 'bg-gradient-to-r from-purple-600 to-blue-600 text-white' },
+    starter:      { label: 'Starter',      cls: 'bg-gray-100 text-gray-600'       },
+    professional: { label: 'Professional', cls: 'bg-blue-50 text-blue-700'        },
+    business:     { label: 'Business',     cls: 'bg-teal-500 text-white'          },
   }
   const badge = tierBadge[subscriptionTier] ?? tierBadge.starter
 
@@ -87,9 +87,17 @@ export default function DashboardHeader({
                 <p className="text-xs text-gray-400 font-medium">Signed in as</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
               </div>
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setMenuOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Settings className="w-4 h-4" />
+                Settings
+              </Link>
               <button
                 onClick={handleLogout}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors border-t border-gray-50"
               >
                 <LogOut className="w-4 h-4" />
                 Sign out

@@ -6,13 +6,15 @@ import { useEffect, useState } from 'react'
 import { cn }          from '@/lib/utils'
 import {
   LayoutDashboard, FileText, ScrollText, Users, ExternalLink,
-  Settings, BarChart3, HelpCircle, CreditCard, Sparkles,
-  Receipt, Clock, TrendingUp, Banknote, ChevronRight, ChevronLeft,
+  BarChart3, HelpCircle, CreditCard, Sparkles,
+  Receipt, Clock, TrendingUp, Banknote,
+  ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen,
 } from 'lucide-react'
 import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
 interface SidebarProps { subscriptionTier?: string }
 
+// Settings removed — lives in the header dropdown now
 const NAV = [
   { name: 'Dashboard',     href: '/dashboard',           icon: LayoutDashboard },
   { name: 'Invoices',      href: '/dashboard/invoices',  icon: FileText        },
@@ -24,15 +26,12 @@ const NAV = [
   { name: 'Cash Flow',     href: '/dashboard/cash',      icon: TrendingUp      },
   { name: 'Client Portal', href: '/dashboard/portal',    icon: ExternalLink    },
   { name: 'Analytics',     href: '/dashboard/analytics', icon: BarChart3       },
-  { name: 'Settings',      href: '/dashboard/settings',  icon: Settings        },
   { name: 'Billing',       href: '/dashboard/billing',   icon: CreditCard      },
   { name: 'Help',          href: '/help',                icon: HelpCircle      },
 ]
 
 export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
-  const pathname  = usePathname()
-  // Always start collapsed on SSR — expand after mount if localStorage says so.
-  // This prevents hydration mismatch.
+  const pathname = usePathname()
   const [expanded, setExpanded] = useState(false)
   const [mounted,  setMounted]  = useState(false)
 
@@ -51,53 +50,35 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
     ? [...NAV, { name: 'Upgrade', href: '/pricing', icon: Sparkles }]
     : NAV
 
-  // SSR always renders collapsed width. After mount, CSS transition handles expand.
   const isExpanded = mounted && expanded
 
   return (
     <div
       className={cn(
-        'hidden md:flex md:flex-col flex-shrink-0 bg-gray-900 overflow-y-auto transition-all duration-200',
+        'hidden md:flex md:flex-col flex-shrink-0 bg-gray-900 overflow-hidden transition-all duration-200',
         isExpanded ? 'md:w-56' : 'md:w-16'
       )}
-      // Suppress the one-time width mismatch caused by localStorage on first client paint
       suppressHydrationWarning
     >
-      {/* Logo + toggle */}
+      {/* Logo row */}
       <div className={cn(
-        'h-16 flex items-center flex-shrink-0 border-b border-white/[0.06]',
-        isExpanded ? 'px-4 justify-between' : 'justify-center'
+        'h-14 flex items-center flex-shrink-0 border-b border-white/[0.06]',
+        isExpanded ? 'px-4 gap-3' : 'justify-center'
       )}>
+        <Link href="/dashboard" title="Dashboard"
+          className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors flex-shrink-0">
+          <span className="text-white font-black text-xs">IN</span>
+        </Link>
         {isExpanded && (
-          <Link href="/dashboard"
-            className="text-white font-black text-base tracking-tight hover:text-blue-400 transition-colors">
-            Invonaut
-          </Link>
+          <span className="text-white font-black text-sm tracking-tight truncate">Invonaut</span>
         )}
-        {!isExpanded && (
-          <Link href="/dashboard" title="Dashboard"
-            className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors flex-shrink-0">
-            <span className="text-white font-black text-sm">IN</span>
-          </Link>
-        )}
-        <button
-          onClick={toggle}
-          title={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
-          className={cn(
-            'flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-all flex-shrink-0',
-            isExpanded ? 'w-7 h-7' : 'w-7 h-7 ml-0'
-          )}
-          style={isExpanded ? {} : { marginLeft: 'auto', marginRight: 'auto', marginTop: '0', position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)' }}
-        >
-          {isExpanded
-            ? <ChevronLeft  className="w-3.5 h-3.5" />
-            : <ChevronRight className="w-3.5 h-3.5" />
-          }
-        </button>
       </div>
 
-      {/* Nav */}
-      <nav className={cn('flex-1 flex flex-col gap-1 py-4', isExpanded ? 'px-3' : 'items-center px-2')}>
+      {/* Nav items */}
+      <nav className={cn(
+        'flex-1 flex flex-col gap-1 py-4 overflow-y-auto',
+        isExpanded ? 'px-3' : 'items-center px-2'
+      )}>
         {nav.map((item) => {
           const Icon      = item.icon
           const isActive  = item.href === '/dashboard'
@@ -115,7 +96,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
                 'relative flex items-center rounded-xl transition-all duration-150',
                 isExpanded ? 'gap-3 px-3 py-2.5' : 'w-10 h-10 justify-center',
                 isUpgrade
-                  ? 'bg-gradient-to-br from-purple-600 to-blue-600 text-white'
+                  ? 'bg-gradient-to-br from-blue-600 to-teal-500 text-white'
                   : isActive
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-500 hover:text-white hover:bg-white/10'
@@ -135,16 +116,27 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
         })}
       </nav>
 
-      {/* Expand toggle pinned to bottom when collapsed */}
-      {isExpanded && (
-        <div className="px-3 pb-4">
-          <button onClick={toggle}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-gray-600 hover:text-gray-400 hover:bg-white/5 transition-all text-xs font-medium">
-            <ChevronLeft className="w-3.5 h-3.5" />
-            Collapse
-          </button>
-        </div>
-      )}
+      {/* Expand / collapse toggle — sits below Help, above the bottom edge */}
+      <div className={cn(
+        'flex-shrink-0 border-t border-white/[0.06] py-3',
+        isExpanded ? 'px-3' : 'flex justify-center'
+      )}>
+        <button
+          onClick={toggle}
+          title={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
+          className={cn(
+            'flex items-center rounded-xl text-gray-500 hover:text-white hover:bg-white/10 transition-all',
+            isExpanded
+              ? 'gap-3 px-3 py-2.5 w-full'
+              : 'w-10 h-10 justify-center'
+          )}
+        >
+          {isExpanded
+            ? <><PanelLeftClose className="w-5 h-5 flex-shrink-0" /><span className="text-sm font-bold">Collapse</span></>
+            : <PanelLeftOpen   className="w-5 h-5" />
+          }
+        </button>
+      </div>
     </div>
   )
 }
