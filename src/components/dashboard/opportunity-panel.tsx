@@ -73,15 +73,13 @@ export default function OpportunityPanel({ unbilledHours, unbilledValue, activeC
           </div>
         </div>
 
-        {hasOpportunities && (
           <div className="mt-3 p-3 rounded-xl bg-blue-50 border border-blue-100">
             <p className="text-xs text-gray-600">
-              <span className="font-bold text-blue-600">💡 Insight: </span>
+              <span className="font-bold text-blue-700">Insight: </span>
               Converting unbilled hours and active contracts could increase monthly revenue by{' '}
               <span className="font-bold">18–24%</span>.
             </p>
           </div>
-        )}
       </div>
     </div>
   )

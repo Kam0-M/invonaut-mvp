@@ -39,38 +39,32 @@ body {
 
 /* ── Manus animation system ───────────────────────────────────────────── */
 
-/* Orbit border — AI Command Center scanning ring */
-@property --inv-orbit-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
+/* ── Scanning beam — AI Command Center background ──────────────────────── */
+/* A wide soft gradient arc slowly marches left → right → left across the panel.
+   It reads as "the system is processing" while remaining fully behind content. */
+@keyframes inv-beam-march {
+  0%   { transform: translateX(-60%); }
+  50%  { transform: translateX(100%); }
+  100% { transform: translateX(-60%); }
 }
-@keyframes inv-orbit-spin {
-  to { --inv-orbit-angle: 360deg; }
-}
-.inv-orbit-border {
-  position: relative;
-  border-radius: 1rem;
-  background: conic-gradient(
-    from var(--inv-orbit-angle),
-    transparent 0deg,
-    transparent 200deg,
-    #06B6D4 230deg,
-    #2563EB 270deg,
-    #06B6D4 310deg,
-    transparent 340deg,
-    transparent 360deg
+.inv-scanning-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 70%;
+  height: 100%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(0, 102, 255, 0.04) 20%,
+    rgba(0, 212, 170, 0.07) 45%,
+    rgba(0, 102, 255, 0.05) 60%,
+    transparent 80%
   );
-  padding: 1.5px;
-  animation: inv-orbit-spin 10s linear infinite;
-}
-.inv-orbit-border > * {
-  border-radius: calc(1rem - 1.5px);
-}
-
-/* Glow effect on AI Command Center */
-.inv-ai-glow {
-  box-shadow: 0 0 40px rgba(6, 182, 212, 0.12), 0 4px 24px rgba(0,0,0,0.06);
+  border-radius: 50%;
+  filter: blur(28px);
+  animation: inv-beam-march 14s ease-in-out infinite;
+  pointer-events: none;
 }
 
 /* Page section entrance */
