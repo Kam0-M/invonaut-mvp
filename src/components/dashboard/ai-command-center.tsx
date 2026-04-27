@@ -125,15 +125,13 @@ export default function AICommandCenter({
     <div
       className="relative rounded-2xl overflow-hidden border border-blue-200/60 inv-fade-up inv-fade-up-1 inv-glow-blue"
     >
-      {/* ── Scanning beam ─────────────────────────────────────────────────
-          Rendered directly inside the container with no opaque sibling covering it.
-          Uses mix-blend-multiply so it shows through any background. */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl" aria-hidden>
-        <div className="inv-scanning-beam" />
-      </div>
+      {/* ── Shimmer sweep ───────────────────────────────────────────────
+          A diagonal highlight slides across every 5s via CSS ::after.
+          Defined edge makes it visible without high opacity. */}
+      <div className="inv-shimmer-sweep-wrap" aria-hidden />
 
-      {/* Content — semi-transparent background so beam shows through */}
-      <div className="relative z-10 bg-gray-50/85 backdrop-blur-[2px] p-6 sm:p-8">
+      {/* Content — lightly tinted so shimmer passes through */}
+      <div className="relative z-10 bg-gradient-to-br from-blue-50/60 to-slate-50/80 p-6 sm:p-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
