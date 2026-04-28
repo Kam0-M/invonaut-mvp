@@ -89,14 +89,14 @@ export default function ContractList({ contracts }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Search + filter — same row, search shrinks to fit */}
-      <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-        {/* Search — fixed compact width */}
-        <div className="relative flex-shrink-0 w-52">
+      {/* Search + filter — search fills remaining space, pills are exactly content-width */}
+      <div className="flex items-center gap-3">
+        {/* Search — grows to fill space between pills and edge */}
+        <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search…"
+            placeholder="Search title or client…"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-9 pr-8 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
@@ -111,11 +111,11 @@ export default function ContractList({ contracts }: Props) {
           )}
         </div>
 
-        {/* Type pills — scrollable on small screens */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl overflow-x-auto flex-1 min-w-0">
+        {/* Type pills — exactly as wide as content, no stretching */}
+        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl flex-shrink-0">
           <button
             onClick={() => setTypeFilter('all')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
               typeFilter === 'all'
                 ? 'bg-white text-blue-600 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -127,7 +127,7 @@ export default function ContractList({ contracts }: Props) {
             <button
               key={t.key}
               onClick={() => setTypeFilter(t.key)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
                 typeFilter === t.key
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-500 hover:text-gray-700'
