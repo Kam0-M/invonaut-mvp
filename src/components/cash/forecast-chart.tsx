@@ -63,7 +63,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         </p>
       )}
       {isNegative && (
-        <p style={{ fontSize: 11, color: '#DC2626', marginTop: 6, fontWeight: 700 }}>⚠ Projected shortfall</p>
+        <p style={{ fontSize: 11, color: '#DC2626', marginTop: 6, fontWeight: 700 }}>Projected shortfall</p>
       )}
     </div>
   )
