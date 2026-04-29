@@ -263,7 +263,7 @@ export default async function CashPage() {
 
         {/* Total Revenue */}
         <Link href="/dashboard/invoices"
-          className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+          className="bg-white rounded-2xl border border-blue-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group inv-glow-blue">
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
               <DollarSign className="w-4 h-4 text-white" />
@@ -276,7 +276,8 @@ export default async function CashPage() {
 
         {/* Total Expenses */}
         <Link href="/dashboard/expenses"
-          className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group">
+          className="bg-white rounded-2xl border border-orange-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
+          style={{ boxShadow: '0 0 28px rgba(249,115,22,0.08), 0 2px 12px rgba(0,0,0,0.04)' }}>
           <div className="flex items-center justify-between mb-3">
             <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
               <Receipt className="w-4 h-4 text-white" />
@@ -287,8 +288,13 @@ export default async function CashPage() {
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</p>
         </Link>
 
-        {/* Net Profit */}
-        <div className={`bg-white rounded-2xl border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${isProfitable ? 'border-teal-100' : 'border-red-100'}`}>
+        {/* Net Profit — glow changes with profitability */}
+        <div className={`bg-white rounded-2xl border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
+          isProfitable ? 'border-teal-100' : 'border-red-100'
+        }`}
+          style={{ boxShadow: isProfitable
+            ? '0 0 28px rgba(0,212,170,0.12), 0 2px 12px rgba(0,0,0,0.04)'
+            : '0 0 28px rgba(239,68,68,0.12), 0 2px 12px rgba(0,0,0,0.04)' }}>
           <div className="flex items-center justify-between mb-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isProfitable ? 'bg-teal-500' : 'bg-red-500'}`}>
               {isProfitable
@@ -308,9 +314,10 @@ export default async function CashPage() {
           )}
         </div>
 
-        {/* Overdue */}
+        {/* Overdue — red glow only when there are overdue items */}
         <Link href="/dashboard/invoices?status=overdue"
-          className={`bg-white rounded-2xl border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group ${overdueCount > 0 ? 'border-red-100' : 'border-gray-100'}`}>
+          className={`bg-white rounded-2xl border p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group ${overdueCount > 0 ? 'border-red-100' : 'border-gray-100'}`}
+          style={overdueCount > 0 ? { boxShadow: '0 0 28px rgba(239,68,68,0.12), 0 2px 12px rgba(0,0,0,0.04)' } : {}}>
           <div className="flex items-center justify-between mb-3">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${overdueCount > 0 ? 'bg-red-500' : 'bg-gray-300'}`}>
               <AlertCircle className="w-4 h-4 text-white" />

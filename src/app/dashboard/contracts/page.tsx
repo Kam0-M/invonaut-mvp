@@ -50,6 +50,7 @@ export default async function ContractsPage() {
   }))
 
   const activeCount   = contracts.filter(c => c.status === 'active').length
+  const draftCount    = contracts.filter(c => c.status === 'draft').length
   const expiringCount = contracts.filter(c => {
     if (!c.end_date) return false
     const days = Math.ceil((new Date(c.end_date).getTime() - Date.now()) / 86400000)
@@ -75,8 +76,9 @@ export default async function ContractsPage() {
           {contracts.length > 0 && (
             <div className="flex items-center gap-4">
               {[
-                { label: 'Active',   value: String(activeCount),   color: 'text-emerald-600' },
-                { label: 'Expiring', value: String(expiringCount), color: expiringCount > 0 ? 'text-amber-600' : 'text-gray-400' },
+                { label: 'Active',   value: String(activeCount),      color: 'text-emerald-600' },
+                { label: 'Expiring', value: String(expiringCount),    color: expiringCount > 0 ? 'text-amber-600' : 'text-gray-400' },
+                { label: 'Drafts',   value: String(draftCount),       color: draftCount > 0 ? 'text-gray-600' : 'text-gray-400' },
                 { label: 'Total',    value: String(contracts.length), color: 'text-gray-900' },
               ].map(s => (
                 <div key={s.label} className="flex items-center gap-1.5">

@@ -2,170 +2,154 @@
 
 import { useState } from 'react'
 import { Check } from 'lucide-react'
-import CheckoutButton from '@/components/checkout-button'
+import CheckoutButton      from '@/components/checkout-button'
 import DowngradeConfirmButton from '@/components/billing/downgrade-confirm-button'
 
 type Plan = {
-  id: string
-  name: string
-  monthlyPrice: number
-  annualMonthlyPrice: number
-  annualTotalPrice: number
+  id: string; name: string
+  monthlyPrice: number; annualMonthlyPrice: number; annualTotalPrice: number
   features: string[]
-  monthlyPriceId: string
-  annualPriceId: string
+  monthlyPriceId: string; annualPriceId: string
 }
 
-interface BillingPlansSectionProps {
-  plans: Plan[]
-  currentTier: string
-  hasActiveSubscription: boolean
-  hasEverSubscribed: boolean
+interface Props {
+  plans: Plan[]; currentTier: string
+  hasActiveSubscription: boolean; hasEverSubscribed: boolean
 }
 
-export default function BillingPlansSection({
-  plans,
-  currentTier,
-  hasActiveSubscription,
-  hasEverSubscribed,
-}: BillingPlansSectionProps) {
+export default function BillingPlansSection({ plans, currentTier, hasActiveSubscription, hasEverSubscribed }: Props) {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const tiers = ['starter', 'professional', 'business']
 
   return (
-    <div id="available-plans">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h2 className="text-2xl font-black text-gray-900">
-          {!hasEverSubscribed ? 'Choose Your Plan' : 'Available Plans'}
-        </h2>
-
-        {/* Billing toggle */}
-        <div className="flex items-center gap-3">
-          <span className={`text-sm font-bold ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>
-            Monthly
-          </span>
+    <div id="available-plans" className="space-y-4">
+      {/* Section header + toggle */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Available plans</p>
+          <p className="text-sm font-black text-gray-900 mt-0.5">
+            {!hasEverSubscribed ? 'Start your 14-day free trial' : 'Switch or upgrade your plan'}
+          </p>
+        </div>
+        {/* Billing period toggle */}
+        <div className="flex items-center gap-3 bg-gray-100 p-1 rounded-xl">
           <button
-            onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-              billing === 'annual' ? 'bg-blue-600' : 'bg-gray-300'
+            onClick={() => setBilling('monthly')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              billing === 'monthly' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
-            aria-label="Toggle billing period"
+          >Monthly</button>
+          <button
+            onClick={() => setBilling('annual')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              billing === 'annual' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+            }`}
           >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              billing === 'annual' ? 'translate-x-6' : 'translate-x-1'
-            }`} />
+            Annual
+            <span className="px-1.5 py-0.5 rounded-full bg-teal-100 text-teal-700 text-[10px] font-bold">−17%</span>
           </button>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-bold ${billing === 'annual' ? 'text-gray-900' : 'text-gray-400'}`}>
-              Annual
-            </span>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-              Save 2 months
-            </span>
-          </div>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
+      {/* Plan cards */}
+      <div className="grid md:grid-cols-3 gap-4">
         {plans.map(plan => {
-          const isCurrentPlan = plan.id === currentTier && hasActiveSubscription
-          const activePriceId = billing === 'annual' ? plan.annualPriceId : plan.monthlyPriceId
-          const displayPrice = billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice
+          const isCurrentPlan  = plan.id === currentTier && hasActiveSubscription
+          const isPopular      = plan.id === 'professional'
+          const displayPrice   = billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice
+          const activePriceId  = billing === 'annual' ? plan.annualPriceId      : plan.monthlyPriceId
+          const currentIdx     = tiers.indexOf(currentTier)
+          const planIdx        = tiers.indexOf(plan.id)
+          const isUpgrade      = planIdx > currentIdx
+          const isDowngrade    = planIdx < currentIdx
 
           return (
             <div
               key={plan.id}
-              className={`rounded-2xl border-2 p-6 transition-all flex flex-col ${
+              className={`relative bg-white rounded-2xl border p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
                 isCurrentPlan
-                  ? 'border-blue-500 bg-blue-50'
-                  : plan.id === 'professional'
-                  ? 'border-blue-300 bg-white hover:border-blue-400 hover:shadow-xl'
-                  : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-lg'
+                  ? 'border-blue-300 shadow-sm'
+                  : isPopular
+                  ? 'border-teal-200 hover:shadow-md'
+                  : 'border-gray-100 hover:shadow-md'
               }`}
+              style={isCurrentPlan
+                ? { boxShadow: '0 0 28px rgba(0,102,255,0.10), 0 2px 12px rgba(0,0,0,0.04)' }
+                : isPopular
+                ? { boxShadow: '0 0 28px rgba(0,212,170,0.10), 0 2px 12px rgba(0,0,0,0.04)' }
+                : {}
+              }
             >
+              {/* Badge */}
               {isCurrentPlan && (
-                <div className="mb-4">
-                  <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-full uppercase tracking-wide">
-                    Current Plan
-                  </span>
-                </div>
+                <span className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-600 text-white uppercase tracking-wide">
+                  Current
+                </span>
               )}
-              {!isCurrentPlan && plan.id === 'professional' && (
-                <div className="mb-4">
-                  <span className="inline-block px-3 py-1 bg-orange-500 text-white text-xs font-bold rounded-full uppercase tracking-wide">
-                    Most Popular
-                  </span>
-                </div>
+              {!isCurrentPlan && isPopular && (
+                <span className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500 text-white uppercase tracking-wide">
+                  Popular
+                </span>
               )}
 
-              <h3 className="text-xl font-black text-gray-900 mb-2">{plan.name}</h3>
-
-              <div className="mb-1">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-gray-900">${displayPrice}</span>
-                  <span className="text-gray-600 font-medium">/mo</span>
+              {/* Name + price */}
+              <div className="mb-4">
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{plan.name}</p>
+                <div className="flex items-baseline gap-1 mb-1">
+                  <span className="text-3xl font-black text-gray-900">${displayPrice}</span>
+                  <span className="text-sm text-gray-400 font-medium">/mo</span>
                 </div>
                 {billing === 'annual' && (
-                  <p className="text-xs text-emerald-600 font-semibold mt-0.5">
+                  <p className="text-xs text-teal-600 font-bold">
                     Billed ${plan.annualTotalPrice}/year
                   </p>
                 )}
               </div>
 
-              <ul className="space-y-2 my-5 flex-1">
-                {plan.features.slice(0, 4).map((feature, index) => (
-                  <li key={index} className="flex items-start gap-2 text-sm">
-                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-gray-700 font-medium">{feature}</span>
+              {/* Features */}
+              <ul className="space-y-2 flex-1 mb-5">
+                {plan.features.map((f, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isCurrentPlan ? 'text-blue-500' : isPopular ? 'text-teal-500' : 'text-gray-400'}`} />
+                    <span className="text-xs text-gray-700 font-medium leading-relaxed">{f}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* CTA */}
               {isCurrentPlan ? (
-                <button
-                  disabled
-                  className="w-full bg-gray-300 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm cursor-not-allowed"
-                >
-                  Current Plan
-                </button>
+                <div className="w-full text-center px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  ✓ Your current plan
+                </div>
               ) : hasActiveSubscription ? (
-                <>
-                  {(() => {
-                    const tiers = ['starter', 'professional', 'business']
-                    const currentIdx = tiers.indexOf(currentTier)
-                    const planIdx = tiers.indexOf(plan.id)
-                    if (planIdx > currentIdx) {
-                      return (
-                        <CheckoutButton
-                          priceId={activePriceId}
-                          planId={plan.id}
-                          buttonText={`Upgrade to ${plan.name}`}
-                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-                        />
-                      )
-                    } else {
-                      return (
-                        <DowngradeConfirmButton
-                          currentTier={currentTier}
-                          targetTier={plan.id}
-                          buttonText={`Switch to ${plan.name}`}
-                          className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
-                        />
-                      )
-                    }
-                  })()}
-                </>
+                isUpgrade ? (
+                  <CheckoutButton
+                    priceId={activePriceId} planId={plan.id}
+                    buttonText={`Upgrade to ${plan.name}`}
+                    className="w-full btn-primary px-4 py-2.5 rounded-xl text-sm"
+                  />
+                ) : (
+                  <DowngradeConfirmButton
+                    currentTier={currentTier} targetTier={plan.id}
+                    buttonText={`Switch to ${plan.name}`}
+                    className="w-full px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
+                  />
+                )
               ) : (
                 <CheckoutButton
-                  priceId={activePriceId}
-                  planId={plan.id}
-                  buttonText={hasEverSubscribed ? 'Subscribe Now' : 'Start 14-Day Free Trial'}
-                  className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105"
+                  priceId={activePriceId} planId={plan.id}
+                  buttonText={hasEverSubscribed ? 'Subscribe now' : 'Start free trial'}
+                  className={`w-full px-4 py-2.5 rounded-xl text-sm ${isPopular ? 'btn-secondary' : 'btn-primary'}`}
                 />
               )}
             </div>
           )
         })}
       </div>
+
+      <p className="text-xs text-center text-gray-400 font-medium">
+        14-day free trial on first signup · Cancel anytime · Prices in USD
+      </p>
     </div>
   )
 }
