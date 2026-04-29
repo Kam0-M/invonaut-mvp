@@ -44,7 +44,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       padding: '12px 16px', boxShadow: '0 10px 25px rgba(0,0,0,0.08)', minWidth: 170,
     }}>
       <p style={{ fontWeight: 700, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>{label}</p>
-      <p style={{ fontSize: 13, margin: '2px 0', color: '#059669', fontWeight: 700 }}>
+      <p style={{ fontSize: 13, margin: '2px 0', color: '#0066FF', fontWeight: 700 }}>
         Revenue: {formatCurrency(rev)}
       </p>
       <p style={{ fontSize: 13, margin: '2px 0', color: '#F97316', fontWeight: 700 }}>
@@ -60,7 +60,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 const CustomLegend = () => (
   <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 8 }}>
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
-      <span style={{ width: 12, height: 12, borderRadius: 3, background: '#10B981', display: 'inline-block' }} />
+      <span style={{ width: 12, height: 12, borderRadius: 3, background: '#0066FF', display: 'inline-block' }} />
       Revenue
     </span>
     <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 700, color: '#6B7280' }}>
@@ -102,7 +102,7 @@ export function RevenueVsExpenseChart({ data }: { data: RevExpPoint[] }) {
             {/* @ts-ignore */}
             <Tooltip content={<CustomTooltip />} cursor={{ fill: '#F9FAFB', radius: 4 }} />
             {/* @ts-ignore */}
-            <Bar dataKey="revenue"  radius={[4, 4, 0, 0]} fill="#10B981" maxBarSize={32} />
+            <Bar dataKey="revenue"  radius={[4, 4, 0, 0]} fill="#0066FF" maxBarSize={32} />
             {/* @ts-ignore */}
             <Bar dataKey="expenses" radius={[4, 4, 0, 0]} fill="#F97316" maxBarSize={32} />
           </BarChart>
