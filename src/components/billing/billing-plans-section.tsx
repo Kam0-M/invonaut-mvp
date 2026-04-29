@@ -76,7 +76,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
             <div
               key={plan.id}
               className={`relative bg-white rounded-2xl border p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
-                isCurrentPlan ? 'border-blue-300' : planTheme.border
+                isCurrentPlan ? `${planTheme.border} border-2` : planTheme.border
               }`}
               style={{ boxShadow: planTheme.glow }}
             >
