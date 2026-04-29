@@ -3,8 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link            from 'next/link'
 import {
   Check, CreditCard, AlertCircle, Zap,
-  Clock, CheckCircle2, FileText, Banknote,
-  BarChart3, Bot, Palette, Users,
+  Clock, CheckCircle2,
 } from 'lucide-react'
 import CancelSubscriptionButton  from '@/components/billing/cancel-subscription-button'
 import DowngradeConfirmButton    from '@/components/billing/downgrade-confirm-button'
@@ -71,7 +70,6 @@ export default async function BillingPage({
         'Expense tracking',
         'Invonaut branding',
       ],
-      icons: [FileText, Users, Zap, Banknote, BarChart3, CreditCard, Palette],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL ?? '',
     },
@@ -89,7 +87,6 @@ export default async function BillingPage({
         'AI contract review',
         'AI expense categorisation',
       ],
-      icons: [FileText, Users, Zap, Palette, Palette, Bot, Bot],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL ?? '',
     },
@@ -107,7 +104,6 @@ export default async function BillingPage({
         '3 team seats',
         'Dedicated account manager',
       ],
-      icons: [CheckCircle2, BarChart3, Users, FileText, FileText, Users, Users],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL ?? '',
     },
