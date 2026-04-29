@@ -67,10 +67,10 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
 
           // Per-plan color identity
           const planTheme = isStarter
-            ? { border: 'border-orange-200', glow: '0 0 28px rgba(255,107,53,0.12), 0 2px 12px rgba(0,0,0,0.04)', badge: 'bg-orange-500', check: 'text-orange-400', cta: 'btn-primary' }
+            ? { border: 'border-orange-200', glow: '0 0 28px rgba(255,107,53,0.12), 0 2px 12px rgba(0,0,0,0.04)', badge: 'bg-orange-500', check: 'text-orange-400', cta: 'btn-primary',   activeBg: 'bg-orange-50 border-orange-200', activeText: 'text-orange-700' }
             : isProfessional
-            ? { border: 'border-blue-200',   glow: '0 0 28px rgba(0,102,255,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-blue-600',   check: 'text-blue-500',  cta: 'btn-primary'   }
-            : { border: 'border-teal-200',   glow: '0 0 28px rgba(0,212,170,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-teal-500',   check: 'text-teal-500',  cta: 'btn-secondary' }
+            ? { border: 'border-blue-200',   glow: '0 0 28px rgba(0,102,255,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-blue-600',   check: 'text-blue-500',  cta: 'btn-primary',   activeBg: 'bg-blue-50 border-blue-200',   activeText: 'text-blue-700'   }
+            : { border: 'border-teal-200',   glow: '0 0 28px rgba(0,212,170,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-teal-500',   check: 'text-teal-500',  cta: 'btn-secondary', activeBg: 'bg-teal-50 border-teal-200',   activeText: 'text-teal-700'   }
 
           return (
             <div
@@ -82,7 +82,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
             >
               {/* Badge */}
               {isCurrentPlan && (
-                <span className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-600 text-white uppercase tracking-wide">
+                <span className={`absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wide ${planTheme.badge}`}>
                   Current
                 </span>
               )}
@@ -110,7 +110,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
               <ul className="space-y-2 flex-1 mb-5">
                 {plan.features.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isCurrentPlan ? 'text-blue-500' : planTheme.check}`} />
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${planTheme.check}`} />
                     <span className="text-xs text-gray-700 font-medium leading-relaxed">{f}</span>
                   </li>
                 ))}
@@ -118,7 +118,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
 
               {/* CTA */}
               {isCurrentPlan ? (
-                <div className="w-full text-center px-4 py-2.5 rounded-xl text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                <div className={`w-full text-center px-4 py-2.5 rounded-xl text-xs font-bold border ${planTheme.activeBg} ${planTheme.activeText}`}>
                   ✓ Your current plan
                 </div>
               ) : hasActiveSubscription ? (
