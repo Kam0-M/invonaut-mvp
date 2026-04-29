@@ -55,7 +55,9 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
       <div className="grid md:grid-cols-3 gap-4">
         {plans.map(plan => {
           const isCurrentPlan  = plan.id === currentTier && hasActiveSubscription
-          const isPopular      = plan.id === 'professional'
+          const isProfessional = plan.id === 'professional'
+          const isBusiness     = plan.id === 'business'
+          const isStarter      = plan.id === 'starter'
           const displayPrice   = billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice
           const activePriceId  = billing === 'annual' ? plan.annualPriceId      : plan.monthlyPriceId
           const currentIdx     = tiers.indexOf(currentTier)
@@ -63,22 +65,20 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
           const isUpgrade      = planIdx > currentIdx
           const isDowngrade    = planIdx < currentIdx
 
+          // Per-plan color identity
+          const planTheme = isStarter
+            ? { border: 'border-orange-200', glow: '0 0 28px rgba(255,107,53,0.12), 0 2px 12px rgba(0,0,0,0.04)', badge: 'bg-orange-500', check: 'text-orange-400', cta: 'btn-primary' }
+            : isProfessional
+            ? { border: 'border-blue-200',   glow: '0 0 28px rgba(0,102,255,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-blue-600',   check: 'text-blue-500',  cta: 'btn-primary'   }
+            : { border: 'border-teal-200',   glow: '0 0 28px rgba(0,212,170,0.12), 0 2px 12px rgba(0,0,0,0.04)',   badge: 'bg-teal-500',   check: 'text-teal-500',  cta: 'btn-secondary' }
+
           return (
             <div
               key={plan.id}
-              className={`relative bg-white rounded-2xl border p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
-                isCurrentPlan
-                  ? 'border-blue-300 shadow-sm'
-                  : isPopular
-                  ? 'border-teal-200 hover:shadow-md'
-                  : 'border-gray-100 hover:shadow-md'
+              className={`relative bg-white rounded-2xl border p-6 flex flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+                isCurrentPlan ? 'border-blue-300' : planTheme.border
               }`}
-              style={isCurrentPlan
-                ? { boxShadow: '0 0 28px rgba(0,102,255,0.10), 0 2px 12px rgba(0,0,0,0.04)' }
-                : isPopular
-                ? { boxShadow: '0 0 28px rgba(0,212,170,0.10), 0 2px 12px rgba(0,0,0,0.04)' }
-                : {}
-              }
+              style={{ boxShadow: planTheme.glow }}
             >
               {/* Badge */}
               {isCurrentPlan && (
@@ -86,9 +86,9 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
                   Current
                 </span>
               )}
-              {!isCurrentPlan && isPopular && (
-                <span className="absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full bg-teal-500 text-white uppercase tracking-wide">
-                  Popular
+              {!isCurrentPlan && (
+                <span className={`absolute top-4 right-4 text-[10px] font-black px-2 py-0.5 rounded-full text-white uppercase tracking-wide ${planTheme.badge}`}>
+                  {isStarter ? 'Starter' : isProfessional ? 'Popular' : 'Business'}
                 </span>
               )}
 
@@ -110,7 +110,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
               <ul className="space-y-2 flex-1 mb-5">
                 {plan.features.map((f, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isCurrentPlan ? 'text-blue-500' : isPopular ? 'text-teal-500' : 'text-gray-400'}`} />
+                    <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${isCurrentPlan ? 'text-blue-500' : planTheme.check}`} />
                     <span className="text-xs text-gray-700 font-medium leading-relaxed">{f}</span>
                   </li>
                 ))}
@@ -126,7 +126,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
                   <CheckoutButton
                     priceId={activePriceId} planId={plan.id}
                     buttonText={`Upgrade to ${plan.name}`}
-                    className="w-full btn-primary px-4 py-2.5 rounded-xl text-sm"
+                    className={`w-full px-4 py-2.5 rounded-xl text-sm ${planTheme.cta}`}
                   />
                 ) : (
                   <DowngradeConfirmButton
@@ -139,7 +139,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
                 <CheckoutButton
                   priceId={activePriceId} planId={plan.id}
                   buttonText={hasEverSubscribed ? 'Subscribe now' : 'Start free trial'}
-                  className={`w-full px-4 py-2.5 rounded-xl text-sm ${isPopular ? 'btn-secondary' : 'btn-primary'}`}
+                  className={`w-full px-4 py-2.5 rounded-xl text-sm ${planTheme.cta}`}
                 />
               )}
             </div>
