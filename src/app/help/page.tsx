@@ -1,362 +1,326 @@
-﻿import Link from 'next/link'
-import { ArrowLeft, Book, HelpCircle, FileText, Users, Settings, Mail, Sparkles, DollarSign, TrendingUp, Zap, Shield, Bell, Palette } from 'lucide-react'
+import Link from 'next/link'
+import {
+  ArrowLeft, HelpCircle, FileText, Users, Zap,
+  Bell, Shield, Mail, TrendingUp, Clock,
+  Banknote, ExternalLink, Lock, CheckCircle2,
+  BookOpen, BarChart3,
+} from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
+import HelpFaq from '@/components/help/help-faq'
 
 export default async function HelpPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const isLoggedIn = !!user
 
+  const features = [
+    {
+      icon: Zap, color: 'bg-blue-600',
+      glow: '0 0 24px rgba(0,102,255,0.12)',
+      title: 'AI Payment Predictions',
+      desc: 'Every sent invoice gets a risk score and predicted payment date. The system flags high-risk invoices and queues follow-ups automatically.',
+      badge: 'Requires OpenAI credits', badgeCls: 'bg-blue-50 text-blue-700',
+    },
+    {
+      icon: Bell, color: 'bg-teal-500',
+      glow: '0 0 24px rgba(0,212,170,0.12)',
+      title: 'Automated Follow-ups',
+      desc: 'Overdue invoices trigger professional reminder emails daily. Rate-limited to 48h per invoice to protect client relationships.',
+      badge: 'Runs daily at 9am', badgeCls: 'bg-teal-50 text-teal-700',
+    },
+    {
+      icon: TrendingUp, color: 'bg-blue-500',
+      glow: '0 0 24px rgba(0,102,255,0.10)',
+      title: '90-Day Cash Forecast',
+      desc: "See your projected cash position week by week based on invoice due dates, AI predictions, and expense history. Shortfalls show up before they happen.",
+      badge: 'Cash Management', badgeCls: 'bg-blue-50 text-blue-700',
+    },
+    {
+      icon: FileText, color: 'bg-orange-500',
+      glow: '0 0 24px rgba(255,107,53,0.12)',
+      title: 'Contracts & E-signatures',
+      desc: 'Create contracts from 6 templates, send for e-signature with one link, and link them to invoices. Expiry reminders run daily.',
+      badge: 'No DocuSign needed', badgeCls: 'bg-orange-50 text-orange-700',
+    },
+    {
+      icon: Banknote, color: 'bg-teal-600',
+      glow: '0 0 24px rgba(0,212,170,0.10)',
+      title: 'Direct Payments',
+      desc: 'Log cash, POS, bank transfers, and mobile money alongside invoiced income. Every dollar in one place, unified in analytics.',
+      badge: 'Complete income picture', badgeCls: 'bg-teal-50 text-teal-700',
+    },
+    {
+      icon: ExternalLink, color: 'bg-blue-600',
+      glow: '0 0 24px rgba(0,102,255,0.10)',
+      title: 'Client Portal',
+      desc: 'A branded link for each client — they view invoices, download PDFs, and sign contracts. Magic link auth, no account needed.',
+      badge: 'Pro/Business: your branding', badgeCls: 'bg-blue-50 text-blue-700',
+    },
+    {
+      icon: Clock, color: 'bg-orange-500',
+      glow: '0 0 24px rgba(255,107,53,0.10)',
+      title: 'Time Tracking',
+      desc: 'Live timer or manual entry. One click converts billable hours to invoice line items. Weekly summary email every Monday.',
+      badge: 'Timer syncs across tabs', badgeCls: 'bg-orange-50 text-orange-700',
+    },
+    {
+      icon: BarChart3, color: 'bg-teal-500',
+      glow: '0 0 24px rgba(0,212,170,0.10)',
+      title: 'Business Analytics',
+      desc: 'Business Health Score (A–F), revenue by source, client intelligence, expense breakdown, and 12-month trend — all live.',
+      badge: 'AI-powered insights', badgeCls: 'bg-teal-50 text-teal-700',
+    },
+  ]
+
+  const automations = [
+    { label: 'Invoice follow-up cron',    desc: 'Identifies overdue invoices, sends reminders',             time: 'Daily 9am'  },
+    { label: 'Contract expiry reminders', desc: 'Alerts at 30 / 15 / 7 / 1 days before expiry',             time: 'Daily 9am'  },
+    { label: 'Budget alerts',             desc: '80% and 100% overspend alerts (Business tier)',              time: 'Daily 9am'  },
+    { label: 'Weekly time summary',       desc: 'Monday email: hours, billable value, unbilled outstanding',  time: 'Monday 9am' },
+    { label: 'AI invoice risk scoring',   desc: 'Scores payment probability when invoice is sent',            time: 'On send'    },
+    { label: 'AI expense categorisation', desc: 'Suggests category from expense description',                 time: 'On entry'   },
+    { label: '90-day cash forecast',      desc: 'Recalculates projected balance from live data',              time: 'On open'    },
+    { label: 'Dashboard auto-refresh',    desc: 'Keeps activity feed and metrics current',                    time: 'Every 30s'  },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
-      <div className="max-w-6xl mx-auto space-y-8 py-8">
-      {/* Premium Hero Header with Gradient */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-10 shadow-2xl">
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-        
-        <div className="relative z-10">
-          <Link 
-            href={isLoggedIn ? '/dashboard' : '/'}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm text-white border-2 border-white/20 hover:bg-white/20 transition-all duration-200 font-bold mb-6 w-fit"
-          >
+    <div className="min-h-screen bg-gray-50">
+
+      {/* ── Dark hero ──────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden bg-gray-900">
+        <div className="absolute inset-0 opacity-[0.05]"
+          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="absolute top-0 left-1/3 w-80 h-80 opacity-[0.07] pointer-events-none"
+          style={{ background: 'radial-gradient(circle, #0066FF 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 right-1/4 w-56 h-56 opacity-[0.07] pointer-events-none"
+          style={{ background: 'radial-gradient(circle, #00D4AA 0%, transparent 70%)' }} />
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 py-14 sm:py-20">
+          <Link href={isLoggedIn ? '/dashboard' : '/'}
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-sm font-medium transition-colors mb-10">
             <ArrowLeft className="w-4 h-4" />
-            {isLoggedIn ? 'Back to Dashboard' : 'Back'}
+            {isLoggedIn ? 'Back to Dashboard' : 'Back to home'}
           </Link>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border-2 border-white/30">
-              <HelpCircle className="w-8 h-8 text-white" strokeWidth={2.5} />
+
+          <div className="flex items-start gap-5 mb-8">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center flex-shrink-0 shadow-lg">
+              <HelpCircle className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Help Center</h1>
-              <p className="text-blue-100 text-lg font-medium mt-1">
-                Everything you need to master Invonaut
+              <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-2">Help Center</h1>
+              <p className="text-gray-400 text-base font-medium max-w-lg leading-relaxed">
+                Everything you need to get the most out of Invonaut — from first invoice to full autonomy.
               </p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Quick Start Guide */}
-      <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <Book className="w-7 h-7 text-white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight">Quick Start Guide</h2>
-            <p className="text-gray-600 font-medium">Get up and running in 5 minutes</p>
-          </div>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Step 1 */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-black text-lg">1</span>
-              </div>
-              <h3 className="text-xl font-black text-gray-900">Add Clients</h3>
-            </div>
-            <p className="text-gray-700 text-sm font-medium leading-relaxed mb-4">
-              Start by adding your clients with contact information. This makes invoice creation lightning-fast.
-            </p>
-            <Link 
-              href="/dashboard/clients/new" 
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105"
-            >
-              <Users className="w-4 h-4" />
-              Add Your First Client
-            </Link>
-          </div>
-
-          {/* Step 2 */}
-          <div className="bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl p-6 border-2 border-teal-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-600 to-teal-700 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-black text-lg">2</span>
-              </div>
-              <h3 className="text-xl font-black text-gray-900">Create Invoice</h3>
-            </div>
-            <p className="text-gray-700 text-sm font-medium leading-relaxed mb-4">
-              Generate professional invoices with auto-numbering, line items, and payment terms in seconds.
-            </p>
-            <Link 
-              href="/dashboard/invoices/new" 
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-teal-600 to-teal-700 text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105"
-            >
-              <FileText className="w-4 h-4" />
-              Create Your First Invoice
-            </Link>
-          </div>
-
-          {/* Step 3 */}
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-6 border-2 border-purple-200">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-white font-black text-lg">3</span>
-              </div>
-              <h3 className="text-xl font-black text-gray-900">Customize Brand</h3>
-            </div>
-            <p className="text-gray-700 text-sm font-medium leading-relaxed mb-4">
-              Upload your logo and set brand colors for professional, white-labeled invoices.
-            </p>
-            <div className="flex items-center gap-2">
-              <Link 
-                href="/dashboard/settings" 
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 text-white text-sm font-bold hover:shadow-xl transition-all hover:scale-105"
-              >
-                <Palette className="w-4 h-4" />
-                Customize Branding
-              </Link>
-              <span className="text-xs font-bold text-purple-600 bg-purple-200 px-2 py-1 rounded-full flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Pro
-              </span>
-            </div>
+          {/* Quick nav */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Quick Start', href: '#quick-start' },
+              { label: 'Features',   href: '#features'    },
+              { label: 'Automations',href: '#automations' },
+              { label: 'FAQ',        href: '#faq'         },
+              { label: 'Security',   href: '#security'    },
+            ].map(item => (
+              <a key={item.label} href={item.href}
+                className="px-3 py-1.5 rounded-full text-xs font-bold text-gray-400 bg-white/5 border border-white/10 hover:text-white hover:bg-white/10 transition-all">
+                {item.label}
+              </a>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Key Features Guide */}
-      <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <div className="mb-8">
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Key Features</h2>
-          <p className="text-gray-600 font-medium">Learn how to use Invonaut's powerful tools</p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* AI Predictions */}
-          <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-blue-300 hover:shadow-lg transition-all">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Zap className="w-6 h-6 text-white" />
+      {/* ── Content ────────────────────────────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-6 py-10 space-y-12">
+
+        {/* Quick Start */}
+        <section id="quick-start">
+          <div className="flex items-center gap-2 mb-1">
+            <BookOpen className="w-4 h-4 text-blue-600" />
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Quick Start</p>
+          </div>
+          <h2 className="text-xl font-black text-gray-900 mb-5">Up and running in 5 minutes</h2>
+
+          <div className="grid sm:grid-cols-3 gap-4">
+            {[
+              {
+                step: '1', title: 'Add your first client', icon: Users,
+                desc: 'Every invoice, payment, and contract links to a client. Start here.',
+                color: 'bg-blue-600', border: 'border-blue-100',
+                glow: '0 0 24px rgba(0,102,255,0.10)',
+                cta: isLoggedIn ? { label: 'Add client', href: '/dashboard/clients/new' } : { label: 'Get started', href: '/pricing' },
+              },
+              {
+                step: '2', title: 'Create and send an invoice', icon: FileText,
+                desc: 'Auto-numbered, branded, delivered with a PDF attachment. AI scores it on send.',
+                color: 'bg-teal-500', border: 'border-teal-100',
+                glow: '0 0 24px rgba(0,212,170,0.10)',
+                cta: isLoggedIn ? { label: 'New invoice', href: '/dashboard/invoices/new' } : null,
+              },
+              {
+                step: '3', title: 'Let the system watch it', icon: Zap,
+                desc: 'Invonaut tracks payment status, sends reminders, and updates your cash forecast — automatically.',
+                color: 'bg-orange-500', border: 'border-orange-100',
+                glow: '0 0 24px rgba(255,107,53,0.10)',
+                cta: isLoggedIn ? { label: 'View dashboard', href: '/dashboard' } : null,
+              },
+            ].map(card => (
+              <div key={card.step}
+                className={`bg-white rounded-2xl border p-6 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ${card.border}`}
+                style={{ boxShadow: card.glow }}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${card.color}`}>
+                    <span className="text-white font-black text-sm">{card.step}</span>
+                  </div>
+                  <card.icon className="w-4 h-4 text-gray-400" />
+                </div>
+                <h3 className="text-sm font-black text-gray-900 mb-2">{card.title}</h3>
+                <p className="text-xs text-gray-500 font-medium leading-relaxed mb-4">{card.desc}</p>
+                {card.cta && (
+                  <Link href={card.cta.href}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">
+                    {card.cta.label} →
+                  </Link>
+                )}
               </div>
-              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">AI Payment Predictions</h3>
-                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-3">
-                  View AI-powered payment date predictions on each invoice. Get confidence scores, risk levels, and insights based on client history.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1.5 rounded-full">
-                  <Sparkles className="w-3 h-3" />
-                  95% Accuracy Rate
+            ))}
+          </div>
+        </section>
+
+        {/* Features */}
+        <section id="features">
+          <div className="flex items-center gap-2 mb-1">
+            <Zap className="w-4 h-4 text-teal-500" />
+            <p className="text-xs font-bold text-teal-600 uppercase tracking-widest">Features</p>
+          </div>
+          <h2 className="text-xl font-black text-gray-900 mb-5">What Invonaut does for you</h2>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {features.map(f => (
+              <div key={f.title}
+                className="bg-white rounded-2xl border border-gray-100 p-5 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex items-start gap-4"
+                style={{ boxShadow: f.glow }}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${f.color}`}>
+                  <f.icon className="w-4 h-4 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                    <p className="text-sm font-black text-gray-900">{f.title}</p>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${f.badgeCls}`}>{f.badge}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 font-medium leading-relaxed">{f.desc}</p>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
+        </section>
 
-          {/* Automated Follow-ups */}
-          <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-teal-300 hover:shadow-lg transition-all">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Bell className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">Automated Follow-ups</h3>
-                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-3">
-                  Send professional payment reminders with one click. Rate-limited to once every 48 hours to maintain client relationships.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-teal-600 bg-teal-100 px-3 py-1.5 rounded-full">
-                  <Mail className="w-3 h-3" />
-                  Smart Timing
-                </div>
-              </div>
-            </div>
+        {/* Automations */}
+        <section id="automations">
+          <div className="flex items-center gap-2 mb-1">
+            <Bell className="w-4 h-4 text-blue-600" />
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">Automations</p>
           </div>
-
-          {/* White Label Branding */}
-          <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-purple-300 hover:shadow-lg transition-all">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <Palette className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">White Label Branding</h3>
-                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-3">
-                  Upload your logo and customize brand colors in Settings. Professional invoices with your identity, no Invonaut branding.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-purple-600 bg-purple-100 px-3 py-1.5 rounded-full">
-                  <Sparkles className="w-3 h-3" />
-                  Professional Only
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Analytics */}
-          <div className="border-2 border-gray-200 rounded-xl p-6 hover:border-orange-300 hover:shadow-lg transition-all">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">Revenue Analytics</h3>
-                <p className="text-gray-600 text-sm font-medium leading-relaxed mb-3">
-                  Track revenue trends, payment success rates, and cash flow forecasts. See which clients pay on time in your dashboard.
-                </p>
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1.5 rounded-full">
-                  <DollarSign className="w-3 h-3" />
-                  Real-Time Data
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQs */}
-      <div className="bg-white rounded-2xl p-10 border-2 border-gray-100 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <div className="mb-8">
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Frequently Asked Questions</h2>
-          <p className="text-gray-600 font-medium">Quick answers to common questions</p>
-        </div>
-        
-        <div className="grid md:grid-cols-2 gap-4">
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>How accurate are AI payment predictions?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Our AI achieves 95% accuracy by analyzing payment history, industry patterns, client behavior, and invoice terms. Predictions improve as you use Invonaut more.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>Can I customize invoice branding?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Yes! Professional plan users can upload custom logos and set brand colors in Settings. Your invoices will have zero Invonaut branding.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>How do automated follow-ups work?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Click "Send Reminder" on any overdue invoice. Professional emails are sent automatically. Rate-limited to once every 48 hours per invoice to maintain client relationships.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>What payment methods can clients use?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Include payment instructions (bank transfer, PayPal, etc.) in the invoice Notes field. Direct payment integration coming soon.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>Can I edit or delete invoices?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Yes! Draft invoices can be fully edited. Sent invoices can be marked as paid or cancelled. You can also delete any invoice from the action menu.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>Is my data secure and private?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Absolutely. We use bank-level encryption and row-level security. Your data is completely isolated from other users and never shared with third parties.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>How do I cancel my subscription?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Visit Settings → Billing and click "Cancel Subscription". Your data stays safe and you can reactivate anytime. No penalties for canceling.
-            </p>
-          </details>
-
-          <details className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 border-2 border-gray-200 group hover:border-blue-300 transition-all">
-            <summary className="font-bold text-gray-900 cursor-pointer text-sm flex items-center justify-between">
-              <span>Can I upgrade or downgrade plans?</span>
-              <HelpCircle className="w-5 h-5 text-gray-400 group-open:text-blue-600 transition-colors flex-shrink-0" />
-            </summary>
-            <p className="text-gray-700 mt-4 text-sm font-medium leading-relaxed border-t-2 border-gray-200 pt-4">
-              Yes! Visit Settings → Billing to upgrade (prorated billing) or downgrade (change takes effect at period end). Switch plans anytime.
-            </p>
-          </details>
-        </div>
-      </div>
-
-      {/* Security & Privacy */}
-      <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-10 border-2 border-green-200 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <div className="flex items-start gap-4 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0">
-            <Shield className="w-8 h-8 text-white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-2">Security & Privacy</h2>
-            <p className="text-gray-700 font-medium">Your data is protected with industry-leading security</p>
-          </div>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl p-6 border-2 border-green-200">
-            <h3 className="text-lg font-black text-gray-900 mb-2">Bank-Level Encryption</h3>
-            <p className="text-gray-600 text-sm font-medium leading-relaxed">
-              All data encrypted in transit and at rest using industry-standard AES-256 encryption.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border-2 border-green-200">
-            <h3 className="text-lg font-black text-gray-900 mb-2">Row-Level Security</h3>
-            <p className="text-gray-600 text-sm font-medium leading-relaxed">
-              Your data is completely isolated. No user can access another user's information.
-            </p>
-          </div>
-          
-          <div className="bg-white rounded-xl p-6 border-2 border-green-200">
-            <h3 className="text-lg font-black text-gray-900 mb-2">GDPR Compliant</h3>
-            <p className="text-gray-600 text-sm font-medium leading-relaxed">
-              We comply with GDPR, CCPA, and international data protection standards.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Contact Support */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-12 shadow-2xl">
-        <div className="absolute inset-0 opacity-10" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(255,255,255,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-        
-        <div className="relative z-10 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border-2 border-white/30 shadow-2xl">
-              <Mail className="w-10 h-10 text-white" strokeWidth={2.5} />
-            </div>
-          </div>
-          <h2 className="text-4xl font-black text-white mb-4 tracking-tight">Still Need Help?</h2>
-          <p className="text-blue-100 text-lg font-medium mb-8 max-w-2xl mx-auto leading-relaxed">
-            Our support team typically responds within 24 hours. We're here to help you succeed with Invonaut.
+          <h2 className="text-xl font-black text-gray-900 mb-1">8 processes that run without you</h2>
+          <p className="text-sm text-gray-500 font-medium mb-5">
+            These run daily in the background — invoices followed up, contracts watched, budgets monitored — whether you log in or not.
           </p>
-          <a 
-            href="mailto:kamohelo.thakhisi@gmail.com"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-blue-600 font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-200"
-          >
-            <Mail className="w-5 h-5" />
-            Contact Support Team
-          </a>
-          <p className="text-blue-200 text-sm mt-4 font-medium">
-            Professional plan users get priority support
-          </p>
-        </div>
+
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            {automations.map((item, i) => (
+              <div key={i}
+                className={`flex items-center gap-4 px-5 py-3.5 hover:bg-gray-50 transition-colors ${
+                  i < automations.length - 1 ? 'border-b border-gray-50' : ''
+                }`}>
+                <span className="w-2 h-2 rounded-full bg-teal-400 inv-pulse-dot flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-gray-900">{item.label}</p>
+                  <p className="text-xs text-gray-400 font-medium">{item.desc}</p>
+                </div>
+                <span className="text-[10px] font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg flex-shrink-0 whitespace-nowrap">
+                  {item.time}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq">
+          <div className="flex items-center gap-2 mb-1">
+            <HelpCircle className="w-4 h-4 text-blue-600" />
+            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest">FAQ</p>
+          </div>
+          <h2 className="text-xl font-black text-gray-900 mb-5">Common questions, answered</h2>
+          <HelpFaq />
+        </section>
+
+        {/* Security */}
+        <section id="security">
+          <div className="bg-white rounded-2xl border border-teal-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
+            style={{ boxShadow: '0 0 32px rgba(0,212,170,0.08)' }}>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-teal-600 uppercase tracking-wider">Security & Privacy</p>
+                <h2 className="text-sm font-black text-gray-900 mt-0.5">Your financial data is protected</h2>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-3 gap-3">
+              {[
+                { icon: Lock,          title: 'AES-256 encryption',  desc: 'All data encrypted in transit and at rest' },
+                { icon: Shield,        title: 'Row Level Security',   desc: 'Your data is completely isolated from other users' },
+                { icon: CheckCircle2,  title: 'Never sold or shared', desc: 'Your data is yours — never shared with third parties' },
+              ].map(item => (
+                <div key={item.title} className="flex items-start gap-3 p-4 rounded-xl bg-teal-50 border border-teal-100">
+                  <item.icon className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-black text-gray-900">{item.title}</p>
+                    <p className="text-xs text-gray-500 font-medium mt-0.5 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Contact CTA */}
+        <section>
+          <div className="relative overflow-hidden rounded-2xl bg-gray-900 p-8 sm:p-10">
+            <div className="absolute inset-0 opacity-[0.04]"
+              style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+            <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.08] pointer-events-none"
+              style={{ background: 'radial-gradient(circle, #00D4AA 0%, transparent 70%)' }} />
+
+            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div>
+                <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2">Still need help?</p>
+                <h2 className="text-2xl font-black text-white mb-2">We're here for you.</h2>
+                <p className="text-sm text-gray-400 font-medium max-w-md leading-relaxed">
+                  Typically respond within 24 hours. Professional and Business plan users get priority response.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 flex-shrink-0">
+                <a href="mailto:kamohelo.thakhisi@gmail.com"
+                  className="inline-flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm">
+                  <Mail className="w-4 h-4" />Email support
+                </a>
+                {!isLoggedIn && (
+                  <Link href="/pricing"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-gray-400 bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white transition-all">
+                    View plans →
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
-    </div>
     </div>
   )
 }

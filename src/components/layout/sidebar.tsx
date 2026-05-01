@@ -113,14 +113,11 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
                   <TimerSidebarBadge isNavActive={!!isActive} />
                 </span>
               )}
-              {/* Active dot indicator */}
-              {!isTime && (
+              {/* Active dot — only visible when expanded */}
+              {!isTime && isExpanded && (
                 <span className={cn(
-                  'flex-shrink-0 rounded-full transition-all duration-200',
-                  isExpanded ? 'w-1.5 h-1.5 ml-auto' : 'absolute right-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5',
-                  isActive
-                    ? 'bg-white opacity-90'
-                    : 'border border-gray-600 opacity-30'
+                  'flex-shrink-0 rounded-full w-1.5 h-1.5 ml-auto transition-all duration-200',
+                  isActive ? 'bg-white opacity-90' : 'border border-gray-600 opacity-30'
                 )} />
               )}
             </Link>
