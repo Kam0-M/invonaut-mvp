@@ -1,436 +1,306 @@
-// src/app/dashboard/clients/[id]/page.tsx
-//
-// Client detail page with three tabs driven by ?tab= URL param:
-//   overview  (default) — contact info + invoice stats
-//   invoices            — full invoice history
-//   files               — client files tab (upload / download / delete)
-
 import { redirect }     from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link             from 'next/link'
 import {
-  ArrowLeft, Pencil, Mail, Phone, Building2,
-  MapPin, Calendar, FileText, Banknote,
+  Pencil, Mail, Phone, Building2, MapPin,
+  Calendar, FileText, Banknote, Clock, Plus,
 } from 'lucide-react'
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
+import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 
-// ─── Formatters ───────────────────────────────────────────────────────────────
-
-function formatCompact(n: number): string {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-  }).format(n)
+const fmt = (n: number) => {
+  if (n >= 999_500) return `$${(n/1_000_000).toFixed(1)}M`
+  if (n >= 10_000)  return `$${(n/1_000).toFixed(0)}K`
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n)
 }
+const fmtFull = (n: number) =>
+  new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n)
+const fmtDate = (s: string) =>
+  new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
 
-function formatCurrencyFull(n: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+type Tab = 'overview'|'invoices'|'files'|'payments'
+const VALID: Tab[] = ['overview','invoices','files','payments']
+
+const STATUS_CFG: Record<string,{pill:string;dot:string;label:string}> = {
+  draft:   {pill:'bg-gray-100 text-gray-600 border border-gray-200',  dot:'bg-gray-400',  label:'Draft'},
+  sent:    {pill:'bg-blue-50 text-blue-700 border border-blue-200',   dot:'bg-blue-500',  label:'Sent'},
+  paid:    {pill:'bg-teal-50 text-teal-700 border border-teal-200',   dot:'bg-teal-500',  label:'Paid'},
+  overdue: {pill:'bg-red-50 text-red-700 border border-red-200',      dot:'bg-red-500',   label:'Overdue'},
 }
+const METHOD: Record<string,string> = {cash:'Cash',bank:'Bank Transfer',mobile:'Mobile Money',pos:'POS'}
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
-
-type Tab = 'overview' | 'invoices' | 'files' | 'payments'
-const VALID_TABS: Tab[] = ['overview', 'invoices', 'files', 'payments']
+function avatarColor(name: string) {
+  const p=['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-indigo-100 text-indigo-700','bg-amber-100 text-amber-700']
+  let h=0; for(let i=0;i<name.length;i++) h=name.charCodeAt(i)+((h<<5)-h)
+  return p[Math.abs(h)%p.length]
+}
 
 export default async function ClientDetailPage({
-  params,
-  searchParams,
+  params, searchParams,
 }: {
-  params:       Promise<{ id: string }>
-  searchParams: Promise<{ tab?: string }>
+  params: Promise<{id:string}>
+  searchParams: Promise<{tab?:string}>
 }) {
-  const { id }          = await params
-  const { tab: tabRaw } = await searchParams
-  const activeTab: Tab  = VALID_TABS.includes(tabRaw as Tab) ? (tabRaw as Tab) : 'overview'
-
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {id}          = await params
+  const {tab:tabRaw}  = await searchParams
+  const tab: Tab      = VALID.includes(tabRaw as Tab) ? (tabRaw as Tab) : 'overview'
+  const supabase      = await createClient()
+  const {data:{user}} = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: client, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
+  const {data:client,error} = await supabase.from('clients')
+    .select('*').eq('id',id).eq('user_id',user.id).single()
+  if (error||!client) redirect('/dashboard/clients')
 
-  if (error || !client) redirect('/dashboard/clients')
-
-  // Invoices — always fetched (needed for stats on Overview)
-  const { data: invoices } = await supabase
-    .from('invoices')
-    .select('id, invoice_number, total_amount, status, due_date, created_at')
-    .eq('client_id', id)
-    .order('created_at', { ascending: false })
-
-  const invoiceCount = invoices?.length || 0
-  const totalRevenue = invoices?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0
-
-  // Client files — always fetched (lightweight, needed for tab badge count)
-  const { data: filesRaw } = await supabase
-    .from('client_files')
-    .select('id, file_name, file_url, file_size, file_type, uploaded_at')
-    .eq('client_id', id)
-    .eq('user_id', user.id)
-    .order('uploaded_at', { ascending: false })
-
-  const initialFiles = (filesRaw || []) as ClientFile[]
-
-  // Direct payments for this client
-  const { data: directPaymentsRaw } = await supabase
-    .from('direct_payments')
-    .select(`
-      id, amount, payment_type, payment_method,
-      description, payment_date,
-      revenue_categories (id, name, color)
-    `)
-    .eq('client_id', id)
-    .eq('user_id', user.id)
-    .order('payment_date', { ascending: false })
-
-  const directPayments = (directPaymentsRaw || []).map((p: any) => ({
-    ...p,
-    revenue_categories: Array.isArray(p.revenue_categories)
-      ? (p.revenue_categories[0] ?? null)
-      : p.revenue_categories,
+  const {data:invoicesRaw} = await supabase.from('invoices')
+    .select('id,invoice_number,total_amount,status,due_date,created_at')
+    .eq('client_id',id).order('created_at',{ascending:false})
+  const invoices = (invoicesRaw??[]).map((inv:any)=>({
+    ...inv, displayStatus: getInvoiceDisplayStatus({status:inv.status,due_date:inv.due_date})
   }))
 
-  const tabHref = (t: Tab) => `/dashboard/clients/${id}?tab=${t}`
+  const {data:filesRaw} = await supabase.from('client_files')
+    .select('id,file_name,file_url,file_size,file_type,uploaded_at')
+    .eq('client_id',id).eq('user_id',user.id).order('uploaded_at',{ascending:false})
+  const files = (filesRaw||[]) as ClientFile[]
 
-  const tabClass = (t: Tab) =>
-    `px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
-      activeTab === t
-        ? 'bg-blue-600 text-white shadow-sm'
-        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-    }`
+  const {data:paymentsRaw} = await supabase.from('direct_payments')
+    .select('id,amount,payment_type,payment_method,description,payment_date,revenue_categories(id,name,color)')
+    .eq('client_id',id).eq('user_id',user.id).order('payment_date',{ascending:false})
+  const payments = (paymentsRaw||[]).map((p:any)=>({
+    ...p, revenue_categories: Array.isArray(p.revenue_categories)?(p.revenue_categories[0]??null):p.revenue_categories
+  }))
+
+  const totalRevenue    = invoices.filter(i=>i.displayStatus==='paid').reduce((s:number,i:any)=>s+Number(i.total_amount||0),0)
+  const overdueCount    = invoices.filter(i=>i.displayStatus==='overdue').length
+  const directTotal     = payments.reduce((s:number,p:any)=>s+Number(p.amount||0),0)
+  const initials        = client.name.split(' ').map((w:string)=>w[0]).join('').slice(0,2).toUpperCase()
+  const av              = avatarColor(client.name)
+  const tabHref         = (t:Tab) => `/dashboard/clients/${id}?tab=${t}`
+  const tabCls          = (t:Tab) => `px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab===t?'bg-white text-blue-600 shadow-sm':'text-gray-500 hover:text-gray-700'}`
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5 max-w-4xl">
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link
-            href="/dashboard/clients"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Clients</span>
-            <span className="sm:hidden">Back</span>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <Link href="/dashboard/clients"
+            className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+            ← Clients
           </Link>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight break-words">
-              {client.name}
-            </h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Client details and invoice history
-            </p>
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-base flex-shrink-0 ${av}`}>
+              {initials}
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-gray-900">{client.name}</h1>
+              {client.company && (
+                <p className="text-sm text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                  <Building2 className="w-3 h-3"/>{client.company}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-        <Link
-          href={`/dashboard/clients/${id}/edit`}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
-        >
-          <Pencil className="w-4 h-4" />
-          Edit Client
+        <Link href={`/dashboard/clients/${id}/edit`}
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-all flex-shrink-0">
+          <Pencil className="w-3.5 h-3.5"/>Edit
         </Link>
       </div>
 
       {/* Tab bar */}
-      <div className="flex items-center gap-2 p-1.5 bg-gray-100 rounded-2xl w-fit">
-        <Link href={tabHref('overview')} className={tabClass('overview')}>
-          Overview
-        </Link>
-        <Link href={tabHref('invoices')} className={tabClass('invoices')}>
-          Invoices{invoiceCount > 0 && <span className="ml-1.5 text-xs opacity-75">({invoiceCount})</span>}
-        </Link>
-        <Link href={tabHref('payments')} className={tabClass('payments')}>
-          Payments{directPayments.length > 0 && <span className="ml-1.5 text-xs opacity-75">({directPayments.length})</span>}
-        </Link>
-        <Link href={tabHref('files')} className={tabClass('files')}>
-          Files{initialFiles.length > 0 && <span className="ml-1.5 text-xs opacity-75">({initialFiles.length})</span>}
-        </Link>
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+        {([
+          {t:'overview',label:'Overview'},
+          {t:'invoices',label:`Invoices${invoices.length>0?` (${invoices.length})`:''}` },
+          {t:'payments',label:`Payments${payments.length>0?` (${payments.length})`:''}` },
+          {t:'files',   label:`Files${files.length>0?` (${files.length})`:''}` },
+        ] as {t:Tab;label:string}[]).map(item=>(
+          <Link key={item.t} href={tabHref(item.t)} className={tabCls(item.t)}>{item.label}</Link>
+        ))}
       </div>
 
-      {/* ── TAB: Overview ───────────────────────────────────────────────────── */}
-      {activeTab === 'overview' && (
-        <>
-          <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-            <h2 className="text-2xl font-black text-gray-900 mb-8 tracking-tight">Contact Information</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
-                  <Mail className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">Email</p>
-                  <p className="text-base font-medium text-gray-900 break-all">{client.email || 'Not provided'}</p>
-                </div>
+      {/* ── Overview ────────────────────────────────────────────────────────── */}
+      {tab==='overview' && (
+        <div className="space-y-4">
+          {/* Stats row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              {label:'Invoices',     value:String(invoices.length),     color:'text-blue-600',  bg:'bg-blue-50',  border:'border-blue-100' },
+              {label:'Revenue',      value:fmt(totalRevenue),            color:'text-teal-700',  bg:'bg-teal-50',  border:'border-teal-100' },
+              {label:'Overdue',      value:String(overdueCount),         color:overdueCount>0?'text-red-600':'text-gray-400', bg:overdueCount>0?'bg-red-50':'bg-gray-50', border:overdueCount>0?'border-red-100':'border-gray-100' },
+              {label:'Direct pays',  value:String(payments.length),     color:'text-gray-700',  bg:'bg-gray-50',  border:'border-gray-100' },
+            ].map(s=>(
+              <div key={s.label} className={`rounded-2xl border p-4 hover:-translate-y-0.5 hover:shadow-sm transition-all ${s.bg} ${s.border}`}>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{s.label}</p>
+                <p className={`text-xl font-black ${s.color}`}>{s.value}</p>
               </div>
+            ))}
+          </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center flex-shrink-0">
-                  <Phone className="w-6 h-6 text-green-600" />
+          {/* Contact info */}
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Contact Information</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                {icon:Mail,     label:'Email',          value:client.email||'Not provided',  color:'text-blue-600'},
+                {icon:Phone,    label:'Phone',          value:client.phone||'Not provided',  color:'text-teal-600'},
+                {icon:Building2,label:'Company',        value:client.company||'Not provided',color:'text-gray-500'},
+                {icon:Clock,    label:'Payment Terms',  value:`Net ${client.payment_terms||30}`,color:'text-orange-500'},
+              ].map(r=>(
+                <div key={r.label} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                    <r.icon className={`w-4 h-4 ${r.color}`}/>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{r.label}</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5 break-all">{r.value}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">Phone</p>
-                  <p className="text-base font-medium text-gray-900">{client.phone || 'Not provided'}</p>
+              ))}
+              {client.address && (
+                <div className="col-span-2 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 text-gray-500"/>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Address</p>
+                    <p className="text-sm font-bold text-gray-900 mt-0.5 whitespace-pre-wrap">{client.address}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center flex-shrink-0">
-                  <Building2 className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">Company</p>
-                  <p className="text-base font-medium text-gray-900">{client.company || 'Not provided'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="w-6 h-6 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">Payment Terms</p>
-                  <p className="text-base font-medium text-gray-900">{client.payment_terms || 30} days</p>
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center flex-shrink-0">
-                  <MapPin className="w-6 h-6 text-teal-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500 mb-1">Address</p>
-                  <p className="text-base font-medium text-gray-900 whitespace-pre-wrap">{client.address || 'Not provided'}</p>
-                </div>
-              </div>
-
+              )}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Total Invoices</p>
-                  <p className="text-4xl font-black text-gray-900 tracking-tight">{invoiceCount}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 min-w-0">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center flex-shrink-0">
-                  <span className="text-3xl font-black text-green-600">$</span>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold uppercase tracking-wide text-gray-500">Total Revenue</p>
-                  <p className="text-4xl font-black text-gray-900 tracking-tight truncate" title={formatCurrencyFull(totalRevenue)}>
-                    {formatCompact(totalRevenue)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ── TAB: Invoices ────────────────────────────────────────────────────── */}
-      {activeTab === 'invoices' && (
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <h2 className="text-2xl font-black text-gray-900 tracking-tight">Invoice History</h2>
-            <Link
-              href={`/dashboard/invoices/new?client=${id}`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 w-full sm:w-auto"
-            >
-              <FileText className="w-4 h-4" />
-              Create Invoice
-            </Link>
-          </div>
-
-          {invoices && invoices.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Invoice #</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Amount</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Status</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Due Date</th>
-                    <th className="text-right py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoices.map((invoice) => (
-                    <tr key={invoice.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-4 font-bold text-gray-900">{invoice.invoice_number}</td>
-                      <td className="py-4 px-4 font-bold text-gray-900">${invoice.total_amount.toFixed(2)}</td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide ${
-                          invoice.status === 'paid'    ? 'bg-green-100 text-green-800' :
-                          invoice.status === 'sent'    ? 'bg-blue-100 text-blue-800'  :
-                          invoice.status === 'overdue' ? 'bg-red-100 text-red-800'    :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {invoice.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 font-medium text-gray-600">
-                        {new Date(invoice.due_date).toLocaleDateString()}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <Link href={`/dashboard/invoices/${invoice.id}`} className="text-blue-600 hover:text-blue-800 font-bold hover:underline">
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <FileText className="w-10 h-10 text-gray-400" />
-                </div>
-              </div>
-              <p className="text-base font-medium text-gray-600 mb-6">No invoices yet for this client</p>
-              <Link
-                href={`/dashboard/invoices/new?client=${id}`}
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200"
-              >
-                <FileText className="w-4 h-4" />
-                Create First Invoice
+          {/* AI insight if overdue */}
+          {overdueCount > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl px-5 py-4 flex items-center justify-between gap-4">
+              <p className="text-sm font-bold text-red-700">
+                {overdueCount} overdue invoice{overdueCount>1?'s':''} from this client
+              </p>
+              <Link href={`/dashboard/invoices?status=overdue`}
+                className="text-xs font-bold text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
+                Review →
               </Link>
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB: Payments ────────────────────────────────────────────────────── */}
-      {activeTab === 'payments' && (
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <Banknote className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Direct Payments</h2>
-                <p className="text-sm text-gray-500 font-medium">
-                  Cash, POS, mobile money, and prepayments from this client
-                </p>
-              </div>
-            </div>
-            <Link
-              href={`/dashboard/payments/new`}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-sm hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all flex-shrink-0"
-            >
-              <Banknote className="w-4 h-4" />
-              Log Payment
+      {/* ── Invoices ─────────────────────────────────────────────────────────── */}
+      {tab==='invoices' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-black text-gray-900">
+              {invoices.length} invoice{invoices.length!==1?'s':''} · {fmt(totalRevenue)} revenue
+            </p>
+            <Link href={`/dashboard/invoices/new?client=${id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 btn-primary rounded-xl text-xs">
+              <Plus className="w-3.5 h-3.5"/>New Invoice
             </Link>
           </div>
-
-          {directPayments.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Banknote className="w-8 h-8 text-gray-300" />
+          {invoices.length===0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <FileText className="w-6 h-6 text-blue-400"/>
               </div>
-              <p className="text-base font-medium text-gray-500 mb-2">No direct payments from this client yet</p>
-              <p className="text-sm text-gray-400">Log cash, POS, or mobile money payments received outside of invoices</p>
+              <p className="text-sm font-bold text-gray-400 mb-3">No invoices yet</p>
+              <Link href={`/dashboard/invoices/new?client=${id}`}
+                className="inline-flex items-center gap-1.5 btn-primary px-4 py-2 rounded-xl text-xs">
+                Create first invoice
+              </Link>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Description</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Category</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Type</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Method</th>
-                    <th className="text-left py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Date</th>
-                    <th className="text-right py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">Amount</th>
-                    <th className="text-right py-4 px-4 text-sm font-black uppercase tracking-wide text-gray-700">View</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {directPayments.map((p: any) => (
-                    <tr key={p.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-4 font-bold text-gray-900 max-w-[200px] truncate">{p.description}</td>
-                      <td className="py-4 px-4">
-                        {p.revenue_categories ? (
-                          <span
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                            style={{
-                              backgroundColor: p.revenue_categories.color + '22',
-                              color: p.revenue_categories.color,
-                            }}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: p.revenue_categories.color }} />
-                            {p.revenue_categories.name}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-xs">—</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                          p.payment_type === 'prepay'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-green-100 text-green-700'
-                        }`}>
-                          {p.payment_type === 'prepay' ? 'Prepaid' : 'Cash'}
+            <div className="space-y-2">
+              {invoices.map((inv:any,i:number)=>{
+                const cfg = STATUS_CFG[inv.displayStatus]??STATUS_CFG.draft
+                return (
+                  <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
+                    className="inv-row-in flex items-center gap-4 bg-white rounded-2xl border border-gray-100 px-5 py-4 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                    style={{animationDelay:`${i*25}ms`}}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-black text-gray-900 font-mono">{inv.invoice_number}</span>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${cfg.pill}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}/>
+                          {cfg.label}
                         </span>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-gray-600 font-medium capitalize">{p.payment_method}</td>
-                      <td className="py-4 px-4 text-sm text-gray-600 font-medium">
-                        {new Date(p.payment_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </td>
-                      <td className="py-4 px-4 text-right font-black text-gray-900">
-                        ${Number(p.amount).toFixed(2)}
-                      </td>
-                      <td className="py-4 px-4 text-right">
-                        <Link href={`/dashboard/payments/${p.id}`} className="text-blue-600 hover:text-blue-800 font-bold hover:underline text-sm">
-                          View
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      <p className="text-xs text-gray-400 font-medium mt-0.5">Due {fmtDate(inv.due_date)}</p>
+                    </div>
+                    <span className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {fmt(Number(inv.total_amount))}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
           )}
+        </div>
+      )}
 
-          {/* Total */}
-          {directPayments.length > 0 && (
-            <div className="mt-6 pt-4 border-t-2 border-gray-100 flex justify-end">
-              <div className="text-right">
-                <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-1">Total Direct Payments</p>
-                <p className="text-2xl font-black text-gray-900">
-                  ${directPayments.reduce((s: number, p: any) => s + Number(p.amount), 0).toFixed(2)}
-                </p>
+      {/* ── Payments ─────────────────────────────────────────────────────────── */}
+      {tab==='payments' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-black text-gray-900">
+              {payments.length} payment{payments.length!==1?'s':''} · {fmt(directTotal)} total
+            </p>
+            <Link href="/dashboard/payments/new"
+              className="inline-flex items-center gap-1.5 px-3 py-2 btn-secondary rounded-xl text-xs">
+              <Plus className="w-3.5 h-3.5"/>Log Payment
+            </Link>
+          </div>
+          {payments.length===0 ? (
+            <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+              <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Banknote className="w-6 h-6 text-teal-500"/>
+              </div>
+              <p className="text-sm font-bold text-gray-400 mb-1">No direct payments yet</p>
+              <p className="text-xs text-gray-300 font-medium">Cash, bank, mobile money, and POS payments appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {payments.map((p:any,i:number)=>(
+                <Link key={p.id} href={`/dashboard/payments/${p.id}`}
+                  className="inv-row-in flex items-center gap-4 bg-white rounded-2xl border border-gray-100 px-5 py-4 hover:shadow-md hover:-translate-y-0.5 transition-all group"
+                  style={{animationDelay:`${i*25}ms`}}>
+                  <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+                    <Banknote className="w-4 h-4 text-teal-600"/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">{p.description}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-xs text-gray-400 font-medium">{fmtDate(p.payment_date)}</span>
+                      <span className="text-gray-200">·</span>
+                      <span className="text-xs text-gray-400 font-medium">{METHOD[p.payment_method]??p.payment_method}</span>
+                      {p.revenue_categories && (
+                        <>
+                          <span className="text-gray-200">·</span>
+                          <span className="text-xs font-bold" style={{color:p.revenue_categories.color}}>{p.revenue_categories.name}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm font-black text-gray-900 group-hover:text-teal-600 transition-colors">
+                    {fmt(Number(p.amount))}
+                  </span>
+                </Link>
+              ))}
+              <div className="flex justify-end pt-2">
+                <div className="text-right">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total</p>
+                  <p className="text-lg font-black text-gray-900">{fmtFull(directTotal)}</p>
+                </div>
               </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB: Files ───────────────────────────────────────────────────────── */}
-      {activeTab === 'files' && (
-        <ClientFilesTab clientId={id} initialFiles={initialFiles} />
-      )}
-
+      {/* ── Files ─────────────────────────────────────────────────────────────── */}
+      {tab==='files' && <ClientFilesTab clientId={id} initialFiles={files}/>}
     </div>
   )
 }

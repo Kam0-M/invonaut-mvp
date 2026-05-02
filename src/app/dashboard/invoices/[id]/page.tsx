@@ -1,398 +1,245 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Download, Pencil, Mail, User, Building2, Calendar, DollarSign, Paperclip } from 'lucide-react'
-import { SendInvoiceButton } from '@/components/invoices/send-invoice-button'
-import { DeleteInvoiceButton } from '@/components/invoices/delete-invoice-button'
-import { FollowUpButton } from '@/components/invoices/follow-up-button'
-import { MarkAsPaidButton } from '@/components/invoices/mark-paid-button'
-import { PaymentPrediction } from '@/components/invoices/payment-prediction'
+import {
+  Download, Pencil, Mail, User, Building2,
+  Calendar, DollarSign, Paperclip, Clock,
+} from 'lucide-react'
+import { SendInvoiceButton }    from '@/components/invoices/send-invoice-button'
+import { DeleteInvoiceButton }  from '@/components/invoices/delete-invoice-button'
+import { FollowUpButton }       from '@/components/invoices/follow-up-button'
+import { MarkAsPaidButton }     from '@/components/invoices/mark-paid-button'
+import { PaymentPrediction }    from '@/components/invoices/payment-prediction'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import { NotFound } from '@/components/ui/not-found'
-import InvoiceContractLinker from '@/components/contracts/invoice-contract-linker'
+import { NotFound }             from '@/components/ui/not-found'
+import InvoiceContractLinker    from '@/components/contracts/invoice-contract-linker'
 
-type PageProps = {
-  params: Promise<{ id: string }>
+type PageProps = { params: Promise<{ id: string }> }
+
+const fmtFull = (n: number) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+
+const fmtDate = (s: string) =>
+  new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+
+const STATUS_CFG: Record<string, { pill: string; dot: string; label: string }> = {
+  draft:   { pill: 'bg-gray-100 text-gray-600 border border-gray-200',   dot: 'bg-gray-400',    label: 'Draft'   },
+  sent:    { pill: 'bg-blue-50 text-blue-700 border border-blue-200',    dot: 'bg-blue-500',    label: 'Sent'    },
+  paid:    { pill: 'bg-teal-50 text-teal-700 border border-teal-200',    dot: 'bg-teal-500',    label: 'Paid'    },
+  overdue: { pill: 'bg-red-50 text-red-700 border border-red-200',       dot: 'bg-red-500',     label: 'Overdue' },
 }
-
-type Invoice = {
-  id: string
-  client_id: string
-  invoice_number: string
-  status: 'draft' | 'sent' | 'paid' | 'overdue'
-  issue_date: string
-  due_date: string
-  subtotal: number
-  tax_amount: number
-  total_amount: number
-  notes: string | null
-  attachment_url: string | null
-  last_followed_up: string | null
-  revenue_category_id: string | null
-  revenue_categories: { id: string; name: string; color: string } | null
-  clients: {
-    name: string
-    email: string | null
-    company: string | null
-    address: string | null
-  } | null
-}
-
-type InvoiceItem = {
-  id: string
-  description: string
-  quantity: number
-  unit_price: number
-  total: number
-}
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
-
-const formatDate = (dateString: string) =>
-  new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
 
 export default async function InvoiceDetailPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
+  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  if (userError || !user) redirect('/login')
 
-  const {
-    data: { user },
-    error: userError
-  } = await supabase.auth.getUser()
-
-  if (userError || !user) {
-    redirect('/login')
-  }
-
-  const { data: invoiceData, error: invoiceError } = await supabase
+  const { data: raw, error } = await supabase
     .from('invoices')
     .select(`
-      id,
-      client_id,
-      invoice_number,
-      status,
-      issue_date,
-      due_date,
-      subtotal,
-      tax_amount,
-      total_amount,
-      notes,
-      attachment_url,
-      last_followed_up,
-      revenue_category_id,
+      id, client_id, invoice_number, status,
+      issue_date, due_date, subtotal, tax_amount, total_amount,
+      notes, attachment_url, last_followed_up, revenue_category_id,
       revenue_categories (id, name, color),
       clients!inner(name, email, company, address)
     `)
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
+    .eq('id', id).eq('user_id', user.id).single()
 
-  if (invoiceError || !invoiceData) {
+  if (error || !raw) {
     return (
-      <NotFound
-        title="Invoice Not Found"
-        description="The invoice you're looking for doesn't exist or you don't have permission to view it."
-        backLink="/dashboard/invoices"
-        backText="Back to Invoices"
-      />
+      <NotFound title="Invoice Not Found"
+        description="This invoice doesn't exist or you don't have permission to view it."
+        backLink="/dashboard/invoices" backText="Back to Invoices" />
     )
   }
 
-  const invoice = invoiceData as any
-  const normalizedInvoice: Invoice = {
-    ...invoice,
-    clients: Array.isArray(invoice.clients) && invoice.clients.length > 0 
-      ? invoice.clients[0] 
-      : invoice.clients,
-    revenue_categories: Array.isArray(invoice.revenue_categories)
-      ? (invoice.revenue_categories[0] ?? null)
-      : (invoice.revenue_categories ?? null),
+  const inv = raw as any
+  const invoice = {
+    ...inv,
+    clients: Array.isArray(inv.clients) ? inv.clients[0] : inv.clients,
+    revenue_categories: Array.isArray(inv.revenue_categories)
+      ? (inv.revenue_categories[0] ?? null) : (inv.revenue_categories ?? null),
   }
 
   const { data: itemsData } = await supabase
-    .from('invoice_items')
-    .select('id, description, quantity, unit_price, total')
-    .eq('invoice_id', id)
-    .order('id', { ascending: true })
+    .from('invoice_items').select('id, description, quantity, unit_price, total')
+    .eq('invoice_id', id).order('id', { ascending: true })
+  const items = (itemsData || []) as any[]
 
-  const items = (itemsData || []) as InvoiceItem[]
-
-  // Linked contracts — normalize so contract_id is always a direct field
-  const { data: linkedContractsRaw } = await supabase
+  const { data: linkedRaw } = await supabase
     .from('contract_invoice_links')
     .select('contract_id, link_type, contracts(id, title, status, template_type)')
     .eq('invoice_id', id)
-
-  const linkedContracts = (linkedContractsRaw ?? []).map((l: any) => ({
-    contract_id: l.contract_id,
-    link_type: l.link_type,
+  const linkedContracts = (linkedRaw ?? []).map((l: any) => ({
+    contract_id: l.contract_id, link_type: l.link_type,
     contract: Array.isArray(l.contracts) ? l.contracts[0] ?? null : l.contracts ?? null,
   }))
 
-  // Available contracts for this client (excluding cancelled) for the linker picker
-  const { data: availableContractsRaw } = await supabase
-    .from('contracts')
-    .select('id, title, status, template_type')
-    .eq('user_id', user.id)
-    .eq('client_id', normalizedInvoice.client_id)
-    .not('status', 'eq', 'cancelled')
-    .order('created_at', { ascending: false })
+  const { data: availableRaw } = await supabase
+    .from('contracts').select('id, title, status, template_type')
+    .eq('user_id', user.id).eq('client_id', invoice.client_id)
+    .not('status', 'eq', 'cancelled').order('created_at', { ascending: false })
+  const availableContracts = (availableRaw ?? []) as any[]
 
-  const availableContracts = (availableContractsRaw ?? []) as {
-    id: string
-    title: string
-    status: string
-    template_type: string | null
-  }[]
-
-  const displayStatus = getInvoiceDisplayStatus({
-    status: normalizedInvoice.status,
-    due_date: normalizedInvoice.due_date
-  })
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return 'bg-gray-100 text-gray-800 border-2 border-gray-300'
-      case 'sent':
-        return 'bg-blue-100 text-blue-800 border-2 border-blue-300'
-      case 'paid':
-        return 'bg-green-100 text-green-800 border-2 border-green-300'
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-2 border-red-300'
-      default:
-        return 'bg-gray-100 text-gray-800 border-2 border-gray-300'
-    }
-  }
-
-  const canEdit = normalizedInvoice.status === 'draft'
-  const canSendEmail = normalizedInvoice.clients?.email && normalizedInvoice.status !== 'paid'
-  const canMarkAsPaid = normalizedInvoice.status === 'sent' || displayStatus === 'overdue'
+  const displayStatus = getInvoiceDisplayStatus({ status: invoice.status, due_date: invoice.due_date })
+  const cfg       = STATUS_CFG[displayStatus] ?? STATUS_CFG.draft
   const isOverdue = displayStatus === 'overdue'
-  const daysOverdue = isOverdue 
-    ? Math.floor((new Date().getTime() - new Date(normalizedInvoice.due_date).getTime()) / (1000 * 60 * 60 * 24))
+  const isPaid    = displayStatus === 'paid'
+  const canEdit   = invoice.status === 'draft'
+  const canSend   = invoice.clients?.email && invoice.status !== 'paid'
+  const canPaid   = invoice.status === 'sent' || isOverdue
+  const showAI    = invoice.status === 'sent' || isOverdue
+  const daysOver  = isOverdue
+    ? Math.floor((Date.now() - new Date(invoice.due_date + 'T12:00:00').getTime()) / 86_400_000)
     : 0
-
-  const showAIPrediction = normalizedInvoice.status === 'sent' || displayStatus === 'overdue'
+  const attachName = invoice.attachment_url
+    ? decodeURIComponent(invoice.attachment_url.split('/').pop() || '').replace(/^\d{13}-/, '')
+    : null
 
   return (
-    <div className="space-y-8">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-        <div className="flex-1 min-w-0">
-          <Link 
-            href="/dashboard/invoices"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
+    <div className="space-y-5 max-w-4xl">
+
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <Link href="/dashboard/invoices"
+            className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+            ← Invoices
           </Link>
-          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight break-words">
-            {normalizedInvoice.invoice_number}
-          </h1>
-          <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium break-words">
-            Invoice for {normalizedInvoice.clients?.name || 'Unknown Client'}
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-black text-gray-900 font-mono">{invoice.invoice_number}</h1>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${cfg.pill}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+              {cfg.label}
+            </span>
+            {isOverdue && (
+              <span className="text-xs font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+                {daysOver}d overdue
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-gray-500 font-medium mt-1">
+            {invoice.clients?.name}{invoice.clients?.company ? ` · ${invoice.clients.company}` : ''}
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 justify-start sm:justify-end">
+        <div className="flex items-center gap-2 flex-wrap">
           {canEdit && (
-            <Link 
-              href={`/dashboard/invoices/${id}/edit`}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 text-sm whitespace-nowrap"
-            >
-              <Pencil className="w-4 h-4" />
-              Edit
+            <Link href={`/dashboard/invoices/${id}/edit`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-all">
+              <Pencil className="w-3.5 h-3.5" />Edit
             </Link>
           )}
-          
-          <a 
-            href={`/api/download-invoice?id=${id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 text-sm whitespace-nowrap"
-          >
-            <Download className="w-4 h-4" />
-            PDF
+          <a href={`/api/download-invoice?id=${id}`} target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-xs font-bold text-gray-700 transition-all">
+            <Download className="w-3.5 h-3.5" />PDF
           </a>
-
-          {canSendEmail && (
-            <SendInvoiceButton 
-              invoiceId={id}
-              invoiceNumber={normalizedInvoice.invoice_number}
-              clientEmail={normalizedInvoice.clients?.email || ''}
-              clientName={normalizedInvoice.clients?.name || ''}
-            />
+          {canSend && (
+            <SendInvoiceButton invoiceId={id} invoiceNumber={invoice.invoice_number}
+              clientEmail={invoice.clients?.email || ''} clientName={invoice.clients?.name || ''} />
           )}
-
-          {canMarkAsPaid && (
-            <MarkAsPaidButton
-              invoiceId={id}
-              invoiceNumber={normalizedInvoice.invoice_number}
-            />
-          )}
-
+          {canPaid && <MarkAsPaidButton invoiceId={id} invoiceNumber={invoice.invoice_number} />}
           {isOverdue && (
-            <FollowUpButton
-              invoiceId={id}
-              invoiceNumber={normalizedInvoice.invoice_number}
-              clientName={normalizedInvoice.clients?.name || ''}
-              lastFollowedUp={normalizedInvoice.last_followed_up}
-              daysOverdue={daysOverdue}
-            />
+            <FollowUpButton invoiceId={id} invoiceNumber={invoice.invoice_number}
+              clientName={invoice.clients?.name || ''} lastFollowedUp={invoice.last_followed_up}
+              daysOverdue={daysOver} />
           )}
-
-          <DeleteInvoiceButton invoiceId={id} invoiceNumber={normalizedInvoice.invoice_number} />
+          <DeleteInvoiceButton invoiceId={id} invoiceNumber={invoice.invoice_number} />
         </div>
       </div>
 
-      {/* Status Badge */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <span className={`inline-flex rounded-xl px-4 py-2 text-sm font-black uppercase tracking-wide ${getStatusColor(displayStatus)}`}>
-          {displayStatus}
-        </span>
-        {isOverdue && (
-          <span className="inline-flex items-center gap-2 text-sm font-bold text-red-600 bg-red-50 px-4 py-2 rounded-xl border-2 border-red-200">
-            {daysOverdue} days overdue
-          </span>
-        )}
-        {isOverdue && normalizedInvoice.last_followed_up && (() => {
-          const hoursSinceFollowUp = Math.floor((new Date().getTime() - new Date(normalizedInvoice.last_followed_up).getTime()) / (1000 * 60 * 60))
-          const canSendReminder = hoursSinceFollowUp >= 48
-          if (!canSendReminder) {
-            const hoursRemaining = 48 - hoursSinceFollowUp
-            return (
-              <span className="inline-flex items-center gap-2 text-sm font-bold text-orange-600 bg-orange-50 px-4 py-2 rounded-xl border-2 border-orange-200">
-                ⏰ Next reminder in {hoursRemaining}h
-              </span>
-            )
-          }
-          return null
-        })()}
-      </div>
+      {/* Rate-limit notice */}
+      {isOverdue && invoice.last_followed_up && (() => {
+        const h = Math.floor((Date.now() - new Date(invoice.last_followed_up).getTime()) / 3_600_000)
+        if (h >= 48) return null
+        return (
+          <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-700">
+            <Clock className="w-3.5 h-3.5" />Next reminder available in {48 - h}h
+          </div>
+        )
+      })()}
 
-      {/* AI Payment Prediction */}
-      {showAIPrediction && (
-        <PaymentPrediction
-          invoiceId={id}
-          clientId={normalizedInvoice.client_id}
-          clientName={normalizedInvoice.clients?.name || 'Client'}
-          invoiceAmount={normalizedInvoice.total_amount}
-          invoiceStatus={normalizedInvoice.status}
-          dueDate={normalizedInvoice.due_date}
-        />
+      {showAI && (
+        <PaymentPrediction invoiceId={id} clientId={invoice.client_id}
+          clientName={invoice.clients?.name || 'Client'}
+          invoiceAmount={invoice.total_amount}
+          invoiceStatus={invoice.status} dueDate={invoice.due_date} />
       )}
 
-      {/* Invoice Details Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
-          {/* Client Info */}
-          <div>
-            <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-4">Bill To</h3>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-base font-black text-gray-900 break-words">{normalizedInvoice.clients?.name || 'N/A'}</p>
-                  {normalizedInvoice.clients?.company && (
-                    <p className="text-sm text-gray-600 break-words flex items-center gap-2 mt-1">
-                      <Building2 className="w-3 h-3" />
-                      {normalizedInvoice.clients.company}
-                    </p>
-                  )}
-                </div>
+      {/* Main card */}
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-200">
+
+        {/* Bill To + Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 border-b border-gray-50">
+          <div className="p-6 md:border-r border-b md:border-b-0 border-gray-50">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Bill To</p>
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <User className="w-4 h-4 text-blue-600" />
               </div>
-              {normalizedInvoice.clients?.email && (
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-green-600" />
-                  </div>
-                  <p className="text-sm text-gray-600 break-words pt-2">{normalizedInvoice.clients.email}</p>
-                </div>
-              )}
-              {normalizedInvoice.clients?.address && (
-                <p className="text-sm text-gray-600 whitespace-pre-line break-words pl-13">{normalizedInvoice.clients.address}</p>
-              )}
+              <div className="min-w-0">
+                <p className="text-sm font-black text-gray-900">{invoice.clients?.name || '—'}</p>
+                {invoice.clients?.company && (
+                  <p className="text-xs text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                    <Building2 className="w-3 h-3" />{invoice.clients.company}
+                  </p>
+                )}
+                {invoice.clients?.email && (
+                  <p className="text-xs text-gray-400 font-medium flex items-center gap-1 mt-0.5">
+                    <Mail className="w-3 h-3" />{invoice.clients.email}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Invoice Info */}
-          <div className="text-left md:text-right">
-            <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-4">Invoice Details</h3>
-            <div className="space-y-3">
-              <div className="flex md:justify-end gap-3 items-center">
-                <span className="text-sm font-bold text-gray-600">Invoice #:</span>
-                <span className="text-sm font-black text-gray-900">{normalizedInvoice.invoice_number}</span>
-              </div>
-              {normalizedInvoice.revenue_categories && (
-                <div className="flex md:justify-end gap-3 items-center">
-                  <span className="text-sm font-bold text-gray-600">Category:</span>
-                  <span
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                    style={{
-                      backgroundColor: normalizedInvoice.revenue_categories.color + '22',
-                      color: normalizedInvoice.revenue_categories.color,
-                    }}
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: normalizedInvoice.revenue_categories.color }}
-                    />
-                    {normalizedInvoice.revenue_categories.name}
+          <div className="p-6">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Details</p>
+            <div className="space-y-2 text-xs">
+              {[
+                { label: 'Invoice #', value: invoice.invoice_number, mono: true },
+                { label: 'Issue date', value: fmtDate(invoice.issue_date) },
+                { label: 'Due date', value: fmtDate(invoice.due_date), red: isOverdue },
+              ].map(r => (
+                <div key={r.label} className="flex items-center justify-between gap-4">
+                  <span className="text-gray-400 font-medium">{r.label}</span>
+                  <span className={`font-bold ${r.red ? 'text-red-600' : 'text-gray-900'} ${r.mono ? 'font-mono' : ''}`}>{r.value}</span>
+                </div>
+              ))}
+              {invoice.revenue_categories && (
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-gray-400 font-medium">Category</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold"
+                    style={{ backgroundColor: invoice.revenue_categories.color + '22', color: invoice.revenue_categories.color }}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: invoice.revenue_categories.color }} />
+                    {invoice.revenue_categories.name}
                   </span>
                 </div>
               )}
-              <div className="flex md:justify-end gap-3 items-center">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-bold text-gray-600">Issue Date:</span>
-                <span className="text-sm font-black text-gray-900">{formatDate(normalizedInvoice.issue_date)}</span>
-              </div>
-              <div className="flex md:justify-end gap-3 items-center">
-                <Calendar className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-bold text-gray-600">Due Date:</span>
-                <span className={`text-sm font-black ${isOverdue ? 'text-red-600' : 'text-gray-900'}`}>
-                  {formatDate(normalizedInvoice.due_date)}
-                </span>
-              </div>
             </div>
           </div>
         </div>
 
-        {/* Line Items Table */}
-        <div className="border-t-2 border-gray-200 pt-8">
-          <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-6">Items</h3>
+        {/* Line items */}
+        <div className="p-6">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Line Items</p>
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b-2 border-gray-200">
-                  <th className="px-4 py-4 text-left text-xs font-black uppercase tracking-wider text-gray-700">
-                    Description
-                  </th>
-                  <th className="px-4 py-4 text-right text-xs font-black uppercase tracking-wider text-gray-700">
-                    Quantity
-                  </th>
-                  <th className="px-4 py-4 text-right text-xs font-black uppercase tracking-wider text-gray-700">
-                    Unit Price
-                  </th>
-                  <th className="px-4 py-4 text-right text-xs font-black uppercase tracking-wider text-gray-700">
-                    Total
-                  </th>
+                <tr className="border-b border-gray-100">
+                  {['Description','Qty','Unit price','Total'].map((h, i) => (
+                    <th key={h} className={`pb-2 text-xs font-bold text-gray-400 uppercase tracking-wide ${i === 0 ? 'text-left' : 'text-right'}`}>{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
-                {items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900 break-words">{item.description}</td>
-                    <td className="px-4 py-4 text-sm font-bold text-gray-600 text-right">{item.quantity}</td>
-                    <td className="px-4 py-4 text-sm font-bold text-gray-600 text-right">{formatCurrency(item.unit_price)}</td>
-                    <td className="px-4 py-4 text-sm font-black text-gray-900 text-right">{formatCurrency(item.total)}</td>
+              <tbody className="divide-y divide-gray-50">
+                {items.map(item => (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-3 font-medium text-gray-900">{item.description}</td>
+                    <td className="py-3 text-right font-bold text-gray-600">{item.quantity}</td>
+                    <td className="py-3 text-right font-bold text-gray-600">{fmtFull(item.unit_price)}</td>
+                    <td className="py-3 text-right font-black text-gray-900">{fmtFull(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -401,77 +248,65 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         </div>
 
         {/* Totals */}
-        <div className="border-t-2 border-gray-200 mt-8 pt-8">
-          <div className="flex flex-col items-end space-y-3">
-            <div className="flex justify-between w-full md:w-80 gap-4">
-              <span className="text-sm font-bold text-gray-600">Subtotal:</span>
-              <span className="text-sm font-black text-gray-900">{formatCurrency(normalizedInvoice.subtotal)}</span>
+        <div className="px-6 pb-6 border-t border-gray-50 pt-4 flex justify-end">
+          <div className="w-full max-w-xs space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-500 font-medium">Subtotal</span>
+              <span className="font-bold text-gray-900">{fmtFull(invoice.subtotal)}</span>
             </div>
-            <div className="flex justify-between w-full md:w-80 gap-4">
-              <span className="text-sm font-bold text-gray-600">Tax:</span>
-              <span className="text-sm font-black text-gray-900">{formatCurrency(normalizedInvoice.tax_amount)}</span>
+            <div className="flex justify-between">
+              <span className="text-gray-500 font-medium">Tax</span>
+              <span className="font-bold text-gray-900">{fmtFull(invoice.tax_amount)}</span>
             </div>
-            <div className="flex justify-between w-full md:w-80 gap-4 pt-4 border-t-2 border-gray-200">
-              <span className="text-xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Total:
+            <div className="flex justify-between pt-3 border-t border-gray-100 mt-2">
+              <span className="font-black text-gray-900 flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4" />Total
               </span>
-              <span className="text-xl font-black text-blue-600 tracking-tight">{formatCurrency(normalizedInvoice.total_amount)}</span>
+              <span className={`text-xl font-black ${isPaid ? 'text-teal-600' : 'text-blue-600'}`}>
+                {fmtFull(invoice.total_amount)}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Notes */}
-        {normalizedInvoice.notes && (
-          <div className="border-t-2 border-gray-200 mt-8 pt-8">
-            <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-3">Notes</h3>
-            <p className="text-sm text-gray-600 whitespace-pre-line break-words font-medium">{normalizedInvoice.notes}</p>
+        {invoice.notes && (
+          <div className="px-6 pb-6 border-t border-gray-50 pt-4">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Notes</p>
+            <p className="text-sm text-gray-600 font-medium leading-relaxed whitespace-pre-line">{invoice.notes}</p>
           </div>
         )}
 
-        {/* Attachment */}
-        {normalizedInvoice.attachment_url && (() => {
-          const rawName = decodeURIComponent(normalizedInvoice.attachment_url.split('/').pop() || '')
-          const displayName = rawName.replace(/^\d{13}-/, '') || rawName
-          return (
-            <div className="border-t-2 border-gray-200 mt-8 pt-8">
-              <h3 className="text-sm font-black uppercase tracking-wide text-gray-500 mb-3">Attachment</h3>
-              <a
-                href={normalizedInvoice.attachment_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group"
-              >
-                <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
-                  <Paperclip className="w-4 h-4 text-blue-600" />
-                </div>
-                <span className="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors truncate max-w-xs">
-                  {displayName}
-                </span>
-                <span className="text-xs font-bold text-blue-500 flex-shrink-0">Download ↗</span>
-              </a>
-            </div>
-          )
-        })()}
+        {invoice.attachment_url && attachName && (
+          <div className="px-6 pb-6 border-t border-gray-50 pt-4">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Attachment</p>
+            <a href={invoice.attachment_url} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
+              <div className="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
+                <Paperclip className="w-4 h-4 text-blue-600" />
+              </div>
+              <span className="text-sm font-bold text-gray-800 group-hover:text-blue-700 transition-colors truncate max-w-xs">
+                {attachName}
+              </span>
+              <span className="text-xs font-bold text-blue-500 flex-shrink-0">Download ↗</span>
+            </a>
+          </div>
+        )}
       </div>
 
-      {/* Follow-Up History */}
-      {normalizedInvoice.last_followed_up && (
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-8 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
-          <h3 className="text-lg font-black text-gray-900 mb-3 tracking-tight">Follow-Up History</h3>
-          <p className="text-sm text-gray-600 font-medium">
-            Last reminder sent on {formatDate(normalizedInvoice.last_followed_up)}
-          </p>
+      {invoice.last_followed_up && (
+        <div className="bg-white rounded-2xl border border-gray-100 px-5 py-4 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 text-amber-600" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-900">Last follow-up sent</p>
+            <p className="text-xs text-gray-400 font-medium mt-0.5">{fmtDate(invoice.last_followed_up)}</p>
+          </div>
         </div>
       )}
 
-      {/* Linked Contracts — interactive linker (always shown) */}
-      <InvoiceContractLinker
-        invoiceId={id}
-        clientId={normalizedInvoice.client_id}
-        linkedContracts={linkedContracts}
-        availableContracts={availableContracts}
-      />
+      <InvoiceContractLinker invoiceId={id} clientId={invoice.client_id}
+        linkedContracts={linkedContracts} availableContracts={availableContracts} />
     </div>
   )
 }

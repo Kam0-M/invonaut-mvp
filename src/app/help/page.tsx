@@ -19,7 +19,7 @@ export default async function HelpPage() {
       glow: '0 0 24px rgba(0,102,255,0.12)',
       title: 'AI Payment Predictions',
       desc: 'Every sent invoice gets a risk score and predicted payment date. The system flags high-risk invoices and queues follow-ups automatically.',
-      badge: 'Requires OpenAI credits', badgeCls: 'bg-blue-50 text-blue-700',
+      badge: 'Activates with OpenAI credits', badgeCls: 'bg-blue-50 text-blue-700',
     },
     {
       icon: Bell, color: 'bg-teal-500',
