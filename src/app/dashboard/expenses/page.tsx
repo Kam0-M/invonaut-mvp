@@ -5,6 +5,7 @@ import { Plus, Receipt } from 'lucide-react'
 import ExpenseList from '@/components/expenses/expense-list'
 import ExpenseReportGenerator from '@/components/expenses/expense-report-generator'
 import BudgetSettings from '@/components/expenses/budget-settings'
+import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 
 type PageProps = {

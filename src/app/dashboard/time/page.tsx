@@ -21,6 +21,7 @@ import { Plus, Clock } from 'lucide-react'
 import TimeTracker from '@/components/time/time-tracker'
 import TimeEntryList from '@/components/time/time-entry-list'
 import WeeklySummary from '@/components/time/weekly-summary'
+import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 
 type Client = {
   id:           string
