@@ -68,7 +68,7 @@ function ClauseLibraryPanel({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search clauses..."
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
           />
           <div className="flex flex-wrap gap-1.5">
             {categories.map(cat => (
@@ -305,15 +305,14 @@ export default function EditContractPage({
 
   if (notFound) {
     return (
-      <div className="space-y-6">
-        <Link
-          href="/dashboard/contracts"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 font-bold text-gray-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Contracts
+      <div className="space-y-5">
+        <Link href="/dashboard/contracts"
+          className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors block">
+          ← Back to Contracts
         </Link>
-        <p className="text-gray-500">Contract not found or you don't have permission to edit it.</p>
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <p className="text-sm font-bold text-gray-400">Contract not found or you don't have permission to edit it.</p>
+        </div>
       </div>
     )
   }
@@ -333,26 +332,25 @@ export default function EditContractPage({
         <div>
           <Link
             href={`/dashboard/contracts/${contractId}`}
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 font-medium mb-3 transition-colors"
+            className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block"
           >
-            <ArrowLeft className="w-4 h-4" />
-            Back to contract
+            ← Back to contract
           </Link>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Edit Contract</h1>
+          <h1 className="text-xl font-black text-gray-900">Edit Contract</h1>
         </div>
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm disabled:opacity-50"
         >
-          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-          {isSaving ? 'Saving...' : 'Save Changes'}
+          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+          {isSaving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
 
       {/* Renewal banner */}
       {isRenewal && (
-        <div className="flex items-start gap-3 bg-amber-50 border-2 border-amber-200 rounded-2xl px-5 py-4">
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4">
           <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-bold text-amber-800 text-sm">This is a renewal contract</p>
@@ -365,7 +363,7 @@ export default function EditContractPage({
       )}
 
       {/* Contract metadata */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-5">
         <h3 className="font-black text-gray-900">Contract details</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
@@ -376,7 +374,7 @@ export default function EditContractPage({
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -386,7 +384,7 @@ export default function EditContractPage({
             <select
               value={clientId}
               onChange={e => setClientId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
             >
               <option value="">Select a client</option>
               {clients.map(c => (
@@ -409,7 +407,7 @@ export default function EditContractPage({
                 placeholder="0.00"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
               />
             </div>
           </div>
@@ -419,7 +417,7 @@ export default function EditContractPage({
               type="date"
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -428,7 +426,7 @@ export default function EditContractPage({
               type="date"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -440,7 +438,7 @@ export default function EditContractPage({
               type="date"
               value={expiryDate}
               onChange={e => setExpiryDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
         </div>
@@ -452,7 +450,7 @@ export default function EditContractPage({
           <h3 className="font-black text-gray-900">Contract clauses</h3>
           <button
             onClick={() => setShowLibrary(true)}
-            className="inline-flex items-center gap-2 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            className="inline-flex items-center gap-2 border border-blue-200 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
           >
             <BookOpen className="w-4 h-4" />
             Clause library
@@ -468,7 +466,7 @@ export default function EditContractPage({
         )}
 
         {clauses.map((clause, index) => (
-          <div key={clause.id} className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
+          <div key={clause.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
               <div className="flex flex-col gap-0.5 flex-shrink-0">
                 <button
@@ -522,7 +520,7 @@ export default function EditContractPage({
                   onChange={e => updateClause(clause.id, 'content', e.target.value)}
                   rows={6}
                   placeholder="Enter clause text..."
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y leading-relaxed"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y leading-relaxed"
                 />
               </div>
             )}

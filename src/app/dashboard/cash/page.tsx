@@ -14,6 +14,7 @@ import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-ch
 import UpcomingPaymentsList        from '@/components/cash/upcoming-payments-list'
 import TaxReserveEstimate          from '@/components/cash/tax-reserve-estimate'
 import CoreTabBar                  from '@/components/layout/core-tab-bar'
+import PageAutoRefresh             from '@/components/ui/page-auto-refresh'
 
 const fmt = (n: number): string => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
@@ -209,6 +210,7 @@ export default async function CashPage() {
 
   return (
     <div className="space-y-6">
+      <PageAutoRefresh interval={30_000} />
       <CoreTabBar />
 
       {/* ── Page header ──────────────────────────────────────────────────── */}

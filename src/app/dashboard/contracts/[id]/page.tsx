@@ -80,7 +80,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   const isUrgent       = daysToExpiry !== null && daysToExpiry <= 7  && daysToExpiry >= 0
 
   return (
-    <div className="space-y-5 max-w-5xl">
+    <div className="space-y-5">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">

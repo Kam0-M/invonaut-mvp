@@ -4,6 +4,7 @@ import Link             from 'next/link'
 import { Plus, Banknote, TrendingUp, Smartphone, Building2 } from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
+import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
 
 function formatCompact(n: number): string {
@@ -58,6 +59,7 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-6">
+      <PageAutoRefresh interval={30_000} />
       <CoreTabBar />
 
       {/* Page header */}

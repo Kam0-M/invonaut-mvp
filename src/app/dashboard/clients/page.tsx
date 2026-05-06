@@ -31,6 +31,7 @@ export default async function ClientsPage() {
 
   return (
     <div className="space-y-6">
+      <PageAutoRefresh interval={30_000} />
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>

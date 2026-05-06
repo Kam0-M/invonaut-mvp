@@ -1,73 +1,46 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import EditClientForm from '@/components/clients/edit-client-form'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { createClient }     from '@/lib/supabase/server'
+import { redirect }         from 'next/navigation'
+import EditClientForm       from '@/components/clients/edit-client-form'
+import Link                 from 'next/link'
+import { Users }            from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
 
-export default async function EditClientPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
+export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id }   = await params
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Check subscription status BEFORE loading client
   const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
-    .eq('id', user.id)
-    .single()
+    .from('user_profiles').select('stripe_subscription_id, subscription_status')
+    .eq('id', user.id).single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
-
-  // GATE: Show subscription required if no active subscription
-  if (!hasActiveSubscription) {
-    return <SubscriptionRequired />
-  }
+  if (!hasActiveSubscription) return <SubscriptionRequired />
 
   const { data: client, error } = await supabase
-    .from('clients')
-    .select('*')
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
-
-  if (error || !client) {
-    redirect('/dashboard/clients')
-  }
+    .from('clients').select('*').eq('id', id).eq('user_id', user.id).single()
+  if (error || !client) redirect('/dashboard/clients')
 
   return (
-    <div className="space-y-8">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link 
-            href={`/dashboard/clients/${id}`}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Client</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
+    <div className="space-y-5">
+      <div>
+        <Link href={`/dashboard/clients/${id}`}
+          className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← {client.name}
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center flex-shrink-0">
+            <Users className="w-4 h-4 text-white" />
+          </div>
           <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Edit Client</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Update {client.name}'s information
-            </p>
+            <h1 className="text-xl font-black text-gray-900">Edit Client</h1>
+            <p className="text-sm text-gray-400 font-medium">Updating {client.name}</p>
           </div>
         </div>
       </div>
-
-      {/* Premium Form Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all">
         <EditClientForm client={client} />
       </div>
     </div>

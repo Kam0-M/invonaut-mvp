@@ -257,6 +257,7 @@ export default async function DashboardPage() {
 
       {/* ── Revenue Story ─────────────────────────────────────────────────── */}
       <RevenueStorySection
+        key={`rev-${currentMonthRevenue}-${previousMonthRevenue}`}
         data={revenueChartData}
         currentMonth={currentMonthRevenue}
         previousMonth={previousMonthRevenue}
