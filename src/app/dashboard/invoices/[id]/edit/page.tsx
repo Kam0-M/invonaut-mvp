@@ -1,95 +1,65 @@
-import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
-import EditInvoiceForm from '@/components/invoices/edit-invoice-form'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import SubscriptionRequired from '@/components/subscription-required'
+import { createClient }       from '@/lib/supabase/server'
+import { redirect }           from 'next/navigation'
+import EditInvoiceForm        from '@/components/invoices/edit-invoice-form'
+import Link                   from 'next/link'
+import SubscriptionRequired   from '@/components/subscription-required'
+import { FileText }           from 'lucide-react'
 
-export default async function EditInvoicePage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
+export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id }   = await params
   const supabase = await createClient()
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Check subscription status BEFORE loading invoice
   const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
-    .eq('id', user.id)
-    .single()
+    .from('user_profiles').select('stripe_subscription_id, subscription_status')
+    .eq('id', user.id).single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id && 
+  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  if (!hasActiveSubscription) return <SubscriptionRequired />
 
-  // GATE: Show subscription required if no active subscription
-  if (!hasActiveSubscription) {
-    return <SubscriptionRequired />
-  }
-
-  const { data: invoice, error: invoiceError } = await supabase
+  const { data: invoiceData, error } = await supabase
     .from('invoices')
-    .select(
-      `
-      *,
-      clients (id, name, email, company),
-      invoice_items (*)
-    `
-    )
-    .eq('id', id)
-    .eq('user_id', user.id)
-    .single()
+    .select('*, invoice_items(*), revenue_categories(id, name, color)')
+    .eq('id', id).eq('user_id', user.id).single()
 
-  if (invoiceError || !invoice) {
-    redirect('/dashboard/invoices')
-  }
+  if (error || !invoiceData || invoiceData.status !== 'draft') redirect('/dashboard/invoices')
 
-  if (invoice.status !== 'draft') {
-    redirect(`/dashboard/invoices/${id}`)
+  const invoice = {
+    ...invoiceData,
+    revenue_categories: Array.isArray(invoiceData.revenue_categories)
+      ? (invoiceData.revenue_categories[0] ?? null)
+      : invoiceData.revenue_categories,
   }
 
   const { data: clients } = await supabase
-    .from('clients')
-    .select('id, name, company')
-    .eq('user_id', user.id)
-    .order('name')
+    .from('clients').select('id, name, email, company').eq('user_id', user.id).order('name')
 
   const { data: categories } = await supabase
-    .from('revenue_categories')
-    .select('id, name, color')
-    .eq('user_id', user.id)
-    .order('name', { ascending: true })
+    .from('revenue_categories').select('id, name, color').eq('user_id', user.id).order('name')
 
   return (
-    <div className="space-y-8">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link 
-            href={`/dashboard/invoices/${id}`}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Invoice</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <Link href={`/dashboard/invoices/${id}`}
+          className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← {invoice.invoice_number}
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+            <FileText className="w-4 h-4 text-white" />
+          </div>
           <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Edit Invoice</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Update invoice {invoice.invoice_number}
-            </p>
+            <h1 className="text-xl font-black text-gray-900">Edit Invoice</h1>
+            <p className="text-sm text-gray-400 font-medium">Updating {invoice.invoice_number}</p>
           </div>
         </div>
       </div>
 
-      {/* Premium Form Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      {/* Form */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all">
         <EditInvoiceForm
           invoice={invoice}
           invoiceItems={invoice.invoice_items || []}

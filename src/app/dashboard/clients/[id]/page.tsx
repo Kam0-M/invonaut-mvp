@@ -80,7 +80,7 @@ export default async function ClientDetailPage({
   const tabCls          = (t:Tab) => `px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab===t?'bg-white text-blue-600 shadow-sm':'text-gray-500 hover:text-gray-700'}`
 
   return (
-    <div className="space-y-5 max-w-4xl">
+    <div className="space-y-5">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">

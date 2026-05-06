@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle } from 'lucide-react'
+import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractList from '@/components/contracts/contract-list'
@@ -60,6 +61,7 @@ export default async function ContractsPage() {
 
   return (
     <div className="space-y-6">
+      <PageAutoRefresh interval={30_000} />
       <CoreTabBar />
 
       {/* Page header */}
