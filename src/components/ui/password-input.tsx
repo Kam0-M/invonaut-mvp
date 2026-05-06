@@ -37,7 +37,6 @@ export function PasswordInput({
         type={showPassword ? 'text' : 'password'}
         value={value}
         onChange={onChange}
-        onInput={onChange}
         onKeyDown={(e) => {
           // Allow typing
           e.stopPropagation()

@@ -26,6 +26,14 @@ interface Props {
 }
 
 type Severity = 'warning' | 'critical' | 'success' | 'info'
+type Insight = {
+  title: string
+  description: string
+  action: string
+  href: string
+  severity: Severity
+  icon: typeof AlertTriangle
+}
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -42,7 +50,7 @@ export default function AICommandCenter({
   const [paused,     setPaused]     = useState(false)
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const insights = [
+  const insights: Insight[] = [
     overdueCount > 0 && {
       title:       `${overdueCount} invoice${overdueCount > 1 ? 's' : ''} overdue`,
       description: `${fmt(pendingPayments)} is waiting on clients. Automated reminders can recover this without a single manual email.`,
@@ -93,7 +101,7 @@ export default function AICommandCenter({
       severity:    'info' as Severity,
       icon:        BarChart3,
     },
-  ].filter(Boolean) as NonNullable<(typeof insights)[number]>[]
+  ].filter((item): item is Insight => Boolean(item))
 
   const startCycle = () => {
     if (intervalRef.current) clearInterval(intervalRef.current)
