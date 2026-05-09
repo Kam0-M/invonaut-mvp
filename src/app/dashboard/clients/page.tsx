@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Plus, Users, Lock, Building2 } from 'lucide-react'
 import ClientsTable from '@/components/clients/clients-table'
 import ViewOnlyBanner from '@/components/view-only-banner'
-import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 
 export default async function ClientsPage() {
   const supabase = await createClient()
