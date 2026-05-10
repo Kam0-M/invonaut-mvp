@@ -2,6 +2,7 @@
 // Fully redesigned with psychology-driven layout:
 // Business Health Score → AI Insights → Metrics → Invoice Health →
 // Revenue Intelligence → Client Intelligence → Expense Breakdown → 12-month chart
+export const dynamic = 'force-dynamic'
 
 import { redirect }       from 'next/navigation'
 import { createClient }   from '@/lib/supabase/server'

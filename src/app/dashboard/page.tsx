@@ -1,3 +1,7 @@
+// Force a fresh server fetch on every visit — prevents Next.js router cache
+// from serving stale chart/revenue data after payments or invoice updates.
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'

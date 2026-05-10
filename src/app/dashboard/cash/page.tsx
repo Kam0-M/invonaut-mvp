@@ -1,4 +1,7 @@
 // src/app/dashboard/cash/page.tsx
+// Force a fresh server fetch on every visit — prevents stale chart data
+// after revenue/payment changes.
+export const dynamic = 'force-dynamic'
 
 import { redirect }     from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
