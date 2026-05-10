@@ -172,6 +172,7 @@ export default function LandingPricingSection() {
           Monthly
         </span>
         <button
+          suppressHydrationWarning
           onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             billing === 'annual' ? 'bg-blue-600' : 'bg-gray-300'
