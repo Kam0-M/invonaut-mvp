@@ -34,6 +34,7 @@ export function InvoiceFilters({ onFilterChange }: InvoiceFiltersProps) {
       <div className="relative flex-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
+          suppressHydrationWarning
           type="text"
           placeholder="Search by client name or invoice number..."
           value={search}
@@ -45,6 +46,7 @@ export function InvoiceFilters({ onFilterChange }: InvoiceFiltersProps) {
       {/* Status Filter Dropdown */}
       <div className="flex gap-2">
         <select
+          suppressHydrationWarning
           value={status}
           onChange={(e) => handleStatusChange(e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-gray-900 bg-white min-w-[140px]"

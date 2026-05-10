@@ -137,14 +137,24 @@ export default async function DashboardPage() {
   const revenueChartData = Array.from({ length: 6 }, (_, idx) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
     const y = d.getFullYear(), m = d.getMonth()
-    const revenue = invoices
+    const invoiceRev = invoices
       .filter((i: any) => i.displayStatus === 'paid')
       .filter((i: any) => {
         const d2 = new Date(i.issue_date + 'T12:00:00')
         return d2.getFullYear() === y && d2.getMonth() === m
       })
       .reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0)
-    return { month: d.toLocaleString('en-US', { month: 'short' }), revenue, isCurrentMonth: y === now.getFullYear() && m === now.getMonth() }
+    const directRev = directPayments
+      .filter((p: any) => {
+        const d2 = new Date(p.payment_date + 'T12:00:00')
+        return d2.getFullYear() === y && d2.getMonth() === m
+      })
+      .reduce((s: number, p: any) => s + Number(p.amount || 0), 0)
+    return {
+      month: d.toLocaleString('en-US', { month: 'short' }),
+      revenue: invoiceRev + directRev,
+      isCurrentMonth: y === now.getFullYear() && m === now.getMonth(),
+    }
   })
   const currentMonthRevenue  = revenueChartData[5]?.revenue ?? 0
   const previousMonthRevenue = revenueChartData[4]?.revenue ?? 0

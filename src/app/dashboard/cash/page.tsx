@@ -165,13 +165,20 @@ export default async function CashPage() {
   const revExpData = Array.from({ length: 12 }, (_, idx) => {
     const d     = new Date(now.getFullYear(), now.getMonth() - (11 - idx), 1)
     const y = d.getFullYear(), m = d.getMonth()
-    const revenue = invoices
+    const invoiceRev = invoices
       .filter((inv: any) => inv.displayStatus === 'paid')
       .filter((inv: any) => { const dd = new Date(inv.issue_date + 'T12:00:00'); return dd.getFullYear()===y && dd.getMonth()===m })
       .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
+    const directRev = directPayments
+      .filter((p: any) => {
+        const dd = new Date(p.payment_date + 'T12:00:00')
+        return dd.getFullYear() === y && dd.getMonth() === m
+      })
+      .reduce((s, p) => s + Number(p.amount || 0), 0)
     const expAmt = expenses
       .filter(e => { const dd = new Date(e.date + 'T12:00:00'); return dd.getFullYear()===y && dd.getMonth()===m })
       .reduce((s, e) => s + Number(e.amount || 0), 0)
+    const revenue = invoiceRev + directRev
     return { month: d.toLocaleString('en-US', { month: 'short' }), revenue, expenses: expAmt, profit: revenue - expAmt }
   })
 
