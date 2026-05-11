@@ -119,7 +119,7 @@ export default function SettingsForm({
   return (
     <div className="space-y-8">
       {/* Account Information */}
-      <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-8">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
             <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -143,7 +143,7 @@ export default function SettingsForm({
       </div>
 
       {/* Current Plan Section */}
-      <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-8">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
             <CreditCard className="w-5 h-5 text-green-600" />
@@ -157,7 +157,7 @@ export default function SettingsForm({
         {hasActiveSubscription ? (
           <div className="space-y-6">
             {/* ACTIVE SUBSCRIPTION */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border-2 border-green-200">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2">
@@ -185,7 +185,7 @@ export default function SettingsForm({
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/dashboard/billing"
-                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+                  className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-md hover:-translate-y-0.5 transition-all"
                 >
                   <CreditCard className="w-4 h-4" />
                   Manage Subscription
@@ -194,7 +194,7 @@ export default function SettingsForm({
                 {subscriptionTier === 'starter' && (
                   <Link
                     href="/pricing"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
                     <Sparkles className="w-4 h-4" />
                     Upgrade to Professional
@@ -247,7 +247,7 @@ export default function SettingsForm({
             </div>
           </div>
         ) : hasEverSubscribed ? (
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-8 border-2 border-orange-200 text-center">
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-5 border border-orange-100 text-center">
             {/* CANCELED / INACTIVE (had subscription before) */}
             <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Lock className="w-8 h-8 text-orange-600" />
@@ -258,7 +258,7 @@ export default function SettingsForm({
             </p>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-md hover:-translate-y-0.5 transition-all"
             >
               <Sparkles className="w-5 h-5" />
               Reactivate Subscription
@@ -268,7 +268,7 @@ export default function SettingsForm({
             </p>
           </div>
         ) : (
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-8 border-2 border-blue-200 text-center">
+          <div className="bg-gradient-to-br from-blue-50 to-teal-50 rounded-xl p-5 border border-blue-100 text-center">
             {/* NEW USER (never subscribed) */}
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-blue-600" />
@@ -279,7 +279,7 @@ export default function SettingsForm({
             </p>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-xl hover:shadow-xl transition-all hover:scale-105 text-lg"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold rounded-xl hover:shadow-md hover:-translate-y-0.5 transition-all text-lg"
             >
               <Sparkles className="w-5 h-5" />
               Start 14-Day Free Trial
@@ -303,10 +303,10 @@ export default function SettingsForm({
       </div>
 
       {/* White Label Branding */}
-      <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-100 p-8">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
             </svg>
           </div>
@@ -317,9 +317,9 @@ export default function SettingsForm({
         </div>
 
         {!isProfessionalOrBusiness ? (
-          <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-xl p-8 text-center">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-gradient-to-br from-blue-50 to-teal-50 border border-blue-100 rounded-xl p-5 text-center">
+            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
@@ -330,7 +330,7 @@ export default function SettingsForm({
             <button
               type="button"
               onClick={() => router.push('/pricing')}
-              className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="btn-primary px-6 py-2.5 rounded-xl text-sm"
             >
               Upgrade to Professional
             </button>
@@ -367,7 +367,7 @@ export default function SettingsForm({
             </div>
 
             {hasUnsavedChanges && (
-              <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 flex items-center gap-3">
+              <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-orange-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-orange-900">Unsaved Changes</p>
@@ -377,7 +377,7 @@ export default function SettingsForm({
             )}
 
             {saveStatus === 'saved' && (
-              <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 flex items-center gap-3">
+              <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex items-center gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-green-900">Changes Saved</p>
@@ -387,7 +387,7 @@ export default function SettingsForm({
             )}
 
             {saveStatus === 'error' && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center gap-3">
+              <div className="bg-red-50 border border-red-100 rounded-xl p-4 flex items-center gap-3">
                 <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-red-900">Save Failed</p>
@@ -396,15 +396,15 @@ export default function SettingsForm({
               </div>
             )}
 
-            <div className="flex justify-end pt-4 border-t-2 border-gray-100">
+            <div className="flex justify-end pt-4 border-t border-gray-100">
               <button
                 type="button"
                 onClick={handleSaveChanges}
                 disabled={!hasUnsavedChanges || isSaving}
                 className={`
-                  px-8 py-3 rounded-xl font-bold shadow-lg transition-all
+                  px-6 py-2.5 rounded-xl font-bold transition-all
                   ${hasUnsavedChanges 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white hover:shadow-xl' 
+                    ? 'btn-primary' 
                     : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   }
                 `}

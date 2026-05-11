@@ -146,26 +146,17 @@ export default function NewTimePage() {
   }
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/time"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200
-                     bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg
-                     transition-all font-bold text-gray-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
+    <div className="space-y-6 max-w-2xl">
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard/time" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Time Tracking
         </Link>
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Manual Entry</h1>
-          <p className="text-gray-500 mt-1 font-medium">Log hours you worked without the live timer</p>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900">Manual Entry</h1>
       </div>
 
       {/* Form card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-6">
 
         {/* Client */}
         <div>
@@ -174,7 +165,7 @@ export default function NewTimePage() {
             value={clientId}
             onChange={e => handleClientChange(e.target.value)}
             disabled={isSaving}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm font-medium
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm font-medium
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white
                        disabled:bg-gray-50"
           >
@@ -198,7 +189,7 @@ export default function NewTimePage() {
             onChange={e => setDescription(e.target.value)}
             placeholder="e.g. Homepage redesign, Client call, Code review..."
             disabled={isSaving}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                        disabled:bg-gray-50"
           />
@@ -215,7 +206,7 @@ export default function NewTimePage() {
               value={startTime}
               onChange={e => setStartTime(e.target.value)}
               disabled={isSaving}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                          disabled:bg-gray-50"
             />
@@ -229,7 +220,7 @@ export default function NewTimePage() {
               value={endTime}
               onChange={e => setEndTime(e.target.value)}
               disabled={isSaving}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                          disabled:bg-gray-50"
             />
@@ -266,7 +257,7 @@ export default function NewTimePage() {
               min="0"
               step="0.01"
               disabled={isSaving || !billable}
-              className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900
+              className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                          disabled:bg-gray-50 disabled:text-gray-400"
             />
@@ -315,7 +306,7 @@ export default function NewTimePage() {
       <div className="flex flex-col sm:flex-row gap-3 pb-8">
         <Link
           href="/dashboard/time"
-          className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-xl border-2 border-gray-200
+          className="flex-1 inline-flex items-center justify-center px-6 py-3 rounded-xl border border-gray-200
                      bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-300 transition-all"
         >
           Cancel
@@ -325,8 +316,7 @@ export default function NewTimePage() {
           disabled={isSaving || durationSeconds <= 0 || !description.trim()}
           className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl
                      bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold
-                     hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:scale-105
-                     transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                     hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSaving && <Loader2 className="w-5 h-5 animate-spin" />}
           {isSaving ? 'Saving...' : 'Save Entry'}

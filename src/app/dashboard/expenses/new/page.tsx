@@ -32,19 +32,13 @@ export default async function NewExpensePage() {
   const clients = (clientsData ?? []) as { id: string; name: string; company: string | null }[]
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/expenses"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all font-bold text-gray-700"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard/expenses" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Expenses
         </Link>
-        <div>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">Add Expense</h1>
-          <p className="text-gray-500 mt-1 font-medium">Track a new business expense</p>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900">Add Expense</h1>
       </div>
 
       <ExpenseForm clients={clients} hasPro={hasPro} />
