@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save, Clock, Paperclip } from 'lucide-react'
@@ -351,7 +352,7 @@ export default function NewInvoicePage() {
       }
 
       toast.success('Invoice created successfully!', { id: loadingToast, duration: 3000 })
-      setTimeout(() => { router.push('/dashboard/invoices'); router.refresh() }, 500)
+      pushHrefThenRefreshServer(router, '/dashboard/invoices')
     } catch (err: any) {
       let errorMessage = 'Failed to save invoice. Please try again.'
       if (err?.code === '23505' || err?.message?.includes('duplicate key')) {

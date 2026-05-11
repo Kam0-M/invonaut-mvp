@@ -6,7 +6,6 @@ import ExpenseList from '@/components/expenses/expense-list'
 import ExpenseReportGenerator from '@/components/expenses/expense-report-generator'
 import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
-import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -81,8 +80,6 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <PageAutoRefresh interval={30_000} />
-
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>

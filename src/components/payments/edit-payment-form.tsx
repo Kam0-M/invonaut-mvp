@@ -3,6 +3,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter }         from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { toast }             from 'sonner'
 import { Loader2, Paperclip, X } from 'lucide-react'
 
@@ -85,10 +86,10 @@ export default function EditPaymentForm({ payment, categories, clients }: Props)
       if (!data.success) throw new Error(data.error)
 
       toast.success('Payment updated', { id: tid })
-      router.push(`/dashboard/payments/${payment.id}`)
-      router.refresh()
+      pushHrefThenRefreshServer(router, `/dashboard/payments/${payment.id}`)
     } catch (err: any) {
       toast.error(err.message || 'Failed to update', { id: tid })
+    } finally {
       setLoading(false)
     }
   }

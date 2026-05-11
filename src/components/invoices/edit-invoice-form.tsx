@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Loader2, Paperclip, X } from 'lucide-react'
@@ -218,10 +219,11 @@ export default function EditInvoiceForm({
       if (itemsError) throw itemsError
 
       toast.success('Invoice updated successfully!', { id: loadingToast })
-      setTimeout(() => { router.push(`/dashboard/invoices/${invoice.id}`); router.refresh() }, 500)
+      pushHrefThenRefreshServer(router, `/dashboard/invoices/${invoice.id}`)
     } catch (error: any) {
       console.error('Error updating invoice:', error)
       toast.error(error.message || 'Failed to update invoice. Please try again.', { id: loadingToast })
+    } finally {
       setIsLoading(false)
     }
   }

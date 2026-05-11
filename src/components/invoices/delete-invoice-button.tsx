@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { createClient } from '@/lib/supabase/client'
@@ -44,11 +45,8 @@ export function DeleteInvoiceButton({
       if (invoiceError) throw invoiceError
 
       toast.success('Invoice deleted successfully!', { id: loadingToast, duration: 3000 })
-      
-      setTimeout(() => {
-        router.push('/dashboard/invoices')
-        router.refresh()
-      }, 500)
+
+      pushHrefThenRefreshServer(router, '/dashboard/invoices')
     } catch (err: any) {
       console.error('Error deleting invoice:', err)
       setError(err.message || 'Failed to delete invoice')
