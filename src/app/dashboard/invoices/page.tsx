@@ -5,7 +5,6 @@ import { InvoiceList } from '@/components/invoices/invoice-list'
 import { Plus, FileText, Lock, Zap, TrendingUp, Clock, CheckCircle2 } from 'lucide-react'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 
 function formatCompact(n: number): string {
@@ -48,7 +47,6 @@ export default async function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <PageAutoRefresh interval={30_000} />
       {/* Tab bar — matches demo */}
       <CoreTabBar />
 

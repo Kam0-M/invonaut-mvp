@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -28,8 +29,7 @@ export default function DeletePaymentButton({ paymentId, description }: Props) {
       const data = await res.json()
       if (!data.success) throw new Error(data.error)
       toast.success('Payment deleted')
-      router.push('/dashboard/payments')
-      router.refresh()
+      pushHrefThenRefreshServer(router, '/dashboard/payments')
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete payment')
       setLoading(false)

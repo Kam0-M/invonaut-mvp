@@ -4,7 +4,6 @@ import { createClient } from '@/lib/supabase/server'
 import { Plus, Users, Lock, Building2 } from 'lucide-react'
 import ClientsTable from '@/components/clients/clients-table'
 import ViewOnlyBanner from '@/components/view-only-banner'
-import PageAutoRefresh from '@/components/ui/page-auto-refresh'
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -32,7 +31,6 @@ export default async function ClientsPage() {
 
   return (
     <div className="space-y-6">
-      <PageAutoRefresh interval={30_000} />
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>

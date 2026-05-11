@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Clock, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Bell, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { refreshServerComponents } from '@/lib/router-refresh'
 
 type FollowUpButtonProps = {
   invoiceId: string
@@ -19,6 +21,7 @@ export function FollowUpButton({
   lastFollowedUp,
   daysOverdue
 }: FollowUpButtonProps) {
+  const router = useRouter()
   const [isSending, setIsSending] = useState(false)
 
   const getTimeSinceFollowUp = () => {
@@ -78,10 +81,10 @@ export function FollowUpButton({
 
       toast.success('Reminder sent successfully!', { id: loadingToast, duration: 3000 })
       setIsSending(false)
-      
+
       setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+        refreshServerComponents(router)
+      }, 400)
       
     } catch (error) {
       toast.error('Failed to send follow-up', { id: loadingToast, duration: 3000 })

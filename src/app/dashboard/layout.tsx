@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect }     from 'next/navigation'
 import { Sidebar }      from '@/components/layout/sidebar'
 import DashboardHeader  from '@/components/layout/dashboard-header'
+import PageAutoRefresh  from '@/components/ui/page-auto-refresh'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -33,6 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         />
         <main className="flex-1 overflow-y-auto bg-gray-50">
           <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+            <PageAutoRefresh interval={30_000} />
             {children}
           </div>
         </main>

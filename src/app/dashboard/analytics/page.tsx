@@ -17,7 +17,6 @@ import { StackedRevenueChart }     from '@/components/analytics/stacked-revenue-
 import { EXPENSE_CATEGORIES }      from '@/lib/ai/expense-categorization'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
-import PageAutoRefresh             from '@/components/ui/page-auto-refresh'
 import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
@@ -283,7 +282,6 @@ export default async function AnalyticsPage({
 
   return (
     <div className="space-y-5">
-      <PageAutoRefresh interval={30_000} />
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Analytics</p>

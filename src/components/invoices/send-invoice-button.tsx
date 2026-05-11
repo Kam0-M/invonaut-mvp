@@ -1,11 +1,13 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mail, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Dialog } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { refreshServerComponents } from '@/lib/router-refresh'
 
 type SendInvoiceButtonProps = {
   invoiceId: string
@@ -20,6 +22,7 @@ export function SendInvoiceButton({
   invoiceNumber,
   clientName
 }: SendInvoiceButtonProps) {
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState(clientEmail)
   const [isSending, setIsSending] = useState(false)
@@ -69,11 +72,11 @@ export function SendInvoiceButton({
       }
   
       setIsSending(false)
-      
+
       setTimeout(() => {
         setIsOpen(false)
-        window.location.reload()
-      }, 1000)
+        refreshServerComponents(router)
+      }, 400)
       
     } catch (error) {
       toast.error('Failed to send invoice', { id: loadingToast, duration: 3000 })

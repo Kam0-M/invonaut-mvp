@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter }     from 'next/navigation'
+import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { createClient }  from '@/lib/supabase/client'
 import { toast }         from 'sonner'
 import Link              from 'next/link'
@@ -148,9 +149,10 @@ export default function NewPaymentPage() {
       if (!data.success) throw new Error(data.error)
 
       toast.success('Payment logged!', { id: tid })
-      setTimeout(() => { router.push('/dashboard/payments'); router.refresh() }, 500)
+      pushHrefThenRefreshServer(router, '/dashboard/payments')
     } catch (err: any) {
       toast.error(err.message || 'Failed to save payment', { id: tid })
+    } finally {
       setIsSaving(false)
     }
   }
