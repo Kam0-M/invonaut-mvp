@@ -6,8 +6,15 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   ArrowLeft, Plus, Trash2, GripVertical, ChevronDown, ChevronUp,
-  Loader2, BookOpen, X, Check
+  Loader2, BookOpen, X, Check,
+  FileText, Lock, ClipboardList, RefreshCw, PenLine, Handshake, Pencil,
+  type LucideProps
 } from 'lucide-react'
+
+// Map template icon name → Lucide component
+const TEMPLATE_ICONS: Record<string, React.ComponentType<LucideProps>> = {
+  FileText, Lock, ClipboardList, RefreshCw, PenLine, Handshake,
+}
 import { toast } from 'sonner'
 import { CONTRACT_TEMPLATES, type ClauseBlock } from '@/lib/contracts/templates'
 
@@ -33,7 +40,9 @@ function TemplateSelector({ onSelect }: { onSelect: (type: string) => void }) {
             onClick={() => onSelect(t.type)}
             className="text-left bg-white border border-gray-100 rounded-2xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-200 group"
           >
-            <div className="text-3xl mb-4">{t.icon}</div>
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center mb-4 text-blue-600">
+              {(() => { const Icon = TEMPLATE_ICONS[t.icon] ?? FileText; return <Icon className="w-4 h-4" /> })()}
+            </div>
             <h3 className="font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
               {t.name}
             </h3>
@@ -45,7 +54,9 @@ function TemplateSelector({ onSelect }: { onSelect: (type: string) => void }) {
           onClick={() => onSelect('custom')}
           className="text-left bg-white border border-dashed border-gray-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-200 group"
         >
-          <div className="text-3xl mb-4">✏️</div>
+          <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center mb-4 text-gray-500">
+            <Pencil className="w-4 h-4" />
+          </div>
           <h3 className="font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
             Blank Contract
           </h3>

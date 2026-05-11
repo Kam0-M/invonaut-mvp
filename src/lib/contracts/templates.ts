@@ -18,7 +18,7 @@ export type ClauseBlock = {
       type: 'service_agreement',
       name: 'Freelance Service Agreement',
       description: 'General terms for project-based work. Covers scope, payment, IP, and revisions.',
-      icon: '📋',
+      icon: 'FileText',
       clauses: [
         {
           title: 'Scope of Services',
@@ -66,7 +66,7 @@ export type ClauseBlock = {
       type: 'nda',
       name: 'Non-Disclosure Agreement',
       description: 'Protect confidential information before a project begins. Mutual or one-way.',
-      icon: '🔒',
+      icon: 'Lock',
       clauses: [
         {
           title: 'Purpose',
@@ -104,7 +104,7 @@ export type ClauseBlock = {
       type: 'project_proposal',
       name: 'Project Proposal',
       description: 'Scoped deliverables and pricing for client approval before formal engagement.',
-      icon: '📝',
+      icon: 'ClipboardList',
       clauses: [
         {
           title: 'Project Overview',
@@ -137,7 +137,7 @@ export type ClauseBlock = {
       type: 'retainer',
       name: 'Retainer Agreement',
       description: 'Ongoing monthly engagement with defined scope, hours, and billing.',
-      icon: '🔄',
+      icon: 'RefreshCw',
       clauses: [
         {
           title: 'Services',
@@ -180,7 +180,7 @@ export type ClauseBlock = {
       type: 'work_for_hire',
       name: 'Work-for-Hire Agreement',
       description: 'Full IP ownership transfers to client upon payment. Common for commissioned work.',
-      icon: '✍️',
+      icon: 'PenLine',
       clauses: [
         {
           title: 'Services and Deliverables',
@@ -218,7 +218,7 @@ export type ClauseBlock = {
       type: 'subcontractor',
       name: 'Subcontractor Agreement',
       description: 'For hiring someone to help on a project. Covers deliverables, pay, and confidentiality.',
-      icon: '🤝',
+      icon: 'Handshake',
       clauses: [
         {
           title: 'Engagement',
