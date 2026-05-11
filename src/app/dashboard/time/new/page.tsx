@@ -146,7 +146,7 @@ export default function NewTimePage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
       {/* Page header */}
       <div>
         <Link href="/dashboard/time" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
