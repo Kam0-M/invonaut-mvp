@@ -122,33 +122,21 @@ export default function NewClientPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link 
-            href="/dashboard/clients"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Clients</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Add New Client</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Create a new client profile for invoicing
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard/clients" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Clients
+        </Link>
+        <h1 className="text-2xl font-black text-gray-900">Add Client</h1>
       </div>
 
       {/* Premium Form Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Error Alert */}
           {error && (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-start gap-3">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm font-medium text-red-800">{error}</p>
             </div>
@@ -167,7 +155,7 @@ export default function NewClientPage() {
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
               maxLength={200}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
             <p className="text-xs text-gray-500 font-medium">
               {formData.name.length}/200 characters
@@ -185,7 +173,7 @@ export default function NewClientPage() {
               placeholder="client@example.com"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
@@ -200,7 +188,7 @@ export default function NewClientPage() {
               placeholder="+1 (555) 123-4567"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
@@ -215,7 +203,7 @@ export default function NewClientPage() {
               placeholder="Acme Corporation"
               value={formData.company}
               onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
@@ -230,7 +218,7 @@ export default function NewClientPage() {
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={3}
-              className="w-full text-base text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
+              className="w-full text-base text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
             />
           </div>
 
@@ -247,7 +235,7 @@ export default function NewClientPage() {
               onChange={(e) => setFormData({ ...formData, payment_terms: e.target.value })}
               min="1"
               max="365"
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
             <p className="text-xs text-gray-500 font-medium">
               Default number of days until invoice payment is due
@@ -255,18 +243,18 @@ export default function NewClientPage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-5 h-5" />
               {loading ? 'Creating Client...' : 'Create Client'}
             </button>
             <Link 
               href="/dashboard/clients"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm transition-all duration-200"
             >
               Cancel
             </Link>

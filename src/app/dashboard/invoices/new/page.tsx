@@ -382,28 +382,16 @@ export default function NewInvoicePage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link
-            href="/dashboard/invoices"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Invoices</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Create Invoice</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Generate a new invoice for your client
-            </p>
-          </div>
-        </div>
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard/invoices" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Invoices
+        </Link>
+        <h1 className="text-2xl font-black text-gray-900">Create Invoice</h1>
       </div>
 
       {/* Form Card */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <form className="space-y-8" onSubmit={(e) => { e.preventDefault(); handleSaveDraft() }}>
 
           {/* Client Selection */}
@@ -425,7 +413,7 @@ export default function NewInvoicePage() {
                       : "Start typing to search clients..."}
                     value={clientSearchQuery}
                     onChange={(e) => setClientSearchQuery(e.target.value)}
-                    className={`h-12 pl-10 pr-10 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl ${selectedClient && !clientSearchQuery ? 'font-medium text-green-700' : ''}`}
+                    className={`h-12 pl-10 pr-10 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl ${selectedClient && !clientSearchQuery ? 'font-medium text-green-700' : ''}`}
                     disabled={isSaving}
                     autoComplete="off"
                   />
@@ -440,7 +428,7 @@ export default function NewInvoicePage() {
                 </div>
 
                 {shouldShowDropdown && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-2xl max-h-64 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-md max-h-64 overflow-y-auto">
                     {filteredClients.map((client) => (
                       <button
                         key={client.id}
@@ -459,7 +447,7 @@ export default function NewInvoicePage() {
                 )}
 
                 {clientSearchQuery && filteredClients.length === 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-2xl p-4 text-center">
+                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-md p-4 text-center">
                     <p className="text-sm text-gray-500 mb-2">No clients found matching &quot;{clientSearchQuery}&quot;</p>
                     <Link href="/dashboard/clients/new" className="text-sm text-blue-600 hover:underline font-bold">Add a new client</Link>
                   </div>
@@ -483,7 +471,7 @@ export default function NewInvoicePage() {
                 <Input
                   value={selectedClient ? `${selectedClient.name}${selectedClient.company ? ` (${selectedClient.company})` : ''}` : ''}
                   disabled={true}
-                  className="h-12 text-base bg-gray-100 text-gray-500 cursor-not-allowed border-2"
+                  className="h-12 text-base bg-gray-100 text-gray-500 cursor-not-allowed border"
                 />
                 <p className="text-xs text-gray-500 mt-2 font-medium">🔒 Client cannot be changed (pre-selected from client page)</p>
               </div>
@@ -493,12 +481,12 @@ export default function NewInvoicePage() {
           {/* Invoice Number */}
           <div>
             <label htmlFor="invoiceNumber" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">Invoice Number</label>
-            <Input id="invoiceNumber" type="text" value={invoiceNumber} readOnly className="h-12 text-base bg-gray-50 border-2 border-gray-200" />
+            <Input id="invoiceNumber" type="text" value={invoiceNumber} readOnly className="h-12 text-base bg-gray-50 border border-gray-200" />
           </div>
 
           {/* Add from Time Entries */}
           {clientId && (
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200">
+            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl border border-blue-100">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-white" />
               </div>
@@ -512,7 +500,7 @@ export default function NewInvoicePage() {
               <button
                 type="button"
                 onClick={() => setShowTimePicker(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 hover:shadow-lg transition-all flex-shrink-0"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 hover:shadow-sm transition-all flex-shrink-0"
               >
                 <Clock className="w-4 h-4" />
                 {timeEntryIds.length > 0 ? 'Add more' : 'Add hours'}
@@ -539,7 +527,7 @@ export default function NewInvoicePage() {
                   }
                 }}
                 disabled={isSaving} required
-                className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+                className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
               />
             </div>
             <div>
@@ -548,7 +536,7 @@ export default function NewInvoicePage() {
                 id="dueDate" type="date" value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
                 disabled={isSaving} required
-                className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+                className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
               />
             </div>
           </div>
@@ -558,29 +546,29 @@ export default function NewInvoicePage() {
             <div className="flex items-center justify-between mb-6">
               <label className="block text-sm font-bold uppercase tracking-wide text-gray-700">Line Items <span className="text-red-500">*</span></label>
               <button type="button" onClick={addLineItem} disabled={isSaving}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 disabled:opacity-50">
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-200 font-bold text-gray-700 disabled:opacity-50">
                 <Plus className="w-4 h-4" />Add Item
               </button>
             </div>
             <div className="space-y-4">
               {lineItems.map((item) => (
-                <div key={item.id} className="bg-gray-50 rounded-xl border-2 border-gray-200 p-6">
+                <div key={item.id} className="bg-gray-50 rounded-xl border border-gray-100 p-4">
                   <div className="grid grid-cols-12 gap-4 items-end">
                     <div className="col-span-12 md:col-span-5">
                       <label className="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-2">Description <span className="text-red-500">*</span></label>
-                      <Input type="text" value={item.description} onChange={(e) => updateLineItem(item.id, 'description', e.target.value)} placeholder="Enter item description" disabled={isSaving} required className="h-10 text-sm border-2 border-gray-200" />
+                      <Input type="text" value={item.description} onChange={(e) => updateLineItem(item.id, 'description', e.target.value)} placeholder="Enter item description" disabled={isSaving} required className="h-10 text-sm border border-gray-200" />
                     </div>
                     <div className="col-span-4 md:col-span-2">
                       <label className="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-2">Quantity <span className="text-red-500">*</span></label>
-                      <Input type="number" min="0" step="0.01" value={item.quantity} onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} disabled={isSaving} required className="h-10 text-sm border-2 border-gray-200" />
+                      <Input type="number" min="0" step="0.01" value={item.quantity} onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)} disabled={isSaving} required className="h-10 text-sm border border-gray-200" />
                     </div>
                     <div className="col-span-4 md:col-span-2">
                       <label className="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-2">Unit Price <span className="text-red-500">*</span></label>
-                      <Input type="number" min="0" step="0.01" value={item.unit_price} onChange={(e) => updateLineItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} disabled={isSaving} required className="h-10 text-sm border-2 border-gray-200" />
+                      <Input type="number" min="0" step="0.01" value={item.unit_price} onChange={(e) => updateLineItem(item.id, 'unit_price', parseFloat(e.target.value) || 0)} disabled={isSaving} required className="h-10 text-sm border border-gray-200" />
                     </div>
                     <div className="col-span-3 md:col-span-2">
                       <label className="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-2">Total</label>
-                      <Input type="text" value={formatCurrency(item.total)} readOnly className="h-10 text-sm bg-gray-100 font-bold border-2 border-gray-200" />
+                      <Input type="text" value={formatCurrency(item.total)} readOnly className="h-10 text-sm bg-gray-100 font-bold border border-gray-200" />
                     </div>
                     <div className="col-span-1">
                       {lineItems.length > 1 && (
@@ -601,7 +589,7 @@ export default function NewInvoicePage() {
             <label htmlFor="notes" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">Notes (Optional)</label>
             <textarea
               id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} disabled={isSaving}
-              className="w-full text-base text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
+              className="w-full text-base text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
               placeholder="Additional notes or terms..."
             />
           </div>
@@ -610,7 +598,7 @@ export default function NewInvoicePage() {
           <div>
             <label htmlFor="taxRate" className="block text-sm font-bold uppercase tracking-wide text-gray-700 mb-3">Tax Rate (%)</label>
             <Input id="taxRate" type="number" min="0" max="100" step="0.01" value={taxRate} onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)} placeholder="0" disabled={isSaving}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl" />
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl" />
           </div>
 
           {/* Revenue Category */}
@@ -619,7 +607,7 @@ export default function NewInvoicePage() {
               Revenue Category <span className="text-xs font-medium text-gray-400 normal-case">(Optional — tag this invoice by income source)</span>
             </label>
             {categories.length === 0 ? (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                 <p className="text-sm text-gray-500 font-medium flex-1">No categories yet.</p>
                 <a href="/dashboard/settings" target="_blank" rel="noopener noreferrer"
                   className="text-sm font-bold text-blue-600 hover:text-blue-700 hover:underline flex-shrink-0">
@@ -640,7 +628,7 @@ export default function NewInvoicePage() {
                   value={categoryId}
                   onChange={e => setCategoryId(e.target.value)}
                   disabled={isSaving}
-                  className={`w-full h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white text-gray-900 focus:outline-none appearance-none pr-4 ${categoryId ? 'pl-8' : 'pl-4'}`}
+                  className={`w-full h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white text-gray-900 focus:outline-none appearance-none pr-4 ${categoryId ? 'pl-8' : 'pl-4'}`}
                 >
                   <option value="">No category</option>
                   {categories.map(cat => (
@@ -659,7 +647,7 @@ export default function NewInvoicePage() {
 
             {attachmentFile ? (
               /* File selected — show preview row */
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Paperclip className="w-5 h-5 text-white" />
                 </div>
@@ -681,7 +669,7 @@ export default function NewInvoicePage() {
               /* No file — show upload zone */
               <div
                 onClick={() => !isSaving && fileInputRef.current?.click()}
-                className={`flex items-center gap-4 p-5 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                className={`flex items-center gap-4 p-5 rounded-xl border border-dashed transition-all cursor-pointer ${
                   isSaving ? 'opacity-50 cursor-not-allowed' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
                 }`}
               >
@@ -710,7 +698,7 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Totals Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border-2 border-blue-200 p-8">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-100 p-8">
             <div className="space-y-4">
               <div className="flex justify-between text-base">
                 <span className="font-bold text-gray-700">Subtotal:</span>
@@ -720,7 +708,7 @@ export default function NewInvoicePage() {
                 <span className="font-bold text-gray-700">Tax ({taxRate}%):</span>
                 <span className="font-bold text-gray-900">{formatCurrency(taxAmount)}</span>
               </div>
-              <div className="flex justify-between text-xl pt-4 border-t-2 border-blue-300">
+              <div className="flex justify-between text-xl pt-4 border-t border-blue-200">
                 <span className="font-black text-gray-900 tracking-tight">Total:</span>
                 <span className="font-black text-blue-600 tracking-tight">{formatCurrency(totalAmount)}</span>
               </div>
@@ -728,13 +716,13 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
             <Link href="/dashboard/invoices"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200">
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-sm transition-all duration-200">
               Cancel
             </Link>
             <button type="submit" disabled={isSaving}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
               {isSaving ? (<><Loader2 className="w-5 h-5 animate-spin" />Saving...</>) : (<><Save className="w-5 h-5" />Save as Draft</>)}
             </button>
           </div>

@@ -160,7 +160,7 @@ export default function NewPaymentPage() {
   // ── UI helpers ────────────────────────────────────────────────────────────────
 
   const toggleBtn = (active: boolean) =>
-    `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${
+    `flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${
       active
         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
         : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
@@ -175,23 +175,17 @@ export default function NewPaymentPage() {
   if (!hasActiveSubscription) return <SubscriptionRequired />
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <Link href="/dashboard/payments"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all font-bold text-gray-700 w-fit">
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back to Payments</span>
-          <span className="sm:hidden">Back</span>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard/payments" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Payments
         </Link>
-        <div>
-          <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Log Payment</h1>
-          <p className="text-base text-gray-600 mt-1 font-medium">Record income received outside of invoices</p>
-        </div>
+        <h1 className="text-2xl font-black text-gray-900">Log Payment</h1>
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
         <div className="space-y-8">
 
           {/* Amount + Date */}
@@ -206,7 +200,7 @@ export default function NewPaymentPage() {
                   type="number" min="0.01" step="0.01" placeholder="0.00"
                   value={amount} onChange={e => setAmount(e.target.value)}
                   disabled={isSaving}
-                  className="h-12 text-base pl-8 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+                  className="h-12 text-base pl-8 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
                 />
               </div>
             </div>
@@ -217,7 +211,7 @@ export default function NewPaymentPage() {
               <Input
                 type="date" value={paymentDate} onChange={e => setPaymentDate(e.target.value)}
                 disabled={isSaving}
-                className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+                className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
               />
             </div>
           </div>
@@ -252,7 +246,7 @@ export default function NewPaymentPage() {
                 <button key={m.value} type="button"
                   onClick={() => setPaymentMethod(m.value as 'cash' | 'bank' | 'mobile' | 'pos')}
                   disabled={isSaving}
-                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${
+                  className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
                     paymentMethod === m.value
                       ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                       : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
@@ -269,7 +263,7 @@ export default function NewPaymentPage() {
               Revenue Category <span className="text-red-500">*</span>
             </label>
             {categories.length === 0 ? (
-              <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border-2 border-amber-200">
+              <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-xl border border-amber-200">
                 <p className="text-sm text-amber-800 font-medium flex-1">
                   You need at least one revenue category before logging a payment.
                 </p>
@@ -288,7 +282,7 @@ export default function NewPaymentPage() {
                   value={categoryId}
                   onChange={e => setCategoryId(e.target.value)}
                   disabled={isSaving}
-                  className={`w-full h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white text-gray-900 focus:outline-none ${categoryId ? 'pl-8 pr-4' : 'px-4'}`}>
+                  className={`w-full h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl bg-white text-gray-900 focus:outline-none ${categoryId ? 'pl-8 pr-4' : 'px-4'}`}>
                   <option value="">Select a category</option>
                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -305,7 +299,7 @@ export default function NewPaymentPage() {
               type="text" placeholder="What was sold or provided?"
               value={description} onChange={e => setDescription(e.target.value)}
               disabled={isSaving}
-              className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
+              className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
           </div>
 
@@ -324,7 +318,7 @@ export default function NewPaymentPage() {
                 value={clientSearchQuery}
                 onChange={e => setClientSearchQuery(e.target.value)}
                 disabled={isSaving}
-                className={`h-12 pl-10 pr-10 text-base border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl ${selectedClient && !clientSearchQuery ? 'font-medium text-green-700' : ''}`}
+                className={`h-12 pl-10 pr-10 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl ${selectedClient && !clientSearchQuery ? 'font-medium text-green-700' : ''}`}
               />
               {/* Show Check when client selected and not actively searching */}
               {selectedClient && !clientSearchQuery && (
@@ -339,7 +333,7 @@ export default function NewPaymentPage() {
               )}
             </div>
             {shouldShowDropdown && (
-              <div className="absolute z-50 w-full mt-1 bg-white border-2 border-gray-200 rounded-xl shadow-2xl max-h-52 overflow-y-auto">
+              <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-md max-h-52 overflow-y-auto">
                 {filteredClients.map(c => (
                   <button key={c.id} type="button"
                     onClick={() => { setClientId(c.id); setClientSearchQuery('') }}
@@ -365,7 +359,7 @@ export default function NewPaymentPage() {
             <textarea
               value={notes} onChange={e => setNotes(e.target.value)} rows={3}
               disabled={isSaving}
-              className="w-full text-base text-gray-900 placeholder:text-gray-400 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
+              className="w-full text-base text-gray-900 placeholder:text-gray-400 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl resize-none p-3 focus:outline-none bg-white"
               placeholder="Any additional context…"
             />
           </div>
@@ -376,7 +370,7 @@ export default function NewPaymentPage() {
               Attachment <span className="text-xs font-medium text-gray-400 normal-case">(Optional — receipt or proof of payment)</span>
             </label>
             {attachmentFile ? (
-              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+              <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Paperclip className="w-5 h-5 text-white" />
                 </div>
@@ -391,7 +385,7 @@ export default function NewPaymentPage() {
               </div>
             ) : (
               <div onClick={() => !isSaving && fileInputRef.current?.click()}
-                className="flex items-center gap-4 p-5 rounded-xl border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                className="flex items-center gap-4 p-5 rounded-xl border border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
                 <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Paperclip className="w-5 h-5 text-gray-400" />
                 </div>
@@ -408,22 +402,22 @@ export default function NewPaymentPage() {
 
           {/* Prepay notice */}
           {paymentType === 'prepay' && (
-            <div className="p-4 bg-purple-50 rounded-xl border-2 border-purple-200">
-              <p className="text-sm font-bold text-purple-800">Prepaid — service pending</p>
-              <p className="text-xs text-purple-600 font-medium mt-1">
+            <div className="p-4 bg-blue-50 rounded-xl border border-blue-100">
+              <p className="text-sm font-bold text-blue-800">Prepaid — service pending</p>
+              <p className="text-xs text-blue-600 font-medium mt-1">
                 This payment will be recorded as revenue today. Remember to deliver the service or product your client has paid for.
               </p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t-2 border-gray-100">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-100">
             <Link href="/dashboard/payments"
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 transition-all">
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 transition-all">
               Cancel
             </Link>
             <button type="button" onClick={handleSave} disabled={isSaving || categories.length === 0}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100">
+              className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
               {isSaving
                 ? <><Loader2 className="w-5 h-5 animate-spin" />Saving…</>
                 : <><Save className="w-5 h-5" />Log Payment</>}

@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import SettingsForm from '@/components/settings/settings-form'
 import RevenueCategoryManager from '@/components/settings/revenue-category-manager'
 import Link from 'next/link'
-import { ArrowLeft, Tag } from 'lucide-react'
+import { Tag } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -46,25 +46,13 @@ export default async function SettingsPage() {
   const initialCategories = categoriesRaw || []
 
   return (
-    <div className="space-y-8">
-      {/* Premium Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <Link 
-            href="/dashboard"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="hidden sm:inline">Back to Dashboard</span>
-            <span className="sm:hidden">Back</span>
-          </Link>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Settings</h1>
-            <p className="text-base sm:text-lg text-gray-600 mt-2 font-medium">
-              Manage your account, branding, and subscription
-            </p>
-          </div>
-        </div>
+    <div className="space-y-6">
+      {/* Page header */}
+      <div>
+        <Link href="/dashboard" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Dashboard
+        </Link>
+        <h1 className="text-2xl font-black text-gray-900">Settings</h1>
       </div>
 
       {/* Settings Form */}
@@ -86,10 +74,10 @@ export default async function SettingsPage() {
       />
 
       {/* Revenue Categories */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
-            <Tag className="w-5 h-5 text-white" />
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Tag className="w-4 h-4 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-gray-900 tracking-tight">Revenue Categories</h2>
