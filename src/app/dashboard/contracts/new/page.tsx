@@ -17,7 +17,7 @@ type SystemClause = { id: string; title: string; category: string; content: stri
 // ── Template Selector ─────────────────────────────────────────────────────────
 function TemplateSelector({ onSelect }: { onSelect: (type: string) => void }) {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-black text-gray-900 tracking-tight mb-2">
           Choose a template
@@ -31,7 +31,7 @@ function TemplateSelector({ onSelect }: { onSelect: (type: string) => void }) {
           <button
             key={t.type}
             onClick={() => onSelect(t.type)}
-            className="text-left bg-white border-2 border-gray-100 rounded-2xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group"
+            className="text-left bg-white border border-gray-100 rounded-2xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-200 group"
           >
             <div className="text-3xl mb-4">{t.icon}</div>
             <h3 className="font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
@@ -43,7 +43,7 @@ function TemplateSelector({ onSelect }: { onSelect: (type: string) => void }) {
         {/* Custom / blank */}
         <button
           onClick={() => onSelect('custom')}
-          className="text-left bg-white border-2 border-dashed border-gray-200 rounded-2xl p-6 hover:border-blue-300 hover:shadow-lg transition-all duration-200 group"
+          className="text-left bg-white border border-dashed border-gray-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-sm transition-all duration-200 group"
         >
           <div className="text-3xl mb-4">✏️</div>
           <h3 className="font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors">
@@ -94,7 +94,7 @@ function ClauseLibraryPanel({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+      <div className="relative bg-white w-full max-w-md h-full flex flex-col shadow-md">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
@@ -111,7 +111,7 @@ function ClauseLibraryPanel({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search clauses..."
-            className="w-full px-4 py-2.5 rounded-xl border-2 border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
           />
           <div className="flex flex-wrap gap-1.5">
             {categories.map(cat => (
@@ -305,7 +305,7 @@ function ContractBuilder({
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50"
         >
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
           {isSaving ? 'Saving...' : 'Save as Draft'}
@@ -313,7 +313,7 @@ function ContractBuilder({
       </div>
 
       {/* Contract metadata */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
         <h3 className="font-black text-gray-900">Contract details</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div className="sm:col-span-2">
@@ -325,7 +325,7 @@ function ContractBuilder({
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Web Development Agreement — Acme Corp"
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -335,7 +335,7 @@ function ContractBuilder({
             <select
               value={clientId}
               onChange={e => setClientId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
             >
               <option value="">Select a client</option>
               {clients.map(c => (
@@ -358,7 +358,7 @@ function ContractBuilder({
                 placeholder="0.00"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
               />
             </div>
           </div>
@@ -368,7 +368,7 @@ function ContractBuilder({
               type="date"
               value={startDate}
               onChange={e => setStartDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -377,7 +377,7 @@ function ContractBuilder({
               type="date"
               value={endDate}
               onChange={e => setEndDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
           <div>
@@ -389,7 +389,7 @@ function ContractBuilder({
               type="date"
               value={expiryDate}
               onChange={e => setExpiryDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
         </div>
@@ -401,7 +401,7 @@ function ContractBuilder({
           <h3 className="font-black text-gray-900">Contract clauses</h3>
           <button
             onClick={() => setShowLibrary(true)}
-            className="inline-flex items-center gap-2 border-2 border-blue-200 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+            className="inline-flex items-center gap-2 border border-blue-100 text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
           >
             <BookOpen className="w-4 h-4" />
             Clause library
@@ -409,13 +409,13 @@ function ContractBuilder({
         </div>
 
         {clauses.length === 0 && (
-          <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center">
+          <div className="border border-dashed border-gray-200 rounded-2xl p-8 text-center">
             <p className="text-gray-400 text-sm">No clauses yet. Add from the library or create a blank clause.</p>
           </div>
         )}
 
         {clauses.map((clause, index) => (
-          <div key={clause.id} className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm overflow-hidden">
+          <div key={clause.id} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             {/* Clause header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
               <div className="flex flex-col gap-0.5 flex-shrink-0">
@@ -471,7 +471,7 @@ function ContractBuilder({
                   onChange={e => updateClause(clause.id, 'content', e.target.value)}
                   rows={6}
                   placeholder="Enter clause text..."
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y leading-relaxed"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y leading-relaxed"
                 />
               </div>
             )}
@@ -480,7 +480,7 @@ function ContractBuilder({
 
         <button
           onClick={addBlankClause}
-          className="w-full border-2 border-dashed border-gray-200 rounded-2xl py-4 flex items-center justify-center gap-2 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all font-semibold text-sm"
+          className="w-full border border-dashed border-gray-200 rounded-2xl py-4 flex items-center justify-center gap-2 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all font-semibold text-sm"
         >
           <Plus className="w-4 h-4" />
           Add blank clause
@@ -492,7 +492,7 @@ function ContractBuilder({
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-md hover:-translate-y-0.5 transition-all disabled:opacity-50"
         >
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
           {isSaving ? 'Saving...' : 'Save as Draft'}
@@ -563,15 +563,14 @@ export default function NewContractPage() {
 
   if (!hasActiveSubscription) {
     return (
-      <div className="space-y-8">
-        <div className="flex items-center gap-4">
-          <Link href="/dashboard/contracts"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 font-bold text-gray-700">
-            <ArrowLeft className="w-4 h-4" />Back
+      <div className="space-y-6">
+        <div>
+          <Link href="/dashboard/contracts" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+            ← Contracts
           </Link>
-          <h1 className="text-4xl font-black text-gray-900 tracking-tight">New Contract</h1>
+          <h1 className="text-2xl font-black text-gray-900">New Contract</h1>
         </div>
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
+        <div className="bg-white rounded-2xl border border-gray-100 p-8 text-center">
           <p className="text-gray-600 mb-4">Subscribe to create contracts with e-signatures.</p>
           <Link href="/pricing" className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all">
             View Plans
@@ -582,18 +581,13 @@ export default function NewContractPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center gap-4">
-        <Link
-          href="/dashboard/contracts"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 hover:shadow-lg transition-all duration-200 font-bold text-gray-700 w-fit"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="hidden sm:inline">Back to Contracts</span>
-          <span className="sm:hidden">Back</span>
+      <div>
+        <Link href="/dashboard/contracts" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">
+          ← Contracts
         </Link>
-        <h1 className="text-4xl font-black text-gray-900 tracking-tight">New Contract</h1>
+        <h1 className="text-2xl font-black text-gray-900">New Contract</h1>
       </div>
 
       {step === 'template' ? (

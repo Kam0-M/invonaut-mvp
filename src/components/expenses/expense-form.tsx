@@ -89,7 +89,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
 
       {/* Core fields */}
       <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-5">
@@ -107,7 +107,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
               value={description}
               onChange={e => setDescription(e.target.value)}
               placeholder="e.g. Adobe Creative Cloud subscription"
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
                 placeholder="0.00"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
               />
             </div>
           </div>
@@ -139,7 +139,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
               type="date"
               value={date}
               onChange={e => setDate(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
 
@@ -151,7 +151,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
               value={vendor}
               onChange={e => setVendor(e.target.value)}
               placeholder="e.g. Adobe Inc."
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
             />
           </div>
 
@@ -177,7 +177,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
             >
               {EXPENSE_CATEGORIES.map(c => (
                 <option key={c.value} value={c.value}>{c.label}</option>
@@ -193,7 +193,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
             <select
               value={clientId}
               onChange={e => setClientId(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all bg-white"
             >
               <option value="">No client</option>
               {clients.map(c => (
@@ -212,7 +212,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
               onChange={e => setNotes(e.target.value)}
               rows={3}
               placeholder="Any additional details..."
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all resize-y"
             />
           </div>
         </div>
