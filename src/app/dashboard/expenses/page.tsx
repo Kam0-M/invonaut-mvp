@@ -116,7 +116,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
             </div>
             <h3 className="text-2xl font-black text-gray-900 mb-3">Subscribe to track expenses</h3>
             <p className="text-gray-500 font-medium max-w-md mx-auto mb-8">
-              Log expenses with AI-suggested categories, upload receipts, and set monthly budget limits. Get automatic alerts at 80% and 100% of each limit.
+              Log and categorise every business expense, attach receipts, and keep your spending visible. Professional plan unlocks AI-suggested categories. Business plan adds monthly budget limits with automatic overspend alerts.
             </p>
             <Link href="/pricing"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-primary rounded-xl hover:shadow-lg transition-all">

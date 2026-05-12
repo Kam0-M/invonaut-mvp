@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save, Clock, Paperclip } from 'lucide-react'
+import { Plus, Trash2, X, Loader2, Search, Check, ArrowLeft, Save, Clock, Paperclip, FileText, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import SubscriptionRequired from '@/components/subscription-required'
@@ -44,6 +44,8 @@ export default function NewInvoicePage() {
 
   const [isLoading, setIsLoading] = useState(true)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
+  const [invoiceLimitReached, setInvoiceLimitReached] = useState(false)
+  const [monthlyInvoiceCount, setMonthlyInvoiceCount] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [clients, setClients] = useState<Client[]>([])
   const [invoiceNumber, setInvoiceNumber] = useState('INV-00001')
@@ -104,7 +106,7 @@ export default function NewInvoicePage() {
 
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('stripe_subscription_id, subscription_status')
+          .select('stripe_subscription_id, subscription_status, subscription_tier')
           .eq('id', user.id)
           .single()
 
@@ -112,6 +114,22 @@ export default function NewInvoicePage() {
           (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
         setHasActiveSubscription(isSubscribed)
+
+        // Enforce 25 invoice/month limit for Starter tier
+        const tier = profile?.subscription_tier ?? 'starter'
+        if (isSubscribed && tier === 'starter') {
+          const startOfMonth = new Date()
+          startOfMonth.setDate(1)
+          startOfMonth.setHours(0, 0, 0, 0)
+          const { count } = await supabase
+            .from('invoices')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .gte('created_at', startOfMonth.toISOString())
+          const monthCount = count ?? 0
+          setMonthlyInvoiceCount(monthCount)
+          if (monthCount >= 25) setInvoiceLimitReached(true)
+        }
 
         const { data, error } = await supabase
           .from('clients')
@@ -377,6 +395,31 @@ export default function NewInvoicePage() {
   }
 
   if (!hasActiveSubscription) return <SubscriptionRequired />
+
+  if (invoiceLimitReached) return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/dashboard/invoices" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">← Invoices</Link>
+        <h1 className="text-2xl font-black text-gray-900">Create Invoice</h1>
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+        <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-6 h-6 text-orange-500" />
+        </div>
+        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Starter Plan · {monthlyInvoiceCount}/25 used</p>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Monthly invoice limit reached</h3>
+        <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+          You&apos;ve created 25 invoices this month. Upgrade to Professional for unlimited invoices, advanced AI insights, and the full cash flow suite.
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link href="/dashboard/invoices" className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">View Invoices</Link>
+          <Link href="/dashboard/billing" className="btn-primary px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2">
+            <Zap className="w-4 h-4" />Upgrade to Professional
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 
   const isClientLocked = !!preSelectedClientId
 

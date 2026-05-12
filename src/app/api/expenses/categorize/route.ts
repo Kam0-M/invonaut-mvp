@@ -16,6 +16,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'You must be logged in.' }, { status: 401 })
     }
 
+    // AI categorisation is a Professional+ feature
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('subscription_tier')
+      .eq('id', user.id)
+      .single()
+    const tier = profile?.subscription_tier ?? 'starter'
+    if (tier !== 'professional' && tier !== 'business') {
+      return NextResponse.json({ success: true, category: null })
+    }
+
     const category = await suggestCategory(description, vendor)
     return NextResponse.json({ success: true, category })
   } catch (err) {

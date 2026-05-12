@@ -36,13 +36,16 @@ export default async function CashPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id)
     .single()
 
   const hasActiveSubscription =
     !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  const tier    = profile?.subscription_tier ?? 'starter'
+  const isPro   = tier === 'professional' || tier === 'business'
 
   if (!hasActiveSubscription) {
     return (
@@ -65,12 +68,33 @@ export default async function CashPage() {
     )
   }
 
+  if (!isPro) {
+    return (
+      <div className="space-y-6">
+        <CoreTabBar />
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center" style={{ boxShadow: '0 0 32px rgba(0,102,255,0.08)' }}>
+          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-blue-600" />
+          </div>
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">Professional Plan</p>
+          <h3 className="text-xl font-black text-gray-900 mb-2">90-Day Cash Flow Forecast</h3>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+            See your projected balance week by week, a live runway calculator, revenue vs expenses, and upcoming payment timeline — all updated in real time.
+          </p>
+          <Link href="/dashboard/billing" className="btn-primary px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2">
+            <Zap className="w-4 h-4" />Upgrade to Professional
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
   const now = new Date()
 
   // ── Data ─────────────────────────────────────────────────────────────────
   const { data: invoicesRaw } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, issue_date, due_date, total_amount, clients(name)')
+    .select('id, invoice_number, status, issue_date, due_date, total_amount, ai_days_to_pay, clients(name)')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true })
 
@@ -143,7 +167,13 @@ export default async function CashPage() {
       const weekStart = new Date(now); weekStart.setDate(now.getDate() + w * 7); weekStart.setHours(0,0,0,0)
       const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999)
       const inflows   = unpaidInvoices
-        .filter((inv: any) => { const d = new Date(inv.due_date + 'T12:00:00'); return d >= weekStart && d <= weekEnd })
+        .filter((inv: any) => {
+          // Use AI-predicted payment date if available, fall back to due_date
+          const predicted = inv.ai_days_to_pay && inv.issue_date
+            ? new Date(new Date(inv.issue_date + 'T12:00:00').getTime() + Number(inv.ai_days_to_pay) * 86_400_000)
+            : new Date(inv.due_date + 'T12:00:00')
+          return predicted >= weekStart && predicted <= weekEnd
+        })
         .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
       running += inflows - avgWeeklyExp
       points.push({

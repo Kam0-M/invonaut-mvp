@@ -162,6 +162,9 @@ const plans = [
 export default function LandingPricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
+  // Business tier hidden pre-launch — not all features ready
+  const visiblePlans = PLANS.filter(p => p.id !== 'business')
+
   return (
     <div>
       <style dangerouslySetInnerHTML={{ __html: PRICING_STYLES }} />
