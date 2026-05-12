@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   ArrowLeft, Plus, Trash2, GripVertical, ChevronDown, ChevronUp,
-  Loader2, BookOpen, X, Check,
+  Loader2, BookOpen, X, Check, FileText, Zap,
   FileText, Lock, ClipboardList, RefreshCw, PenLine, Handshake, Pencil,
   type LucideProps
 } from 'lucide-react'
@@ -523,6 +523,8 @@ export default function NewContractPage() {
   const [systemClauses, setSystemClauses] = useState<SystemClause[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
+  const [contractLimitReached, setContractLimitReached] = useState(false)
+  const [activeContractCount, setActiveContractCount] = useState(0)
 
   useEffect(() => {
     const init = async () => {
@@ -532,7 +534,7 @@ export default function NewContractPage() {
 
       const [profileRes, clientsRes, clausesRes] = await Promise.all([
         supabase.from('user_profiles')
-          .select('stripe_subscription_id, subscription_status')
+          .select('stripe_subscription_id, subscription_status, subscription_tier')
           .eq('id', user.id).single(),
         supabase.from('clients')
           .select('id, name, company')
@@ -550,6 +552,20 @@ export default function NewContractPage() {
           profileRes.data?.subscription_status === 'trialing')
 
       setHasActiveSubscription(isSubscribed)
+
+      // Enforce 3 active contract limit for Starter tier
+      const tier = profileRes.data?.subscription_tier ?? 'starter'
+      if (isSubscribed && tier === 'starter') {
+        const { count } = await supabase
+          .from('contracts')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .in('status', ['sent', 'active'])
+        const cnt = count ?? 0
+        setActiveContractCount(cnt)
+        if (cnt >= 3) setContractLimitReached(true)
+      }
+
       setClients((clientsRes.data ?? []) as Client[])
       setSystemClauses((clausesRes.data ?? []) as SystemClause[])
       setIsLoading(false)
@@ -571,6 +587,31 @@ export default function NewContractPage() {
       </div>
     )
   }
+
+  if (contractLimitReached) return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/dashboard/contracts" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">← Contracts</Link>
+        <h1 className="text-2xl font-black text-gray-900">New Contract</h1>
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+        <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <FileText className="w-6 h-6 text-orange-500" />
+        </div>
+        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Starter Plan · {activeContractCount}/3 active</p>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Active contract limit reached</h3>
+        <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+          Starter includes 3 active contracts at a time. Upgrade to Professional for unlimited contracts, e-signatures, and AI contract review.
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link href="/dashboard/contracts" className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">View Contracts</Link>
+          <Link href="/dashboard/billing" className="btn-primary px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2">
+            <Zap className="w-4 h-4" />Upgrade to Professional
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 
   if (!hasActiveSubscription) {
     return (

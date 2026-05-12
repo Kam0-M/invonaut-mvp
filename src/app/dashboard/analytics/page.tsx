@@ -124,11 +124,14 @@ export default async function AnalyticsPage({
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id).single()
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  const tier  = profile?.subscription_tier ?? 'starter'
+  const isPro = tier === 'professional' || tier === 'business'
 
   // ── Data fetching (parallel) ──────────────────────────────────────────────
   const [
@@ -309,6 +312,20 @@ export default async function AnalyticsPage({
           </p>
           <Link href="/pricing" className="inline-flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm">
             View Plans
+          </Link>
+        </div>
+      ) : !isPro ? (
+        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center" style={{ boxShadow: '0 0 32px rgba(0,102,255,0.08)' }}>
+          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-6 h-6 text-blue-600" />
+          </div>
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-2">Professional Plan</p>
+          <h3 className="text-xl font-black text-gray-900 mb-2">Revenue Intelligence & Analytics</h3>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+            Business health score, client intelligence, expense breakdown, 12-month revenue trends, and AI-powered insights — all in one view.
+          </p>
+          <Link href="/dashboard/billing" className="btn-primary px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2">
+            <Zap className="w-4 h-4" />Upgrade to Professional
           </Link>
         </div>
       ) : (

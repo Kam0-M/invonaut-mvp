@@ -1,6 +1,6 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
-import { Clock, Lock } from 'lucide-react'
+import { Clock, Lock, FileText, Download, PenLine, CheckCircle2 } from 'lucide-react'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -231,6 +231,41 @@ export default async function PortalPage({
     total_amount: number
   }[]
 
+  // 6. Fetch contracts for this client
+  const { data: contractsRaw } = await supabase
+    .from('contracts')
+    .select('id, title, status, start_date, end_date, total_value')
+    .eq('user_id', portalRow.user_id)
+    .eq('client_id', clientId)
+    .in('status', ['sent', 'active', 'expired'])
+    .order('created_at', { ascending: false })
+
+  const contractList = (contractsRaw ?? []) as {
+    id: string
+    title: string
+    status: string
+    start_date: string | null
+    end_date: string | null
+    total_value: number | null
+  }[]
+
+  // 7. Fetch files shared with this client (Pro feature, shown if any exist)
+  const { data: filesRaw } = await supabase
+    .from('client_files')
+    .select('id, file_name, file_url, file_size, file_type, uploaded_at')
+    .eq('user_id', portalRow.user_id)
+    .eq('client_id', clientId)
+    .order('uploaded_at', { ascending: false })
+
+  const fileList = (filesRaw ?? []) as {
+    id: string
+    file_name: string
+    file_url: string
+    file_size: number
+    file_type: string
+    uploaded_at: string
+  }[]
+
   return (
     <div className="min-h-screen bg-gray-50">
       <PortalHeader
@@ -255,7 +290,7 @@ export default async function PortalPage({
             Welcome, {clientRow?.name ?? 'there'}
           </h1>
           <p className="text-gray-500 text-sm">
-            Here are all your invoices.
+            Your invoices, contracts, and shared files from {businessName}.
           </p>
         </div>
 
@@ -314,6 +349,87 @@ export default async function PortalPage({
             </div>
           )}
         </div>
+
+        {/* Contracts section */}
+        {contractList.length > 0 && (
+          <div>
+            <h2 className="text-lg font-black text-gray-900 mb-4">Your Contracts</h2>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+              {contractList.map((contract) => {
+                const isSigned = contract.status === 'active'
+                const isExpired = contract.status === 'expired'
+                return (
+                  <div key={contract.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isSigned ? 'bg-teal-50' : isExpired ? 'bg-gray-100' : 'bg-blue-50'}`}>
+                        {isSigned
+                          ? <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                          : <PenLine className="w-4 h-4 text-blue-600" />}
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">{contract.title}</p>
+                        {contract.start_date && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {formatDate(contract.start_date)}{contract.end_date ? ` – ${formatDate(contract.end_date)}` : ''}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 flex-shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold capitalize ${
+                        isSigned ? 'bg-teal-50 text-teal-700' : isExpired ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700'
+                      }`}>
+                        {isSigned ? 'Signed' : isExpired ? 'Expired' : 'Awaiting signature'}
+                      </span>
+                      {!isSigned && !isExpired && (
+                        <Link
+                          href={`/portal/${slug}/contracts/${contract.id}?token=${token}`}
+                          className="border border-blue-200 text-blue-700 hover:bg-blue-50 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+                        >
+                          Sign Contract
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Files section */}
+        {fileList.length > 0 && (
+          <div>
+            <h2 className="text-lg font-black text-gray-900 mb-4">Shared Files</h2>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm divide-y divide-gray-100">
+              {fileList.map((file) => {
+                const sizeKB = Math.round((file.file_size || 0) / 1024)
+                const sizeFmt = sizeKB > 1024 ? `${(sizeKB / 1024).toFixed(1)} MB` : `${sizeKB} KB`
+                return (
+                  <div key={file.id} className="flex items-center justify-between gap-3 px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-4 h-4 text-gray-500" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-gray-900 text-sm">{file.file_name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{sizeFmt} · {formatDate(file.uploaded_at)}</p>
+                      </div>
+                    </div>
+                    <a
+                      href={file.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors inline-flex items-center gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" />Download
+                    </a>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </main>
 
       <footer className="text-center text-xs text-gray-400 py-8">

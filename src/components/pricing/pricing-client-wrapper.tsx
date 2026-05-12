@@ -100,7 +100,7 @@ export default function PricingClientWrapper({
     },
     {
       id: 'business',
-      name: 'Business',
+      name: 'Business', // hidden pre-launch
       monthlyPrice: 149,
       annualMonthlyPrice: 124,
       annualTotalPrice: 1490,
@@ -170,7 +170,7 @@ export default function PricingClientWrapper({
 
         {/* Plan cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {plans.map(plan => {
+          {plans.filter(p => p.id !== 'business').map(plan => {
             const isCurrent = hasActiveSubscription && currentTier === plan.id
             const activePriceId = billing === 'annual' ? plan.annualPriceId : plan.monthlyPriceId
 
