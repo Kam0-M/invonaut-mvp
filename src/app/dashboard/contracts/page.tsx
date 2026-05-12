@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle } from 'lucide-react'
+import { Plus, FileCheck, Lock, CheckCircle2, Clock, FileText, AlertTriangle, Zap } from 'lucide-react'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractList from '@/components/contracts/contract-list'
+import BackToTop from '@/components/ui/back-to-top'
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
@@ -30,12 +31,27 @@ export default async function ContractsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id)
     .single()
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  const tier = profile?.subscription_tier ?? 'starter'
+
+  // Check active contract count for Starter
+  let activeContractCount = 0
+  let contractLimitReached = false
+  if (hasActiveSubscription && tier === 'starter') {
+    const { count } = await supabase
+      .from('contracts')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .in('status', ['sent', 'active'])
+    activeContractCount = count ?? 0
+    contractLimitReached = activeContractCount >= 3
+  }
 
   const { data: contractData } = await supabase
     .from('contracts')
@@ -96,15 +112,32 @@ export default async function ContractsPage() {
               {expiringCount} expiring soon
             </div>
           )}
-          {hasActiveSubscription ? (
-            <Link href="/dashboard/contracts/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
-              <Plus className="w-4 h-4" />New Contract
-            </Link>
-          ) : (
+          {!hasActiveSubscription ? (
             <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed">
               <Lock className="w-4 h-4" />New Contract
             </button>
+          ) : contractLimitReached ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100">
+                3/3 active
+              </span>
+              <Link href="/dashboard/billing"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl btn-secondary text-sm">
+                <Zap className="w-4 h-4" />Upgrade
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {tier === 'starter' && (
+                <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">
+                  {activeContractCount}/3 active
+                </span>
+              )}
+              <Link href="/dashboard/contracts/new"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary text-sm transition-all hover:shadow-md">
+                <Plus className="w-4 h-4" />New Contract
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -122,15 +155,20 @@ export default async function ContractsPage() {
             <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
               Create a contract from a template, send it with one link, and your client signs directly. Invonaut watches expiry dates and reminds both parties automatically.
             </p>
-            {hasActiveSubscription ? (
-              <Link href="/dashboard/contracts/new"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
-                <Plus className="w-4 h-4" />Create Your First Contract
+            {!hasActiveSubscription ? (
+              <Link href="/pricing"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary text-sm transition-all">
+                <Lock className="w-4 h-4" />Start Free Trial
+              </Link>
+            ) : contractLimitReached ? (
+              <Link href="/dashboard/billing"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary text-sm transition-all">
+                <Zap className="w-4 h-4" />Upgrade for Unlimited Contracts
               </Link>
             ) : (
-              <Link href="/pricing"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary rounded-xl text-sm transition-all">
-                <Lock className="w-4 h-4" />Start Free Trial
+              <Link href="/dashboard/contracts/new"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-primary text-sm transition-all hover:shadow-md">
+                <Plus className="w-4 h-4" />Create Your First Contract
               </Link>
             )}
           </div>
@@ -138,6 +176,7 @@ export default async function ContractsPage() {
       ) : (
         <ContractList contracts={contracts} />
       )}
+      <BackToTop />
     </div>
   )
 }

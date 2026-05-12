@@ -37,6 +37,8 @@ export default function NewPaymentPage() {
 
   const [isLoading,             setIsLoading]             = useState(true)
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
+  const [paymentLimitReached, setPaymentLimitReached] = useState(false)
+  const [monthlyPaymentCount, setMonthlyPaymentCount] = useState(0)
   const [isSaving,              setIsSaving]              = useState(false)
 
   // Data
@@ -173,6 +175,31 @@ export default function NewPaymentPage() {
   )
 
   if (!hasActiveSubscription) return <SubscriptionRequired />
+
+  if (paymentLimitReached) return (
+    <div className="space-y-6">
+      <div>
+        <Link href="/dashboard/payments" className="text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors mb-2 block">← Payments</Link>
+        <h1 className="text-2xl font-black text-gray-900">Log Payment</h1>
+      </div>
+      <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
+        <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <Banknote className="w-6 h-6 text-orange-500" />
+        </div>
+        <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Starter Plan · {monthlyPaymentCount}/25 used</p>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Monthly payment log limit reached</h3>
+        <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
+          You&apos;ve logged 25 direct payments this month. Upgrade to Professional for unlimited direct payments and full revenue intelligence.
+        </p>
+        <div className="flex items-center justify-center gap-3 flex-wrap">
+          <Link href="/dashboard/payments" className="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors">View Payments</Link>
+          <Link href="/dashboard/billing" className="btn-primary px-5 py-2.5 rounded-xl text-sm inline-flex items-center gap-2">
+            <Zap className="w-4 h-4" />Upgrade to Professional
+          </Link>
+        </div>
+      </div>
+    </div>
+  )
 
   return (
     <div className="space-y-6">

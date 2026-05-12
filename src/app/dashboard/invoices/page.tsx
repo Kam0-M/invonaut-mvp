@@ -6,6 +6,7 @@ import { Plus, FileText, Lock, Zap, TrendingUp, Clock, CheckCircle2 } from 'luci
 import ViewOnlyBanner from '@/components/view-only-banner'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import CoreTabBar from '@/components/layout/core-tab-bar'
+import BackToTop from '@/components/ui/back-to-top'
 
 function formatCompact(n: number): string {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -20,16 +21,33 @@ export default async function InvoicesPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id)
     .single()
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
+  const tier = profile?.subscription_tier ?? 'starter'
+
+  // Check monthly invoice count for Starter
+  let monthlyInvoiceCount = 0
+  let invoiceLimitReached = false
+  if (hasActiveSubscription && tier === 'starter') {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0)
+    const { count } = await supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', startOfMonth.toISOString())
+    monthlyInvoiceCount = count ?? 0
+    invoiceLimitReached = monthlyInvoiceCount >= 25
+  }
+
   const { data: allInvoices } = await supabase
     .from('invoices')
-    .select('id, invoice_number, issue_date, due_date, total_amount, status, last_followed_up, ai_risk_score, clients(name, company)')
+    .select('id, invoice_number, issue_date, due_date, total_amount, status, last_followed_up, ai_risk_score, clients(name, company), revenue_categories(id, name, color)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .limit(500)
@@ -38,6 +56,7 @@ export default async function InvoicesPage() {
     ...inv,
     displayStatus: getInvoiceDisplayStatus({ status: inv.status, due_date: inv.due_date }),
     clients: Array.isArray(inv.clients) && inv.clients.length > 0 ? inv.clients[0] : inv.clients,
+    revenue_categories: Array.isArray(inv.revenue_categories) && inv.revenue_categories.length > 0 ? inv.revenue_categories[0] : (inv.revenue_categories ?? null),
   }))
 
   const totalValue   = invoices.reduce((s: number, i: any) => s + Number(i.total_amount || 0), 0)
@@ -78,15 +97,32 @@ export default async function InvoicesPage() {
           )}
         </div>
         <div>
-          {hasActiveSubscription ? (
-            <Link href="/dashboard/invoices/new"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
-              <Plus className="w-4 h-4" />New Invoice
-            </Link>
-          ) : (
+          {!hasActiveSubscription ? (
             <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed">
               <Lock className="w-4 h-4" />New Invoice
             </button>
+          ) : invoiceLimitReached ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2.5 py-1 rounded-lg border border-orange-100">
+                25/25 this month
+              </span>
+              <Link href="/dashboard/billing"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl btn-secondary text-sm">
+                <Zap className="w-4 h-4" />Upgrade
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              {tier === 'starter' && (
+                <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2.5 py-1 rounded-lg">
+                  {monthlyInvoiceCount}/25 this month
+                </span>
+              )}
+              <Link href="/dashboard/invoices/new"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary text-sm transition-all hover:shadow-md">
+                <Plus className="w-4 h-4" />New Invoice
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -121,6 +157,7 @@ export default async function InvoicesPage() {
       ) : (
         <InvoiceList invoices={invoices} hasActiveSubscription={hasActiveSubscription} />
       )}
+      <BackToTop />
     </div>
   )
 }

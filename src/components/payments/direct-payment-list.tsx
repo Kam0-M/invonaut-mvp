@@ -179,7 +179,7 @@ export default function DirectPaymentList({ payments }: Props) {
             const methodColors: Record<string, string> = {
               cash:   'bg-amber-50 text-amber-600',
               bank:   'bg-green-50 text-green-600',
-              mobile: 'bg-purple-50 text-purple-600',
+              mobile: 'bg-teal-50 text-teal-600',
               pos:    'bg-blue-50 text-blue-600',
             }
             const iconColor = methodColors[payment.payment_method] ?? 'bg-gray-100 text-gray-500'
