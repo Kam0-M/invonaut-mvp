@@ -21,6 +21,7 @@ import { Plus, Clock } from 'lucide-react'
 import TimeTracker from '@/components/time/time-tracker'
 import TimeEntryList from '@/components/time/time-entry-list'
 import WeeklySummary from '@/components/time/weekly-summary'
+import BackToTop from '@/components/ui/back-to-top'
 
 type Client = {
   id:           string
@@ -140,6 +141,7 @@ export default async function TimePage() {
           <TimeEntryList entries={entries} />
         </div>
       </div>
+      <BackToTop />
     </div>
   )
 }

@@ -30,12 +30,29 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_customer_id, stripe_subscription_id, subscription_status, business_name, full_name')
+    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name')
     .eq('id', user.id)
     .single()
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+
+  const tier = profile?.subscription_tier ?? 'starter'
+
+  // Monthly invoice count for Starter limit badge on dashboard
+  let dashInvoiceCount = 0
+  let dashInvoiceLimitReached = false
+  if (hasActiveSubscription && tier === 'starter') {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0)
+    const { count } = await supabase
+      .from('invoices')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', startOfMonth.toISOString())
+    dashInvoiceCount = count ?? 0
+    dashInvoiceLimitReached = dashInvoiceCount >= 25
+  }
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   const { data: invoiceData } = await supabase
@@ -310,9 +327,16 @@ export default async function DashboardPage() {
               <FileText className="w-8 h-8 text-gray-200 mb-2" />
               <p className="text-sm font-bold text-gray-400 mb-1">No invoices yet</p>
               {hasActiveSubscription && (
-                <Link href="/dashboard/invoices/new" className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-700">
-                  Create your first →
-                </Link>
+                dashInvoiceLimitReached ? (
+                  <span className="mt-2 text-xs font-bold text-orange-500">
+                    25/25 invoices this month ·{' '}
+                    <Link href="/dashboard/billing" className="underline">Upgrade</Link>
+                  </span>
+                ) : (
+                  <Link href="/dashboard/invoices/new" className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-700">
+                    Create your first →
+                  </Link>
+                )
               )}
             </div>
           ) : (

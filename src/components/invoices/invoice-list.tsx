@@ -17,6 +17,7 @@ type Invoice = {
   last_followed_up?: string | null
   ai_risk_score?: number | null
   clients: { name: string; company?: string | null } | null
+  revenue_categories?: { id: string; name: string; color: string } | null
 }
 
 type InvoiceListProps = {
@@ -203,6 +204,13 @@ export function InvoiceList({ invoices, hasActiveSubscription }: InvoiceListProp
                       <RiskPill score={invoice.ai_risk_score} status={ds} />
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
+                      {invoice.revenue_categories && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-md px-1.5 py-0.5 flex-shrink-0"
+                          style={{ backgroundColor: invoice.revenue_categories.color + '20', color: invoice.revenue_categories.color }}>
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: invoice.revenue_categories.color }} />
+                          {invoice.revenue_categories.name}
+                        </span>
+                      )}
                       <span className="text-sm text-gray-600 font-medium truncate">{clientName}</span>
                       {invoice.clients?.company && (
                         <>

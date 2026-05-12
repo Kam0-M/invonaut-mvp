@@ -6,6 +6,7 @@ import ExpenseList from '@/components/expenses/expense-list'
 import ExpenseReportGenerator from '@/components/expenses/expense-report-generator'
 import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
+import BackToTop from '@/components/ui/back-to-top'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -159,6 +160,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
           </div>
         </div>
       )}
+      <BackToTop />
     </div>
   )
 }

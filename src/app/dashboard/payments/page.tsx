@@ -1,10 +1,11 @@
 import { redirect }     from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link             from 'next/link'
-import { Plus, Banknote, TrendingUp, Smartphone, Building2 } from 'lucide-react'
+import { Plus, Banknote, TrendingUp, Smartphone, Building2, Lock, Zap } from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
+import BackToTop from '@/components/ui/back-to-top'
 
 function formatCompact(n: number): string {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -19,7 +20,7 @@ export default async function PaymentsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id)
     .single()
 
@@ -27,6 +28,23 @@ export default async function PaymentsPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   if (!hasActiveSubscription) return <SubscriptionRequired />
+
+  const tier = profile?.subscription_tier ?? 'starter'
+
+  // Check monthly direct payment count for Starter (25/month limit)
+  let monthlyPaymentCount = 0
+  let paymentLimitReached = false
+  if (tier === 'starter') {
+    const startOfMonth = new Date()
+    startOfMonth.setDate(1); startOfMonth.setHours(0, 0, 0, 0)
+    const { count } = await supabase
+      .from('direct_payments')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('created_at', startOfMonth.toISOString())
+    monthlyPaymentCount = count ?? 0
+    paymentLimitReached = monthlyPaymentCount >= 25
+  }
 
   const { data: paymentsRaw } = await supabase
     .from('direct_payments')
@@ -110,6 +128,7 @@ export default async function PaymentsPage() {
           <DirectPaymentList payments={payments} />
         </div>
       )}
+      <BackToTop />
     </div>
   )
 }

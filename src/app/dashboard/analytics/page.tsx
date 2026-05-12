@@ -18,6 +18,7 @@ import { EXPENSE_CATEGORIES }      from '@/lib/ai/expense-categorization'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
 import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
+import BackToTop from '@/components/ui/back-to-top'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 const fmtFull = (n: number) =>
@@ -144,14 +145,14 @@ export default async function AnalyticsPage({
     supabase.from('invoices').select('id, status, issue_date, due_date, total_amount, client_id, revenue_category_id').eq('user_id', user.id),
     supabase.from('clients').select('id, name, company').eq('user_id', user.id),
     supabase.from('expenses').select('amount, category, date').eq('user_id', user.id),
-    supabase.from('direct_payments').select('id, amount, payment_type, payment_method, payment_date, revenue_category_id').eq('user_id', user.id),
+    supabase.from('direct_payments').select('id, amount, payment_type, payment_method, payment_date, revenue_category_id, client_id').eq('user_id', user.id),
     supabase.from('revenue_categories').select('id, name, color').eq('user_id', user.id),
   ])
 
   const invoices       = (invoicesRaw ?? []).map((inv: any) => ({ ...inv, displayStatus: getInvoiceDisplayStatus({ status: inv.status, due_date: inv.due_date }) }))
   const clients        = (clientsRaw  ?? []) as { id: string; name: string; company: string | null }[]
   const expenses       = (expensesRaw ?? []) as { amount: number; category: string; date: string }[]
-  const directPayments = (directPaymentsRaw ?? []) as { id: string; amount: number; payment_type: string; payment_method: string; payment_date: string; revenue_category_id: string | null }[]
+  const directPayments = (directPaymentsRaw ?? []) as { id: string; amount: number; payment_type: string; payment_method: string; payment_date: string; revenue_category_id: string | null; client_id: string | null }[]
   const revCategories  = (revCategoriesRaw ?? []) as { id: string; name: string; color: string }[]
   const catMap         = new Map(revCategories.map(c => [c.id, c]))
 
@@ -237,8 +238,14 @@ export default async function AnalyticsPage({
     else if (inv.displayStatus === 'sent')    { e.totalSent++ }
     else if (inv.displayStatus === 'overdue') { e.overdueCount++; e.totalSent++ }
   })
+  // Add direct payment revenue per client (unified revenue — Phase 14/15)
+  directPayments.forEach(p => {
+    if (!p.client_id) return
+    const e = clientMap.get(p.client_id)
+    if (e) e.totalRevenue += Number(p.amount || 0)
+  })
   clientMap.forEach(c => { c.collectionRate = c.totalSent > 0 ? Math.round((c.paidCount / c.totalSent) * 100) : null })
-  const allClientStats = Array.from(clientMap.values()).filter(c => c.totalInvoices > 0)
+  const allClientStats = Array.from(clientMap.values()).filter(c => c.totalRevenue > 0 || c.totalInvoices > 0)
   const sortedClients = [...allClientStats].sort((a, b) => {
     switch (sortBy) {
       case 'rate':
@@ -585,13 +592,26 @@ export default async function AnalyticsPage({
                   {invoiceSourcePct > 0 && <div className="h-full bg-blue-600" style={{ width: `${invoiceSourcePct}%` }} />}
                   {directSourcePct  > 0 && <div className="h-full bg-teal-400" style={{ width: `${directSourcePct}%`  }} />}
                 </div>
-                <div className="flex gap-4 mt-2">
-                  {[{ l: 'Invoice', c: '#0066FF' },{ l: 'Direct', c: '#00D4AA' }].map(x => (
-                    <div key={x.l} className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full" style={{ background: x.c }} />
-                      <span className="text-xs font-medium text-gray-500">{x.l}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex gap-4">
+                    {[{ l: 'Invoice', c: '#0066FF' },{ l: 'Direct', c: '#00D4AA' }].map(x => (
+                      <div key={x.l} className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ background: x.c }} />
+                        <span className="text-xs font-medium text-gray-500">{x.l}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* P15-C: Income reliability insight */}
+                  <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
+                    invoiceSourcePct >= 70 ? 'bg-teal-50 text-teal-700' :
+                    invoiceSourcePct >= 40 ? 'bg-blue-50 text-blue-700' :
+                    'bg-amber-50 text-amber-700'
+                  }`}>
+                    {invoiceSourcePct >= 70 ? 'High predictability' :
+                     invoiceSourcePct >= 40 ? 'Mixed sources' :
+                     totalRevenue === 0     ? 'No revenue yet' :
+                                             'Mostly direct income'}
+                  </span>
                 </div>
               </div>
 
@@ -742,6 +762,7 @@ export default async function AnalyticsPage({
           </div>
         </>
       )}
+      <BackToTop />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Plus, Users, Lock, Building2 } from 'lucide-react'
 import ClientsTable from '@/components/clients/clients-table'
 import ViewOnlyBanner from '@/components/view-only-banner'
+import BackToTop from '@/components/ui/back-to-top'
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -91,6 +92,7 @@ export default async function ClientsPage() {
       ) : (
         <ClientsTable clients={clients} hasActiveSubscription={hasActiveSubscription} />
       )}
+      <BackToTop />
     </div>
   )
 }
