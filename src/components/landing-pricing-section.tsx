@@ -162,9 +162,6 @@ const plans = [
 export default function LandingPricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
-  // All 3 plans visible — Business shows Coming Soon badges on unbuilt features
-  const visiblePlans = plans
-
   return (
     <div>
       <style dangerouslySetInnerHTML={{ __html: PRICING_STYLES }} />
