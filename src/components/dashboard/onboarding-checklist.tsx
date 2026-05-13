@@ -54,7 +54,7 @@ export default function OnboardingChecklist({
     },
     {
       id: 'payment', label: 'Log a direct payment',
-      hint: 'Cash, POS, bank, mobile money — income that doesn't need an invoice.',
+      hint: "Cash, POS, bank, mobile money — income that doesn't need an invoice.",
       href: '/dashboard/payments/new', done: hasPayment,
     },
     {
