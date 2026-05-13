@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import {
   ArrowLeft, Plus, Trash2, GripVertical, ChevronDown, ChevronUp,
-  Loader2, BookOpen, X, Check, FileText, Zap,
+  Loader2, BookOpen, X, Check, Zap,
   FileText, Lock, ClipboardList, RefreshCw, PenLine, Handshake, Pencil,
   type LucideProps
 } from 'lucide-react'
