@@ -30,7 +30,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name')
+    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name, logo_url')
     .eq('id', user.id)
     .single()
 
@@ -251,6 +251,7 @@ export default async function DashboardPage() {
         <OnboardingChecklist
           hasClients={hasClients} hasSentInvoice={hasSentInvoice}
           hasTimeEntry={hasTimeEntries} hasPayment={hasPayment} hasPortal={hasPortal}
+          tier={tier} hasLogo={!!(profile as any)?.logo_url}
         />
       )}
 

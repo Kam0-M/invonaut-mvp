@@ -16,11 +16,15 @@ interface Props {
   hasTimeEntry:   boolean
   hasPayment:     boolean
   hasPortal:      boolean
+  tier?:          string
+  hasLogo?:       boolean
 }
 
 export default function OnboardingChecklist({
   hasClients, hasSentInvoice, hasTimeEntry, hasPayment, hasPortal,
+  tier = 'starter', hasLogo = false,
 }: Props) {
+  const isPro = tier === 'professional' || tier === 'business'
   const [dismissed,    setDismissed]    = useState(false)
   const [celebrating,  setCelebrating]  = useState(false)
   const [showRestore,  setShowRestore]  = useState(false)
@@ -32,7 +36,7 @@ export default function OnboardingChecklist({
     setDismissed(localStorage.getItem('invonaut_onboarding_dismissed') === 'true')
   }, [])
 
-  const steps = [
+  const coreSteps = [
     {
       id: 'client', label: 'Add your first client',
       hint: 'Every invoice, payment, and contract links back to a client.',
@@ -50,7 +54,7 @@ export default function OnboardingChecklist({
     },
     {
       id: 'payment', label: 'Log a direct payment',
-      hint: 'Cash, POS, bank, mobile money — income that doesn\'t need an invoice.',
+      hint: 'Cash, POS, bank, mobile money — income that doesn't need an invoice.',
       href: '/dashboard/payments/new', done: hasPayment,
     },
     {
@@ -59,6 +63,21 @@ export default function OnboardingChecklist({
       href: '/dashboard/portal', done: hasPortal,
     },
   ]
+
+  const proSteps = isPro ? [
+    {
+      id: 'logo', label: 'Upload your logo',
+      hint: 'Your logo appears on every invoice PDF and in your client portal.',
+      href: '/dashboard/settings', done: hasLogo,
+    },
+    {
+      id: 'cashflow', label: 'Check your 90-day cash flow',
+      hint: 'See your runway, upcoming payments, and revenue vs expenses — updated in real time.',
+      href: '/dashboard/cash', done: false, // always show as a nudge
+    },
+  ] : []
+
+  const steps = [...coreSteps, ...proSteps]
 
   const completedCount = steps.filter(s => s.done).length
   const allDone        = completedCount === steps.length
