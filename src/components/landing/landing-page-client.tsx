@@ -540,7 +540,7 @@ function InteractiveProductDemo() {
               Your entire business.<br />One screen.
             </h2>
             <p className="text-lg text-gray-500 font-medium mt-4 max-w-xl mx-auto">
-              This is what Invonaut looks like when it&apos;s running. Not a mock — this is the actual interface.
+              Tap through the tabs to explore each module. This is what the real interface looks like.
             </p>
           </motion.div>
         </AnimSection>
@@ -822,6 +822,130 @@ function RevenueCalculator() {
   )
 }
 
+// ─── Portal preview ───────────────────────────────────────────────────────────
+
+function PortalPreview() {
+  const DEMO_INVOICES = [
+    { num: 'INV-00089', client: 'Acme Corp',       amount: '$4,200', status: 'paid',    statusCls: 'bg-teal-50 text-teal-700' },
+    { num: 'INV-00094', client: 'Studio Nine',     amount: '$1,800', status: 'pending', statusCls: 'bg-amber-50 text-amber-700' },
+    { num: 'INV-00097', client: 'Acme Corp',       amount: '$2,650', status: 'pending', statusCls: 'bg-amber-50 text-amber-700' },
+  ]
+  return (
+    <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 overflow-hidden">
+      <div className="max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20 items-center">
+
+          {/* Left: copy */}
+          <AnimSection>
+            <motion.div variants={fadeLeft} className="max-w-lg">
+              <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-3">For your clients</p>
+              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-[1.05] mb-5">
+                Professional from<br />every angle.
+              </h2>
+              <p className="text-lg text-gray-500 font-medium leading-relaxed mb-8">
+                Every client gets a branded portal via magic link — no account needed.
+                They see their invoices, download PDFs, sign contracts, and access files you&apos;ve shared.
+              </p>
+              <div className="space-y-4">
+                {[
+                  { title: 'Magic link access',    body: 'Clients click one link. No passwords, no signup.' },
+                  { title: 'Invoice & PDF view',   body: 'All sent invoices, statuses, and downloadable PDFs in one place.' },
+                  { title: 'Contract signing',     body: 'Legally binding e-signature directly in the portal.' },
+                  { title: 'Shared file access',   body: 'Briefs, proposals, assets — shared and downloadable.' },
+                ].map(f => (
+                  <div key={f.title} className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">{f.title}</p>
+                      <p className="text-sm text-gray-500">{f.body}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimSection>
+
+          {/* Right: portal mockup */}
+          <AnimSection>
+            <motion.div variants={fadeRight} className="relative">
+              {/* Glow */}
+              <div className="absolute -inset-4 bg-gradient-to-br from-teal-100 to-blue-100 rounded-3xl opacity-50 blur-2xl" />
+              {/* Browser frame */}
+              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
+                {/* Browser bar */}
+                <div className="bg-gray-100 border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-400" />
+                    <div className="w-3 h-3 rounded-full bg-amber-400" />
+                    <div className="w-3 h-3 rounded-full bg-green-400" />
+                  </div>
+                  <div className="flex-1 bg-white rounded-md px-3 py-1 text-xs text-gray-400 font-mono border border-gray-200">
+                    invonaut.app/portal/acme-corp
+                  </div>
+                </div>
+
+                {/* Portal content */}
+                <div className="p-5 space-y-4">
+                  {/* Portal header */}
+                  <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
+                      <span className="text-white font-black text-sm">AC</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-gray-900">Acme Corp</p>
+                      <p className="text-xs text-gray-400">Client Portal · Secured by magic link</p>
+                    </div>
+                  </div>
+
+                  {/* Invoices */}
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Your Invoices</p>
+                    <div className="space-y-2">
+                      {DEMO_INVOICES.map((inv, i) => (
+                        <motion.div key={inv.num}
+                          initial={{ opacity: 0, x: 12 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.12 + 0.3 }}
+                          className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
+                          <div>
+                            <p className="text-xs font-bold text-gray-900">{inv.num}</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">{inv.client}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-black text-gray-900">{inv.amount}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full capitalize ${inv.statusCls}`}>{inv.status}</span>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Contract sign prompt */}
+                  <div className="bg-blue-50 rounded-xl border border-blue-100 px-4 py-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-blue-900">Web Design Agreement</p>
+                        <p className="text-[10px] text-blue-500">Awaiting your signature</p>
+                      </div>
+                    </div>
+                    <div className="text-xs font-bold text-white bg-blue-600 px-3 py-1.5 rounded-lg flex-shrink-0">
+                      Sign →
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </AnimSection>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 // ─── Competitor comparison section ────────────────────────────────────────────
 
 function CompetitorComparison() {
@@ -1007,10 +1131,10 @@ export default function LandingPageClient() {
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
-                <Link href="/signup" className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:shadow-xl hover:scale-[1.02] transition-all">
+                <Link href="/signup" className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-bold text-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
                   Start free — 14 days <ArrowRight className="w-4 h-4" />
                 </Link>
-                <Link href="#platform" className="inline-flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 px-7 py-3.5 rounded-xl font-bold text-sm hover:border-gray-300 hover:shadow-md transition-all">
+                <Link href="#platform" className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-7 py-3.5 rounded-xl font-bold text-sm hover:border-gray-300 hover:shadow-md transition-all">
                   See what it does
                 </Link>
               </motion.div>
@@ -1160,8 +1284,8 @@ export default function LandingPageClient() {
             {MODULES.map(mod => (
               <motion.div key={mod.title} variants={fadeUp}
                 whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                className="group bg-gray-50 hover:bg-white rounded-2xl p-6 border border-gray-100 hover:border-blue-100 hover:shadow-xl transition-all cursor-default">
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110" style={{ background: mod.bg }}>
+                className="group bg-gray-50 hover:bg-white rounded-2xl p-6 border border-gray-100 hover:border-blue-100 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-default">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:rotate-3" style={{ background: mod.bg }}>
                   <mod.Icon className="w-5 h-5" style={{ color: mod.accent }} />
                 </div>
                 <div className="inline-flex items-center gap-1 text-xs font-semibold rounded-full px-2.5 py-1 mb-3" style={{ background: mod.bg, color: mod.accent }}>
@@ -1190,11 +1314,11 @@ export default function LandingPageClient() {
               <p className="text-gray-400 font-medium mt-4 max-w-xl mx-auto">Eight automated processes run every day without you logging in.</p>
             </motion.div>
           </AnimSection>
-          <AnimSection containerVariant={stagger(0.07)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PROCESSES.map(proc => (
-              <motion.div key={proc.action} variants={fadeLeft}
-                whileHover={{ x: 4, transition: { duration: 0.15 } }}
-                className="flex items-center gap-4 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.07] rounded-xl px-5 py-4 transition-all group">
+          <AnimSection containerVariant={stagger(0.1)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {PROCESSES.map((proc, idx) => (
+              <motion.div key={proc.action} variants={fadeUp}
+                whileHover={{ y: -2, transition: { duration: 0.15 } }}
+                className="flex items-center gap-4 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all group">
                 <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
                   <proc.Icon className="w-4 h-4 text-teal-400" />
                 </div>
@@ -1260,6 +1384,9 @@ export default function LandingPageClient() {
 
       {/* ── Interactive product demo ──────────────────────────────────────────── */}
       <InteractiveProductDemo />
+
+      {/* ── Portal preview ───────────────────────────────────────────────────── */}
+      <PortalPreview />
 
       {/* ── White label callout (white) ──────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
