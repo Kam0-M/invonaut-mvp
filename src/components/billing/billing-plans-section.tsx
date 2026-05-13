@@ -53,7 +53,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
 
       {/* Plan cards */}
       <div className="grid md:grid-cols-3 gap-4">
-        {plans.filter(p => p.id !== 'business' || currentTier === 'business').map(plan => {
+        {plans.map(plan => {
           const isCurrentPlan  = plan.id === currentTier && hasActiveSubscription
           const isProfessional = plan.id === 'professional'
           const isBusiness     = plan.id === 'business'

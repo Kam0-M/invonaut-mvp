@@ -149,12 +149,12 @@ const plans = [
     description: 'For small agencies and studios.',
     highlighted: false,
     features: [
-      'Everything in Professional, plus:',
-      'Budget tracking & alerts',
-      'Multi-party contract signing',
-      'Contract version control',
-      '3 team seats',
-      'Priority support',
+      { text: 'Everything in Professional, plus:', soon: false },
+      { text: 'Budget tracking & alerts',          soon: false },
+      { text: 'Multi-party contract signing',      soon: true  },
+      { text: 'Contract version control',          soon: true  },
+      { text: '3 team seats',                      soon: true  },
+      { text: 'Priority support',                  soon: false },
     ],
   },
 ]
@@ -162,8 +162,8 @@ const plans = [
 export default function LandingPricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
-  // Business tier hidden pre-launch — not all features ready
-  const visiblePlans = PLANS.filter(p => p.id !== 'business')
+  // All 3 plans visible — Business shows Coming Soon badges on unbuilt features
+  const visiblePlans = PLANS
 
   return (
     <div>
@@ -200,8 +200,8 @@ export default function LandingPricingSection() {
             key={plan.id}
             className={`relative rounded-2xl p-8 flex flex-col ${
               plan.highlighted
-                ? 'bg-blue-600 text-white shadow-2xl scale-105'
-                : 'bg-white border-2 border-gray-100 shadow-lg'
+                ? 'bg-blue-600 text-white shadow-xl'
+                : 'bg-white border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200'
             }`}
           >
             {plan.highlighted && (
@@ -236,14 +236,23 @@ export default function LandingPricingSection() {
             </div>
 
             <ul className="space-y-3 mb-8 flex-1">
-              {plan.features.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2.5 text-sm">
-                  {CHECK(plan.highlighted ? 'text-blue-200' : 'text-blue-500')}
-                  <span className={plan.highlighted ? 'text-blue-50' : 'text-gray-600'}>
-                    {feature}
-                  </span>
-                </li>
-              ))}
+              {plan.features.map((feature: any, i: number) => {
+                const text = typeof feature === 'string' ? feature : feature.text
+                const soon = typeof feature === 'object' && feature.soon
+                return (
+                  <li key={i} className="flex items-start gap-2.5 text-sm">
+                    {CHECK(plan.highlighted ? 'text-blue-200' : 'text-blue-500')}
+                    <span className={`flex items-center gap-2 flex-wrap ${plan.highlighted ? 'text-blue-50' : 'text-gray-600'}`}>
+                      {text}
+                      {soon && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 leading-none flex-shrink-0">
+                          Soon
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                )
+              })}
             </ul>
 
             {/* Spinning track border CTA button */}
