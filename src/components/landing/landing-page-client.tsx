@@ -18,7 +18,7 @@ import {
   TrendingUp, Receipt, Globe, Bot, ArrowRight,
   Bell, CheckCircle2, Activity, DollarSign,
   ChevronRight, Zap, Shield, Layers, X, Check,
-  AlertTriangle, Timer, Calculator, Users,
+  AlertTriangle, AlertCircle, Timer, Calculator, Users,
 } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
 
@@ -358,9 +358,9 @@ function InvoiceDemo() {
         </div>
       </div>
       {invoices.map((inv, i) => (
-        <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }} transition={{ delay: i * 0.08, duration: 0.35, ease: EASE }}
-          className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-white transition-all group">
+        <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: i * 0.09, duration: 0.3, ease: EASE }}
+          className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-white cursor-default select-none transition-all">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-bold text-gray-900">{inv.client}</span>
@@ -399,7 +399,7 @@ function PaymentDemo() {
   ]
   const methodColor: Record<string, string> = {
     Cash: 'bg-teal-100 text-teal-700', Bank: 'bg-blue-100 text-blue-700',
-    POS: 'bg-purple-100 text-purple-700', Prepay: 'bg-amber-100 text-amber-700',
+    POS: 'bg-blue-100 text-blue-700', Prepay: 'bg-amber-100 text-amber-700',
   }
   return (
     <div>
@@ -409,9 +409,9 @@ function PaymentDemo() {
       </div>
       <div className="space-y-2">
         {payments.map((p, i) => (
-          <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ delay: i * 0.08, ease: EASE }}
-            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-teal-100 transition-all">
+          <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.09, ease: EASE }}
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-teal-100 cursor-default select-none transition-all">
             <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
               <DollarSign className="w-4 h-4 text-teal-600" />
             </div>
@@ -494,9 +494,9 @@ function ContractDemo() {
       </div>
       <div className="space-y-2">
         {contracts.map((c, i) => (
-          <motion.div key={i} initial={{ opacity: 0, x: -12 }} whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }} transition={{ delay: i * 0.08, ease: EASE }}
-            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-blue-100 transition-all">
+          <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.09, ease: EASE }}
+            className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:border-blue-100 cursor-default select-none transition-all">
             <div className="w-8 h-8 rounded-lg bg-white border border-gray-100 flex items-center justify-center flex-shrink-0">
               <FileCheck className="w-4 h-4 text-blue-600" />
             </div>
@@ -578,22 +578,27 @@ function InteractiveProductDemo() {
                 {/* Main content */}
                 <div className="flex-1 p-6 min-h-[420px]">
                   {/* Tab bar */}
-                  <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-                    {DEMO_TABS.map(tab => (
-                      <button
-                        key={tab.id}
-                        suppressHydrationWarning
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                          activeTab === tab.id
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
-                        }`}
-                      >
-                        <tab.Icon className="w-3 h-3" />
-                        {tab.label}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex gap-1 bg-gray-100 p-1 rounded-xl w-fit">
+                      {DEMO_TABS.map(tab => (
+                        <button
+                          key={tab.id}
+                          suppressHydrationWarning
+                          onClick={() => setActiveTab(tab.id)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            activeTab === tab.id
+                              ? 'bg-white text-blue-600 shadow-sm'
+                              : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                        >
+                          <tab.Icon className="w-3 h-3" />
+                          {tab.label}
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hidden sm:block">
+                      Click tabs to explore
+                    </span>
                   </div>
 
                   {/* Content area */}
@@ -946,6 +951,176 @@ function PortalPreview() {
   )
 }
 
+// ─── Section A: Payment flow animation ────────────────────────────────────────
+
+function PaymentFlowSection() {
+  const ref = useRef<HTMLDivElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-80px' })
+  const [activeStep, setActiveStep] = useState(-1)
+
+  useEffect(() => {
+    if (!inView) return
+    const delays = [0, 700, 1400, 2100, 2800, 3500]
+    const timers = delays.map((d, i) => setTimeout(() => setActiveStep(i), d))
+    return () => timers.forEach(clearTimeout)
+  }, [inView])
+
+  const FLOW = [
+    { Icon: FileCheck,  label: 'Contract signed',    sub: 'Client signs digitally',      color: '#00D4AA' },
+    { Icon: FileText,   label: 'Invoice sent',        sub: 'PDF delivered by email',      color: '#0066FF' },
+    { Icon: Bot,        label: 'AI risk scored',      sub: '72% — on-time probability',   color: '#0066FF' },
+    { Icon: Bell,       label: 'Reminder fired',      sub: 'Auto-sent at 9 AM',           color: '#F59E0B' },
+    { Icon: DollarSign, label: 'Payment received',    sub: '$4,200 collected',             color: '#00D4AA' },
+    { Icon: BarChart2,  label: 'Forecast updated',    sub: 'Cash flow recalculated',       color: '#0066FF' },
+  ]
+
+  return (
+    <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-16">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">End to end</p>
+          <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
+            From contract to cash.<br />Watch it happen.
+          </h2>
+          <p className="text-gray-500 font-medium mt-4 max-w-lg mx-auto">
+            Scroll into view and the whole flow plays out — every step automated.
+          </p>
+        </div>
+
+        {/* Flow steps */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-2 relative">
+          {/* Background connector line */}
+          <div className="absolute top-8 left-[calc(8.33%+28px)] right-[calc(8.33%+28px)] h-px bg-gray-100 hidden lg:block" />
+
+          {FLOW.map((step, i) => {
+            const active = activeStep >= i
+            return (
+              <div key={i} className="flex flex-col items-center text-center gap-3 relative z-10">
+                {/* Icon circle */}
+                <motion.div
+                  animate={active
+                    ? { scale: [1, 1.12, 1], transition: { duration: 0.4, delay: 0.05 } }
+                    : {}}
+                  className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 flex-shrink-0"
+                  style={{
+                    backgroundColor: active ? step.color + '18' : '#F9FAFB',
+                    border: `1.5px solid ${active ? step.color : '#E5E7EB'}`,
+                    boxShadow: active ? `0 0 18px ${step.color}28` : 'none',
+                  }}
+                >
+                  <step.Icon className="w-6 h-6 transition-colors duration-500"
+                    style={{ color: active ? step.color : '#D1D5DB' }} />
+                </motion.div>
+
+                {/* Arrow connector — desktop only */}
+                {i < FLOW.length - 1 && (
+                  <div className="absolute top-[26px] left-[calc(100%-8px)] w-4 items-center justify-center hidden lg:flex">
+                    <motion.div
+                      animate={active ? { opacity: 1, scaleX: 1 } : { opacity: 0, scaleX: 0 }}
+                      transition={{ duration: 0.3, delay: 0.3 }}
+                      style={{ transformOrigin: 'left' }}
+                      className="w-3 h-px bg-gray-300"
+                    />
+                  </div>
+                )}
+
+                {/* Step number badge */}
+                <motion.div
+                  animate={{ opacity: active ? 1 : 0.3 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col items-center gap-0.5"
+                >
+                  <p className="text-xs font-black text-gray-900 leading-tight">{step.label}</p>
+                  <p className="text-[10px] text-gray-400 leading-tight">{step.sub}</p>
+                </motion.div>
+
+                {/* Step number */}
+                <div className={`text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center transition-all duration-500 ${active ? 'text-white' : 'text-gray-300 border border-gray-200'}`}
+                  style={{ backgroundColor: active ? step.color : 'transparent' }}>
+                  {i + 1}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Completion callout */}
+        <motion.div
+          animate={activeStep >= 5 ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          transition={{ duration: 0.6 }}
+          className="mt-10 bg-teal-50 rounded-2xl border border-teal-100 p-5 text-center"
+        >
+          <p className="text-sm font-bold text-teal-800">
+            You signed the contract. Invonaut handled the rest — zero manual steps.
+          </p>
+        </motion.div>
+      </div>
+    </section>
+  )
+}
+
+// ─── Section B component (replaces static PROCESSES grid) ─────────────────────
+
+function AutomationTimeline() {
+  const FEED = [
+    {
+      time: '9:00 AM daily', Icon: Bell,
+      title: 'Invoice follow-up sent',
+      body: 'Marcus K. · INV-00089 · $4,200 · 8 days overdue',
+      color: '#EF4444', sent: true,
+    },
+    {
+      time: '9:00 AM daily', Icon: AlertCircle,
+      title: 'Contract expiry warning sent',
+      body: 'Consulting Agreement · expires in 6 days',
+      color: '#F59E0B', sent: true,
+    },
+    {
+      time: '9:01 AM daily', Icon: Receipt,
+      title: 'Budget alert dispatched',
+      body: 'Marketing: $410 of $500 monthly limit (82%)',
+      color: '#0066FF', sent: true,
+    },
+    {
+      time: 'Monday 9:00 AM', Icon: Clock,
+      title: 'Weekly time summary emailed',
+      body: '23.5 billable hours · $2,820 this week',
+      color: '#00D4AA', sent: true,
+    },
+  ]
+
+  return (
+    <div className="space-y-3">
+      {FEED.map((item, i) => (
+        <motion.div key={i}
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ delay: i * 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-start gap-4 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all group"
+        >
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+            style={{ backgroundColor: item.color + '20' }}>
+            <item.Icon className="w-4 h-4" style={{ color: item.color }} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-0.5">
+              <p className="text-sm font-bold text-white">{item.title}</p>
+              {item.sent && (
+                <span className="text-[9px] font-black text-teal-400 bg-teal-400/10 px-1.5 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
+                  Sent ✓
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-400">{item.body}</p>
+          </div>
+          <span className="text-[10px] font-bold text-gray-600 flex-shrink-0 mt-0.5 hidden sm:block">{item.time}</span>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
 // ─── Competitor comparison section ────────────────────────────────────────────
 
 function CompetitorComparison() {
@@ -1056,6 +1231,7 @@ function CompetitorComparison() {
 
 export default function LandingPageClient() {
   const [navScrolled, setNavScrolled] = useState(false)
+  const [selectedBrandColor, setSelectedBrandColor] = useState('#2563EB')
   const { scrollY } = useScroll()
   useMotionValueEvent(scrollY, 'change', (y) => setNavScrolled(y > 16))
 
@@ -1314,21 +1490,8 @@ export default function LandingPageClient() {
               <p className="text-gray-400 font-medium mt-4 max-w-xl mx-auto">Eight automated processes run every day without you logging in.</p>
             </motion.div>
           </AnimSection>
-          <AnimSection containerVariant={stagger(0.1)} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {PROCESSES.map((proc, idx) => (
-              <motion.div key={proc.action} variants={fadeUp}
-                whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                className="flex items-center gap-4 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all group">
-                <div className="w-8 h-8 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
-                  <proc.Icon className="w-4 h-4 text-teal-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{proc.action}</p>
-                  <p className="text-xs text-gray-400 mt-0.5 truncate">{proc.detail}</p>
-                </div>
-                <span className="text-xs font-bold text-gray-500 flex-shrink-0 ml-2">{proc.schedule}</span>
-              </motion.div>
-            ))}
+          <AnimSection containerVariant={stagger(0.1)}>
+            <AutomationTimeline />
           </AnimSection>
           <AnimSection className="mt-10">
             <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 text-center">
@@ -1383,6 +1546,9 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── Interactive product demo ──────────────────────────────────────────── */}
+      {/* ── Section A: From contract to cash ───────────────────────────────── */}
+      <PaymentFlowSection />
+
       <InteractiveProductDemo />
 
       {/* ── Portal preview ───────────────────────────────────────────────────── */}
@@ -1438,15 +1604,26 @@ export default function LandingPageClient() {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.06, duration: 0.35, ease: EASE }}
-                      className="flex flex-col items-center gap-1.5">
-                      <div className="w-10 h-10 rounded-full shadow-md hover:scale-110 transition-transform cursor-pointer" style={{ backgroundColor: c.color }} />
+                      className="flex flex-col items-center gap-1.5 cursor-pointer"
+                      onClick={() => setSelectedBrandColor(c.color)}>
+                      <div
+                        className="w-10 h-10 rounded-full transition-all duration-200"
+                        style={{
+                          backgroundColor: c.color,
+                          boxShadow: selectedBrandColor === c.color
+                            ? `0 0 0 3px white, 0 0 0 5px ${c.color}`
+                            : '0 2px 6px rgba(0,0,0,0.15)',
+                          transform: selectedBrandColor === c.color ? 'scale(1.15)' : 'scale(1)',
+                        }}
+                      />
                       <span className="text-xs text-gray-400">{c.label}</span>
                     </motion.div>
                   ))}
                 </div>
-                <div className="bg-white rounded-xl p-4 border border-gray-100">
+                <div className="bg-white rounded-xl p-4 border border-gray-100 transition-all duration-300">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors duration-300"
+                      style={{ backgroundColor: selectedBrandColor }}>
                       <span className="text-white text-xs font-black">YB</span>
                     </div>
                     <div className="min-w-0">
@@ -1455,15 +1632,19 @@ export default function LandingPageClient() {
                     </div>
                   </div>
                   <div className="space-y-1.5 mb-3">
-                    <div className="h-1 bg-blue-600 rounded-full w-3/4" />
+                    <div className="h-1 rounded-full w-3/4 transition-colors duration-300"
+                      style={{ backgroundColor: selectedBrandColor }} />
                     <div className="h-1 bg-gray-200 rounded-full w-full" />
                     <div className="h-1 bg-gray-200 rounded-full w-2/3" />
                   </div>
                   <div className="flex justify-end">
-                    <div className="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg">$4,200.00</div>
+                    <div className="text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors duration-300"
+                      style={{ backgroundColor: selectedBrandColor }}>$4,200.00</div>
                   </div>
                 </div>
-                <p className="text-xs text-gray-400 text-center mt-3">Preview of your branded invoice</p>
+                <p className="text-xs text-gray-400 text-center mt-3">
+                  Click a color — your invoice preview updates instantly
+                </p>
               </motion.div>
             </AnimSection>
           </div>
@@ -1503,7 +1684,7 @@ export default function LandingPageClient() {
                 Cash flow forecast. Collections automated.
               </p>
               <div>
-                <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-blue-700 px-9 py-4 rounded-xl font-black text-base hover:shadow-2xl hover:scale-[1.03] transition-all">
+                <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-blue-700 px-9 py-4 rounded-xl font-black text-base hover:shadow-md hover:-translate-y-0.5 transition-all">
                   Start free — 14 days <ArrowRight className="w-4 h-4" />
                 </Link>
                 <p className="text-blue-200 text-xs font-medium mt-3">No credit card · Cancel anytime · 14-day free trial</p>
