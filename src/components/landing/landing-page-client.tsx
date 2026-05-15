@@ -34,7 +34,25 @@ const GLOBAL_STYLES = `
   initial-value: 0deg;
   inherits: false;
 }
-@keyframes border-rotate {
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.08; }
+  33%       { transform: translate(30px, -20px) scale(1.08); opacity: 0.13; }
+  66%       { transform: translate(-15px, 15px) scale(0.93); opacity: 0.06; }
+}
+@keyframes orb-drift-alt {
+  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.06; }
+  33%       { transform: translate(-25px, 18px) scale(1.06); opacity: 0.11; }
+  66%       { transform: translate(20px, -10px) scale(0.96); opacity: 0.08; }
+}
+@keyframes dot-breathe {
+  0%, 100% { opacity: 0.035; }
+  50%       { opacity: 0.07; }
+}
+.inv-orb-1 { animation: orb-drift     18s ease-in-out infinite; }
+.inv-orb-2 { animation: orb-drift-alt 22s ease-in-out infinite; }
+.inv-orb-3 { animation: orb-drift     14s ease-in-out infinite reverse; }
+.inv-dot-breathe { animation: dot-breathe 6s ease-in-out infinite; }
+
   to { --border-angle: 360deg; }
 }
 @keyframes spin-cw  { from { transform: rotate(0deg); }   to { transform: rotate(360deg); } }
@@ -449,7 +467,7 @@ function CashFlowDemo() {
       <div className="flex items-end gap-1 h-28 mb-3">
         {weeks.map((w, i) => (
           <motion.div key={i} className="flex-1 flex flex-col items-center gap-1"
-            initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }}
+            initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
             transition={{ delay: i * 0.04, duration: 0.4, ease: EASE }}
             style={{ transformOrigin: 'bottom' }}>
             <div className="w-full rounded-t-sm"
@@ -566,13 +584,28 @@ function InteractiveProductDemo() {
               </div>
 
               <div className="flex">
-                {/* Sidebar */}
-                <div className="w-14 bg-gray-900 flex flex-col items-center py-4 gap-3 hidden sm:flex">
-                  {[FileText, Banknote, BarChart2, Clock, FileCheck, TrendingUp, Receipt].map((Icon, i) => (
-                    <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center ${i < 2 ? 'bg-blue-600' : 'hover:bg-gray-700'} cursor-pointer transition-colors`}>
-                      <Icon className="w-4 h-4 text-white opacity-70" />
-                    </div>
+                {/* Sidebar — icons wired to DEMO_TABS; clicking switches the active tab */}
+                <div className="w-14 bg-gray-900 flex flex-col items-center py-4 gap-2 hidden sm:flex">
+                  {DEMO_TABS.map(tab => (
+                    <button key={tab.id}
+                      suppressHydrationWarning
+                      onClick={() => setActiveTab(tab.id)}
+                      title={tab.label}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${
+                        activeTab === tab.id ? 'bg-blue-600 shadow-md' : 'bg-gray-800 hover:bg-gray-700'
+                      }`}
+                    >
+                      <tab.Icon className="w-4 h-4 text-white" />
+                    </button>
                   ))}
+                  {/* Non-functional UI chrome — dimmed to signal non-interactive */}
+                  <div className="mt-1 space-y-2 opacity-20 pointer-events-none">
+                    {[Globe, Receipt, Clock].map((Icon, i) => (
+                      <div key={i} className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-white" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Main content */}
@@ -951,6 +984,264 @@ function PortalPreview() {
   )
 }
 
+// ─── Framer-style scroll-sticky how it works ──────────────────────────────────
+
+function HowItWorksScrollSection() {
+  const containerRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end end'] })
+  const [activeStep, setActiveStep] = useState(0)
+  useMotionValueEvent(scrollYProgress, 'change', v =>
+    setActiveStep(Math.min(STEPS.length - 1, Math.floor(v * STEPS.length)))
+  )
+
+  // ── Per-step mini-demo components ─────────────────────────────────────────
+  function IncomeDemo() {
+    const rows = [
+      { Icon: FileText, label: 'INV-00089 · Acme Corp',  sub: 'Invoice · Net 30',      amt: '$4,200', badge: 'Sent',   bc: 'bg-amber-50 text-amber-700', delay: 0 },
+      { Icon: Banknote, label: 'Airport Transfer · Cash', sub: 'Direct Payment · Today', amt: '$320',   badge: 'Logged', bc: 'bg-teal-50 text-teal-700',  delay: 0.22 },
+    ]
+    return (
+      <div className="space-y-3">
+        {rows.map((r, i) => (
+          <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: r.delay, duration: 0.4, ease: EASE }}
+            className="flex items-center gap-3 bg-gray-50 rounded-xl p-3.5 border border-gray-100">
+            <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <r.Icon className="w-4 h-4 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-gray-900 truncate">{r.label}</p>
+              <p className="text-[10px] text-gray-400">{r.sub}</p>
+            </div>
+            <span className="text-sm font-black text-gray-900 flex-shrink-0">{r.amt}</span>
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${r.bc}`}>{r.badge}</span>
+          </motion.div>
+        ))}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55, duration: 0.4, ease: EASE }}
+          className="bg-teal-50 border border-teal-100 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Total revenue visible</p>
+            <p className="text-xl font-black text-teal-800">$4,520</p>
+          </div>
+          <span className="text-[10px] font-bold text-teal-500 bg-teal-100 px-2 py-1 rounded-lg">Both sources captured</span>
+        </motion.div>
+      </div>
+    )
+  }
+
+  function AIDemo() {
+    return (
+      <div className="space-y-3">
+        <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold font-mono text-gray-700">INV-00094</span>
+            <span className="text-xs font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded-full border border-red-100">9 days overdue</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500">Taylor Design · $1,800</p>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-xs font-black text-red-600">AI Risk 88%</span>
+            </div>
+          </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1.1, duration: 0.45, ease: EASE }}
+          className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Bell className="w-4 h-4 text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-blue-900">Reminder sent automatically</p>
+            <p className="text-[10px] text-blue-500">9:00 AM · Invonaut follow-up system</p>
+          </div>
+          <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded flex-shrink-0">Sent ✓</span>
+        </motion.div>
+      </div>
+    )
+  }
+
+  function ContractDemo() {
+    const [signed, setSigned] = useState(false)
+    useEffect(() => { const t = setTimeout(() => setSigned(true), 1600); return () => clearTimeout(t) }, [])
+    return (
+      <div className="space-y-3">
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: EASE }}
+          className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <p className="text-sm font-bold text-gray-900">Web Design Agreement</p>
+              <p className="text-xs text-gray-400 mt-0.5">Acme Corp · $12,000 total value</p>
+            </div>
+            <motion.span
+              animate={{
+                backgroundColor: signed ? '#f0fdf4' : '#fffbeb',
+                color: signed ? '#15803d' : '#92400e',
+                borderColor: signed ? '#86efac' : '#fde68a',
+              }}
+              className="text-xs font-bold px-2.5 py-1 rounded-full border flex-shrink-0 transition-colors"
+            >
+              {signed ? '✓ Signed' : '⏳ Awaiting'}
+            </motion.span>
+          </div>
+          {signed && (
+            <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+              className="flex items-center gap-2 bg-teal-50 rounded-lg px-3 py-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+              <p className="text-xs text-teal-700 font-bold">Legally binding · PDF generated automatically</p>
+            </motion.div>
+          )}
+        </motion.div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="text-[10px] text-gray-400 text-center">
+          30 · 15 · 7 · 1 day expiry reminders fire automatically
+        </motion.div>
+      </div>
+    )
+  }
+
+  function ForecastDemo() {
+    const bars  = [62, 45, 78, 55, 88, 70, 95, 82]
+    const clrs  = ['#93C5FD','#93C5FD','#60A5FA','#60A5FA','#3B82F6','#3B82F6','#0066FF','#0066FF']
+    return (
+      <div className="space-y-4">
+        <div className="flex items-end gap-1.5 h-24">
+          {bars.map((h, i) => (
+            <motion.div key={i} className="flex-1 rounded-t-md"
+              style={{ transformOrigin: 'bottom', height: `${h}%`, backgroundColor: clrs[i] }}
+              initial={{ scaleY: 0 }} animate={{ scaleY: 1 }}
+              transition={{ delay: i * 0.06, duration: 0.35, ease: EASE }} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { label: '90-day runway', value: '67 days', color: 'text-blue-600', bg: 'bg-blue-50' },
+            { label: 'Pipeline',      value: '$11K',    color: 'text-teal-600', bg: 'bg-teal-50' },
+            { label: 'Net position',  value: '+$8.2K',  color: 'text-green-600', bg: 'bg-green-50' },
+          ].map((m, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.1 }}
+              className={`${m.bg} rounded-xl p-3 text-center`}>
+              <p className={`text-sm font-black ${m.color}`}>{m.value}</p>
+              <p className="text-[9px] text-gray-500 font-bold uppercase tracking-wide mt-0.5">{m.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  const demos = [<IncomeDemo key="i" />, <AIDemo key="a" />, <ContractDemo key="c" />, <ForecastDemo key="f" />]
+
+  return (
+    <>
+      {/* ── Desktop: Framer-style sticky scroll ────────────────────────────── */}
+      <section ref={containerRef} id="how-it-works"
+        className="relative hidden lg:block"
+        style={{ height: `${STEPS.length * 100}vh` }}
+      >
+        <div className="sticky top-0 h-screen bg-gray-50 flex items-center overflow-hidden">
+          <div className="max-w-6xl mx-auto w-full px-8 flex gap-16 items-center">
+
+            {/* Left nav */}
+            <div className="w-64 flex-shrink-0">
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-8">How it works</p>
+              <div className="space-y-0.5">
+                {STEPS.map((step, i) => (
+                  <motion.div key={i}
+                    animate={{ opacity: activeStep === i ? 1 : 0.3 }}
+                    transition={{ duration: 0.35 }}
+                    className="flex items-start gap-4 py-3.5 pr-4 rounded-xl"
+                  >
+                    <div className="flex-shrink-0 w-0.5 self-stretch relative mt-0.5">
+                      <motion.div
+                        animate={{ height: activeStep === i ? '44px' : '28px', backgroundColor: activeStep === i ? '#0066FF' : '#E5E7EB' }}
+                        transition={{ duration: 0.4 }}
+                        className="rounded-full absolute top-0 left-0 w-full"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-blue-400 tracking-widest mb-0.5">{step.step}</p>
+                      <p className={`text-sm font-black leading-tight transition-colors duration-300 ${activeStep === i ? 'text-gray-900' : 'text-gray-500'}`}>
+                        {step.title}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right demo */}
+            <div className="flex-1 min-w-0">
+              <AnimatePresence mode="wait">
+                <motion.div key={activeStep}
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -18 }}
+                  transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+                  className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm"
+                >
+                  <div className="mb-5">
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{STEPS[activeStep].step}</p>
+                    <h3 className="text-xl font-black text-gray-900 mb-2">{STEPS[activeStep].title}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed">{STEPS[activeStep].body}</p>
+                  </div>
+                  <div className="border-t border-gray-100 pt-5">
+                    {demos[activeStep]}
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Scroll progress indicator */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
+            {STEPS.map((_, i) => (
+              <motion.div key={i}
+                animate={{ width: activeStep === i ? 24 : 6, backgroundColor: activeStep === i ? '#0066FF' : '#D1D5DB' }}
+                transition={{ duration: 0.3 }}
+                className="h-1.5 rounded-full"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Mobile: stacked cards ──────────────────────────────────────────── */}
+      <section className="lg:hidden py-20 px-4 sm:px-6 bg-gray-50" id="how-it-works-mobile">
+        <div className="max-w-xl mx-auto">
+          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">How it works</p>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight mb-10">Your full financial OS.</h2>
+          <div className="space-y-4">
+            {STEPS.map((step, i) => (
+              <AnimSection key={i}>
+                <motion.div variants={fadeUp}
+                  className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+                      <step.Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-blue-400 tracking-widest">{step.step}</p>
+                      <p className="text-sm font-black text-gray-900">{step.title}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-500 leading-relaxed">{step.body}</p>
+                </motion.div>
+              </AnimSection>
+            ))}
+          </div>
+        </div>
+      </section>
+    </>
+  )
+}
+
 // ─── Section A: Payment flow animation ────────────────────────────────────────
 
 function PaymentFlowSection() {
@@ -1062,61 +1353,73 @@ function PaymentFlowSection() {
 // ─── Section B component (replaces static PROCESSES grid) ─────────────────────
 
 function AutomationTimeline() {
-  const FEED = [
-    {
-      time: '9:00 AM daily', Icon: Bell,
-      title: 'Invoice follow-up sent',
-      body: 'Marcus K. · INV-00089 · $4,200 · 8 days overdue',
-      color: '#EF4444', sent: true,
-    },
-    {
-      time: '9:00 AM daily', Icon: AlertCircle,
-      title: 'Contract expiry warning sent',
-      body: 'Consulting Agreement · expires in 6 days',
-      color: '#F59E0B', sent: true,
-    },
-    {
-      time: '9:01 AM daily', Icon: Receipt,
-      title: 'Budget alert dispatched',
-      body: 'Marketing: $410 of $500 monthly limit (82%)',
-      color: '#0066FF', sent: true,
-    },
-    {
-      time: 'Monday 9:00 AM', Icon: Clock,
-      title: 'Weekly time summary emailed',
-      body: '23.5 billable hours · $2,820 this week',
-      color: '#00D4AA', sent: true,
-    },
+  // The 4 scheduled automations — shown as notification feed
+  const SCHEDULED = [
+    { time: '9:00 AM daily',  Icon: Bell,       title: 'Invoice follow-up sent',       body: 'Marcus K. · INV-00089 · $4,200 · 8 days overdue',          color: '#EF4444' },
+    { time: '9:00 AM daily',  Icon: AlertCircle, title: 'Contract expiry warning sent', body: 'Consulting Agreement · expires in 6 days',                  color: '#F59E0B' },
+    { time: '9:01 AM daily',  Icon: Receipt,     title: 'Budget alert dispatched',      body: 'Marketing: $410 of $500 monthly limit (82%)',               color: '#0066FF' },
+    { time: 'Monday 9:00 AM', Icon: Clock,        title: 'Weekly time summary emailed', body: '23.5 billable hours · $2,820 this week',                    color: '#00D4AA' },
+  ]
+  // The 4 reactive automations — shown in compact grid
+  const REACTIVE = [
+    { Icon: Zap,       title: 'AI risk scoring',       sub: 'Every invoice on send',      color: '#0066FF' },
+    { Icon: Shield,    title: 'Contract auto-expiry',  sub: 'When date passes',            color: '#EF4444' },
+    { Icon: BarChart2, title: 'AI expense category',   sub: 'Suggested on every entry',    color: '#00D4AA' },
+    { Icon: TrendingUp,title: '90-day forecast',       sub: 'Recalculated on open',        color: '#F59E0B' },
   ]
 
   return (
-    <div className="space-y-3">
-      {FEED.map((item, i) => (
-        <motion.div key={i}
-          initial={{ opacity: 0, x: 20 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true, margin: '-40px' }}
-          transition={{ delay: i * 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-          className="flex items-start gap-4 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all group"
-        >
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
-            style={{ backgroundColor: item.color + '20' }}>
-            <item.Icon className="w-4 h-4" style={{ color: item.color }} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap mb-0.5">
-              <p className="text-sm font-bold text-white">{item.title}</p>
-              {item.sent && (
-                <span className="text-[9px] font-black text-teal-400 bg-teal-400/10 px-1.5 py-0.5 rounded uppercase tracking-wider flex-shrink-0">
-                  Sent ✓
-                </span>
-              )}
+    <div className="space-y-6">
+      {/* Scheduled notification feed */}
+      <div className="space-y-3">
+        {SCHEDULED.map((item, i) => (
+          <motion.div key={i}
+            initial={{ opacity: 0, x: 20 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ delay: i * 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="flex items-start gap-4 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+              style={{ backgroundColor: item.color + '20' }}>
+              <item.Icon className="w-4 h-4" style={{ color: item.color }} />
             </div>
-            <p className="text-xs text-gray-400">{item.body}</p>
-          </div>
-          <span className="text-[10px] font-bold text-gray-600 flex-shrink-0 mt-0.5 hidden sm:block">{item.time}</span>
-        </motion.div>
-      ))}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <p className="text-sm font-bold text-white">{item.title}</p>
+                <span className="text-[9px] font-black text-teal-400 bg-teal-400/10 px-1.5 py-0.5 rounded uppercase tracking-wider flex-shrink-0">Sent ✓</span>
+              </div>
+              <p className="text-xs text-gray-400">{item.body}</p>
+            </div>
+            <span className="text-[10px] font-bold text-gray-600 flex-shrink-0 mt-0.5 hidden sm:block">{item.time}</span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Reactive automations compact grid */}
+      <div>
+        <p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-3">Plus 4 that fire instantly</p>
+        <div className="grid grid-cols-2 gap-2">
+          {REACTIVE.map((item, i) => (
+            <motion.div key={i}
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08 + 0.6, duration: 0.35 }}
+              className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.07] rounded-xl px-4 py-3"
+            >
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: item.color + '18' }}>
+                <item.Icon className="w-3.5 h-3.5" style={{ color: item.color }} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-white truncate">{item.title}</p>
+                <p className="text-[10px] text-gray-500">{item.sub}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -1480,8 +1783,15 @@ export default function LandingPageClient() {
 
       {/* ── Autonomy callout (dark) ───────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        <div className="absolute inset-0" style={DOT_DARK} />
-        <div className="absolute top-0 right-0 w-96 h-96 opacity-[0.06]" style={{ background: 'radial-gradient(circle, #2563EB 0%, transparent 70%)' }} />
+        {/* Breathing dot grid — always animating */}
+        <div className="absolute inset-0 inv-dot-breathe" style={DOT_DARK} />
+        {/* Drifting orbs — give the section an always-alive feel */}
+        <div className="inv-orb-1 absolute top-[10%] right-[8%] w-80 h-80 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.6) 0%, transparent 70%)' }} />
+        <div className="inv-orb-2 absolute bottom-[15%] left-[5%] w-72 h-72 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(13,148,136,0.5) 0%, transparent 70%)' }} />
+        <div className="inv-orb-3 absolute top-[40%] left-[40%] w-64 h-64 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)' }} />
         <div className="max-w-5xl mx-auto relative z-10">
           <AnimSection className="text-center mb-12">
             <motion.div variants={fadeUp}>
@@ -1510,40 +1820,8 @@ export default function LandingPageClient() {
         </div>
       </section>
 
-      {/* ── How it works (light) ─────────────────────────────────────────────── */}
-      <section id="how-it-works" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <AnimSection className="text-center mb-14">
-            <motion.div variants={fadeUp}>
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">How it works</p>
-              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Pain → System → Outcome.</h2>
-              <p className="text-gray-500 font-medium mt-3 max-w-xl mx-auto">
-                Every step of your financial workflow — captured, automated, and reported in one place.
-              </p>
-            </motion.div>
-          </AnimSection>
-          <AnimSection containerVariant={stagger(0.15)} className="space-y-6">
-            {STEPS.map((step, i) => (
-              <motion.div key={i} variants={i % 2 === 0 ? fadeLeft : fadeRight}
-                className="flex gap-6 items-start bg-white rounded-2xl p-7 border border-gray-100 hover:border-blue-100 hover:shadow-lg transition-all group">
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <step.Icon className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 pt-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-black text-blue-400 tracking-widest">{step.step}</span>
-                    <h3 className="text-lg font-black text-gray-900 tracking-tight">{step.title}</h3>
-                  </div>
-                  <p className="text-gray-500 leading-relaxed text-sm">{step.body}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 flex-shrink-0 mt-1 group-hover:text-blue-400 group-hover:translate-x-1 transition-all" />
-              </motion.div>
-            ))}
-          </AnimSection>
-        </div>
-      </section>
+      {/* ── How it works — Framer-style scroll sticky ─────────────────────── */}
+      <HowItWorksScrollSection />
 
       {/* ── Interactive product demo ──────────────────────────────────────────── */}
       {/* ── Section A: From contract to cash ───────────────────────────────── */}
@@ -1693,6 +1971,31 @@ export default function LandingPageClient() {
           </AnimSection>
         </div>
       </section>
+
+      {/* ── Footer wave transition art ────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ height: '72px', background: '#030712' }}>
+        <svg viewBox="0 0 1440 72" xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none" className="absolute top-0 left-0 w-full h-full">
+          {/* Deep wave */}
+          <path fill="#1e3a8a"
+            d="M0,0 L0,36 C180,72 360,18 540,45 C720,72 900,18 1080,36 C1260,54 1380,18 1440,28 L1440,0 Z" />
+          {/* Mid wave */}
+          <path fill="#1d4ed8" fillOpacity="0.45"
+            d="M0,0 L0,18 C240,54 480,0 720,30 C960,60 1200,12 1440,36 L1440,0 Z" />
+          {/* Top shimmer */}
+          <path fill="rgba(96,165,250,0.2)"
+            d="M0,0 L0,8 C360,28 720,4 1080,20 C1260,28 1380,8 1440,14 L1440,0 Z" />
+        </svg>
+        {/* Floating star particles */}
+        {[
+          { cx: 180,  cy: 30, r: 1.2, op: 0.5 }, { cx: 420, cy: 15, r: 0.8, op: 0.4 },
+          { cx: 690,  cy: 42, r: 1.5, op: 0.6 }, { cx: 900, cy: 20, r: 1.0, op: 0.45 },
+          { cx: 1100, cy: 50, r: 0.9, op: 0.35 },{ cx: 1330, cy: 25, r: 1.3, op: 0.5 },
+        ].map((s, i) => (
+          <div key={i} className="absolute rounded-full bg-blue-300"
+            style={{ left: s.cx, top: s.cy, width: s.r * 2, height: s.r * 2, opacity: s.op }} />
+        ))}
+      </div>
 
       {/* ── Footer ───────────────────────────────────────────────────────────── */}
       <footer className="bg-gray-950 text-gray-400 py-14 px-4 sm:px-6 lg:px-8">
