@@ -29,11 +29,13 @@ export default function OnboardingChecklist({
   const [celebrating,  setCelebrating]  = useState(false)
   const [showRestore,  setShowRestore]  = useState(false)
   const [mounted,      setMounted]      = useState(false)
+  const [hasCashVisit, setHasCashVisit] = useState(false)
   const prevAllDone = useRef(false)
 
   useEffect(() => {
     setMounted(true)
     setDismissed(localStorage.getItem('invonaut_onboarding_dismissed') === 'true')
+    setHasCashVisit(localStorage.getItem('inv_cash_visited') === 'true')
   }, [])
 
   const coreSteps = [
@@ -73,7 +75,7 @@ export default function OnboardingChecklist({
     {
       id: 'cashflow', label: 'Check your 90-day cash flow',
       hint: 'See your runway, upcoming payments, and revenue vs expenses — updated in real time.',
-      href: '/dashboard/cash', done: false, // always show as a nudge
+      href: '/dashboard/cash', done: hasCashVisit,
     },
   ] : []
 

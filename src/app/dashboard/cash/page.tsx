@@ -18,6 +18,7 @@ import UpcomingPaymentsList        from '@/components/cash/upcoming-payments-lis
 import TaxReserveEstimate          from '@/components/cash/tax-reserve-estimate'
 import CoreTabBar                  from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
+import MarkCashFlowVisited from '@/components/cash/mark-cash-flow-visited'
 
 const fmt = (n: number): string => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
@@ -250,6 +251,7 @@ export default async function CashPage() {
 
   return (
     <div className="space-y-6">
+      <MarkCashFlowVisited />
       <CoreTabBar />
 
       {/* ── Page header ──────────────────────────────────────────────────── */}

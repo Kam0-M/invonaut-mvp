@@ -62,18 +62,22 @@ export default function PricingClientWrapper({
       monthlyPrice: 49,
       annualMonthlyPrice: 41,
       annualTotalPrice: 490,
-      description: 'Perfect for new freelancers',
+      description: 'Everything you need to get started',
       monthlyPriceId: starterPriceId,
       annualPriceId: starterAnnualPriceId,
       highlighted: false,
       features: [
         '25 invoices per month',
         'Unlimited clients',
+        'Direct payment logging (cash, POS, mobile)',
+        'Revenue categories',
         'Basic AI payment predictions',
-        'Email invoicing with PDF',
-        'Dashboard analytics',
+        'Invoice email + PDF attachments',
+        'Automated follow-up reminders',
         'Expense tracking',
-        'Invonaut branding on invoices',
+        '3 active contracts',
+        'Time tracking + invoice from hours',
+        'Client portal (view-only)',
       ],
     },
     {
@@ -82,25 +86,27 @@ export default function PricingClientWrapper({
       monthlyPrice: 99,
       annualMonthlyPrice: 83,
       annualTotalPrice: 990,
-      description: 'For established freelancers',
+      description: 'For growing freelancers and businesses',
       monthlyPriceId: professionalPriceId,
       annualPriceId: professionalAnnualPriceId,
       highlighted: true,
       features: [
         'Everything in Starter, plus:',
-        'Unlimited invoices',
-        'White label branding (logo & colors)',
-        'Advanced AI insights',
+        'Unlimited invoices + direct payments',
+        'White-label branding (logo & colours)',
+        'Branded client portal + file storage',
+        'Cash flow forecast (90-day)',
+        'Revenue intelligence dashboard',
+        'Advanced AI predictions',
         'AI contract review',
-        'AI expense categorization',
-        'Branded client portal',
+        'AI expense categorisation',
         'Unlimited contracts + e-signatures',
-        'Priority email support',
+        'Weekly time summary emails',
       ],
     },
     {
       id: 'business',
-      name: 'Business', // hidden pre-launch
+      name: 'Business',
       monthlyPrice: 149,
       annualMonthlyPrice: 124,
       annualTotalPrice: 1490,
@@ -110,14 +116,13 @@ export default function PricingClientWrapper({
       highlighted: false,
       features: [
         'Everything in Professional, plus:',
-        'Budget tracking & alerts by category',
-        'Multi-party contract signing',
-        'Contract version control',
-        'Retainer management',
-        'AI contract drafting',
-        '3 team seats',
-        'Dedicated account manager',
-        'Custom onboarding session',
+        'Budget tracking & per-category limits',
+        '80% & 100% overspend alerts (auto)',
+        'Priority email support (24hr response)',
+        'Early access to new features',
+        'Multi-party contract signing (soon)',
+        'Contract version control (soon)',
+        '3 team seats (soon)',
       ],
     },
   ]
@@ -177,11 +182,18 @@ export default function PricingClientWrapper({
             return (
               <div
                 key={plan.id}
-                className={`rounded-2xl p-8 border-2 flex flex-col transition-all relative ${
+                className={`rounded-2xl p-8 border flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
                   plan.highlighted
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500 shadow-2xl md:scale-105'
-                    : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-lg shadow-md'
+                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500'
+                    : 'bg-white border-gray-100 hover:shadow-md'
                 }`}
+                style={{
+                  boxShadow: plan.id === 'starter'
+                    ? '0 0 32px rgba(255,107,53,0.10), 0 2px 12px rgba(0,0,0,0.04)'
+                    : plan.id === 'professional'
+                    ? '0 0 32px rgba(0,102,255,0.14), 0 2px 12px rgba(0,0,0,0.06)'
+                    : '0 0 32px rgba(0,212,170,0.10), 0 2px 12px rgba(0,0,0,0.04)',
+                }}
               >
                 {plan.highlighted && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg uppercase tracking-wide">
@@ -226,7 +238,11 @@ export default function PricingClientWrapper({
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((feature, i) => (
                     <li key={feature} className="flex items-start gap-3">
-                      <span className={plan.highlighted ? 'text-teal-300' : 'text-teal-600'}>{CHECK}</span>
+                      <span className={
+                        plan.highlighted ? 'text-teal-300' :
+                        plan.id === 'starter' ? 'text-orange-400' :
+                        plan.id === 'business' ? 'text-teal-500' : 'text-blue-500'
+                      }>{CHECK}</span>
                       <span className={`text-sm ${
                         plan.highlighted
                           ? i === 0 ? 'text-white font-bold' : 'text-white font-medium'
