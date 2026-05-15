@@ -106,8 +106,12 @@ export default async function CashPage() {
     displayStatus: getInvoiceDisplayStatus({ status: inv.status, due_date: inv.due_date }),
   }))
 
+  // Filter by raw DB status — more reliable than computed displayStatus.
+  // 'sent' in the DB means the invoice has been issued but not paid,
+  // regardless of whether it's overdue or not. displayStatus is only
+  // used inside UpcomingPaymentsList for badge colours.
   const unpaidInvoices = invoices.filter((inv: any) =>
-    inv.displayStatus === 'sent' || inv.displayStatus === 'overdue'
+    inv.status === 'sent'
   )
 
   const { data: directPaymentsRaw } = await supabase
@@ -146,10 +150,13 @@ export default async function CashPage() {
   const isProfitable   = netProfit >= 0
   const profitMargin   = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : null
 
+  const today = new Date(); today.setHours(0, 0, 0, 0)
   const overdueTotal = invoices
-    .filter((inv: any) => inv.displayStatus === 'overdue')
+    .filter((inv: any) => inv.status === 'sent' && new Date(inv.due_date + 'T12:00:00') < today)
     .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
-  const overdueCount = invoices.filter((inv: any) => inv.displayStatus === 'overdue').length
+  const overdueCount = invoices.filter((inv: any) =>
+    inv.status === 'sent' && new Date(inv.due_date + 'T12:00:00') < today
+  ).length
 
   const ninetyDaysAgo = new Date(now); ninetyDaysAgo.setDate(now.getDate() - 90)
   const expenses90    = expenses.filter(e => new Date(e.date + 'T12:00:00') >= ninetyDaysAgo)
