@@ -17,10 +17,10 @@ export function getInvoiceDisplayStatus(invoice: {
   }
   
   // Check if overdue (only applies to sent invoices)
-  const dueDate = new Date(invoice.due_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
+  // IMPORTANT: always add T12:00:00 to prevent UTC midnight day-shift in US timezones
+  const dueDate = new Date(invoice.due_date + 'T12:00:00')
+  const today   = new Date()
+  today.setHours(0, 0, 0, 0)
   
   if (dueDate < today) {
     return 'overdue';
@@ -34,12 +34,9 @@ export function getInvoiceDisplayStatus(invoice: {
  * Check if a due date is overdue
  */
 export function isOverdue(dueDate: string, status: string): boolean {
-  if (status === 'paid' || status === 'cancelled') return false;
-  
-  const due = new Date(dueDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-  
-  return due < today;
+  if (status === 'paid' || status === 'cancelled') return false
+  const due   = new Date(dueDate + 'T12:00:00')
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return due < today
 }

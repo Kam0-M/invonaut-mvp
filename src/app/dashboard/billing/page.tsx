@@ -59,16 +59,20 @@ export default async function BillingPage({
     {
       id: 'starter', name: 'Starter',
       monthlyPrice: 49, annualMonthlyPrice: 41, annualTotalPrice: 490,
-      color: 'blue',
+      color: 'orange',
       tagline: 'Everything you need to get started',
       features: [
         '25 invoices / month',
         'Unlimited clients',
-        'AI payment predictions',
-        'Email invoicing + PDF',
-        'Dashboard analytics',
+        'Direct payment logging (cash, POS, mobile)',
+        'Revenue categories',
+        'Basic AI payment predictions',
+        'Email invoicing + PDF attachments',
+        'Automated follow-up reminders',
         'Expense tracking',
-        'Invonaut branding',
+        '3 active contracts',
+        'Time tracking + invoice from hours',
+        'Client portal (view-only)',
       ],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL ?? '',
@@ -76,16 +80,19 @@ export default async function BillingPage({
     {
       id: 'professional', name: 'Professional',
       monthlyPrice: 99, annualMonthlyPrice: 83, annualTotalPrice: 990,
-      color: 'teal',
+      color: 'blue',
       tagline: 'For growing businesses that need more',
       features: [
-        'Unlimited invoices',
-        'Unlimited clients',
+        'Unlimited invoices + direct payments',
+        'Unlimited clients + contracts',
+        'White-label branding (logo & colours)',
+        'Branded client portal + file storage',
+        'Cash flow forecast (90-day)',
+        'Revenue intelligence dashboard',
         'Advanced AI predictions',
-        'White label branding',
-        'Custom logo & colors',
         'AI contract review',
         'AI expense categorisation',
+        'Weekly time summary emails',
       ],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL ?? '',
@@ -93,16 +100,18 @@ export default async function BillingPage({
     {
       id: 'business', name: 'Business',
       monthlyPrice: 149, annualMonthlyPrice: 124, annualTotalPrice: 1490,
-      color: 'blue',
+      color: 'teal',
       tagline: 'Full autonomy for serious operations',
       features: [
         'Everything in Professional',
         'Budget tracking & alerts',
-        'Multi-party contract signing',
-        'Contract version control',
-        'Retainer management',
-        '3 team seats',
-        'Dedicated account manager',
+        'Per-category monthly limits',
+        '80% & 100% overspend notifications',
+        'Multi-party contract signing (soon)',
+        'Contract version control (soon)',
+        '3 team seats (soon)',
+        'Priority email support (24hr)',
+        'Early access to new features',
       ],
       monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS        ?? '',
       annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL ?? '',
@@ -349,8 +358,8 @@ export default async function BillingPage({
                           </p>
                           <p className="text-xs text-blue-600 font-medium mt-0.5">
                             {currentTier === 'starter'
-                              ? 'Unlock white label, unlimited invoices, AI contract review'
-                              : 'Unlock budget alerts, team seats, multi-party signing'}
+                              ? 'Unlock white label, unlimited invoices, cash flow forecast'
+                              : 'Unlock budget tracking, overspend alerts, priority support'}
                           </p>
                         </div>
                         <span className="text-blue-600 font-black text-sm group-hover:translate-x-0.5 transition-transform">→</span>
