@@ -198,11 +198,22 @@ export default function LandingPricingSection() {
         {plans.map(plan => (
           <div
             key={plan.id}
-            className={`relative rounded-2xl p-8 flex flex-col ${
+            className={`relative rounded-2xl p-8 flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
               plan.highlighted
-                ? 'bg-blue-600 text-white shadow-xl'
-                : 'bg-white border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200'
+                ? 'bg-blue-600 text-white border-2 border-blue-500'
+                : plan.id === 'starter'
+                ? 'bg-white border-2 border-orange-200'
+                : plan.id === 'business'
+                ? 'bg-white border-2 border-teal-200'
+                : 'bg-white border-2 border-blue-200'
             }`}
+            style={{
+              boxShadow: plan.id === 'starter'
+                ? '0 0 36px rgba(255,107,53,0.14), 0 2px 14px rgba(0,0,0,0.05)'
+                : plan.id === 'professional'
+                ? '0 0 40px rgba(0,102,255,0.18), 0 2px 14px rgba(0,0,0,0.07)'
+                : '0 0 36px rgba(0,212,170,0.14), 0 2px 14px rgba(0,0,0,0.05)',
+            }}
           >
             {plan.highlighted && (
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -241,7 +252,11 @@ export default function LandingPricingSection() {
                 const soon = typeof feature === 'object' && feature.soon
                 return (
                   <li key={i} className="flex items-start gap-2.5 text-sm">
-                    {CHECK(plan.highlighted ? 'text-blue-200' : 'text-blue-500')}
+                    {CHECK(
+                        plan.highlighted ? 'text-blue-200' :
+                        plan.id === 'starter' ? 'text-orange-400' :
+                        plan.id === 'business' ? 'text-teal-500' : 'text-blue-500'
+                      )}
                     <span className={`flex items-center gap-2 flex-wrap ${plan.highlighted ? 'text-blue-50' : 'text-gray-600'}`}>
                       {text}
                       {soon && (
