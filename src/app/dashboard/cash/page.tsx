@@ -94,25 +94,35 @@ export default async function CashPage() {
   const now = new Date()
 
   // ── Data ─────────────────────────────────────────────────────────────────
-  const { data: invoicesRaw } = await supabase
+  // ── Invoice query — no PostgREST join to avoid silent errors ────────────
+  const { data: invoicesRaw, error: invoicesErr } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, issue_date, due_date, total_amount, ai_days_to_pay, clients(name)')
+    .select('id, invoice_number, status, issue_date, due_date, total_amount, ai_days_to_pay, client_id')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true })
 
-  const invoices = (invoicesRaw ?? []).map((inv: any) => ({
+  if (invoicesErr) console.error('[cash/page] invoices query error:', invoicesErr)
+
+  // Fetch client names separately and build a lookup map
+  const rawInvoices = invoicesRaw ?? []
+  const clientIds = [...new Set(rawInvoices.map((i: any) => i.client_id).filter(Boolean))]
+  const clientNameMap: Record<string, string> = {}
+  if (clientIds.length > 0) {
+    const { data: clientRows } = await supabase
+      .from('clients')
+      .select('id, name')
+      .in('id', clientIds as string[])
+    ;(clientRows ?? []).forEach((c: any) => { clientNameMap[c.id] = c.name })
+  }
+
+  const invoices = rawInvoices.map((inv: any) => ({
     ...inv,
-    clients: Array.isArray(inv.clients) ? (inv.clients[0] ?? null) : (inv.clients ?? null),
+    clients: clientNameMap[inv.client_id] ? { name: clientNameMap[inv.client_id] } : null,
     displayStatus: getInvoiceDisplayStatus({ status: inv.status, due_date: inv.due_date }),
   }))
 
-  // Filter by raw DB status — more reliable than computed displayStatus.
-  // 'sent' in the DB means the invoice has been issued but not paid,
-  // regardless of whether it's overdue or not. displayStatus is only
-  // used inside UpcomingPaymentsList for badge colours.
-  const unpaidInvoices = invoices.filter((inv: any) =>
-    inv.status === 'sent'
-  )
+  // All sent (unpaid) invoices — status='sent' is the single source of truth
+  const unpaidInvoices = invoices.filter((inv: any) => inv.status === 'sent')
 
   const { data: directPaymentsRaw } = await supabase
     .from('direct_payments')

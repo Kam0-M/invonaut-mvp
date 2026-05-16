@@ -182,9 +182,13 @@ export default function PricingClientWrapper({
             return (
               <div
                 key={plan.id}
-                className={`rounded-2xl p-8 border flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
+                className={`rounded-2xl p-8 border-2 flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
                   plan.highlighted
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500'
+                    : plan.id === 'starter'
+                    ? 'bg-white border-orange-200'
+                    : plan.id === 'business'
+                    ? 'bg-white border-teal-200'
                     : 'bg-white border-gray-100'
                 }`}
                 style={{
