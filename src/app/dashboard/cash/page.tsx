@@ -97,7 +97,7 @@ export default async function CashPage() {
   // ── Invoice query — no PostgREST join to avoid silent errors ────────────
   const { data: invoicesRaw, error: invoicesErr } = await supabase
     .from('invoices')
-    .select('id, invoice_number, status, issue_date, due_date, total_amount, ai_days_to_pay, client_id')
+    .select('id, invoice_number, status, issue_date, due_date, total_amount, client_id')
     .eq('user_id', user.id)
     .order('due_date', { ascending: true })
 
@@ -188,9 +188,8 @@ export default async function CashPage() {
       const inflows   = unpaidInvoices
         .filter((inv: any) => {
           // Use AI-predicted payment date if available, fall back to due_date
-          const predicted = inv.ai_days_to_pay && inv.issue_date
-            ? new Date(new Date(inv.issue_date + 'T12:00:00').getTime() + Number(inv.ai_days_to_pay) * 86_400_000)
-            : new Date(inv.due_date + 'T12:00:00')
+          // ai_days_to_pay column not yet in DB — use due_date for forecast
+          const predicted = new Date(inv.due_date + 'T12:00:00')
           return predicted >= weekStart && predicted <= weekEnd
         })
         .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
