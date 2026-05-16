@@ -185,14 +185,14 @@ export default function PricingClientWrapper({
                 className={`rounded-2xl p-8 border flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
                   plan.highlighted
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500'
-                    : 'bg-white border-gray-100 hover:shadow-md'
+                    : 'bg-white border-gray-100'
                 }`}
                 style={{
                   boxShadow: plan.id === 'starter'
-                    ? '0 0 32px rgba(255,107,53,0.10), 0 2px 12px rgba(0,0,0,0.04)'
+                    ? '0 0 36px rgba(255,107,53,0.14), 0 2px 14px rgba(0,0,0,0.05)'
                     : plan.id === 'professional'
-                    ? '0 0 32px rgba(0,102,255,0.14), 0 2px 12px rgba(0,0,0,0.06)'
-                    : '0 0 32px rgba(0,212,170,0.10), 0 2px 12px rgba(0,0,0,0.04)',
+                    ? '0 0 40px rgba(0,102,255,0.18), 0 2px 14px rgba(0,0,0,0.07)'
+                    : '0 0 36px rgba(0,212,170,0.14), 0 2px 14px rgba(0,0,0,0.05)',
                 }}
               >
                 {plan.highlighted && (
