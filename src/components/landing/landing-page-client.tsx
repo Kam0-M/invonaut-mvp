@@ -1146,28 +1146,28 @@ function HowItWorksScrollSection() {
         style={{ height: `${STEPS.length * 100}vh` }}
       >
         <div className="sticky top-0 h-screen bg-gray-50 flex items-center overflow-hidden">
-          <div className="max-w-6xl mx-auto w-full px-8 flex gap-16 items-center">
+        <div className="max-w-7xl mx-auto w-full px-8 flex gap-20 items-center">
 
             {/* Left nav */}
-            <div className="w-64 flex-shrink-0">
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-8">How it works</p>
-              <div className="space-y-0.5">
+            <div className="w-80 flex-shrink-0">
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-10">How it works</p>
+              <div className="space-y-1">
                 {STEPS.map((step, i) => (
                   <motion.div key={i}
                     animate={{ opacity: activeStep === i ? 1 : 0.3 }}
                     transition={{ duration: 0.35 }}
-                    className="flex items-start gap-4 py-3.5 pr-4 rounded-xl"
+                    className="flex items-start gap-5 py-4 pr-4 rounded-xl"
                   >
-                    <div className="flex-shrink-0 w-0.5 self-stretch relative mt-0.5">
+                    <div className="flex-shrink-0 w-0.5 self-stretch relative mt-1">
                       <motion.div
-                        animate={{ height: activeStep === i ? '44px' : '28px', backgroundColor: activeStep === i ? '#0066FF' : '#E5E7EB' }}
+                        animate={{ height: activeStep === i ? '52px' : '32px', backgroundColor: activeStep === i ? '#0066FF' : '#E5E7EB' }}
                         transition={{ duration: 0.4 }}
                         className="rounded-full absolute top-0 left-0 w-full"
                       />
                     </div>
                     <div>
-                      <p className="text-[10px] font-black text-blue-400 tracking-widest mb-0.5">{step.step}</p>
-                      <p className={`text-sm font-black leading-tight transition-colors duration-300 ${activeStep === i ? 'text-gray-900' : 'text-gray-500'}`}>
+                      <p className="text-xs font-black text-blue-400 tracking-widest mb-1">{step.step}</p>
+                      <p className={`text-base font-black leading-snug transition-colors duration-300 ${activeStep === i ? 'text-gray-900' : 'text-gray-500'}`}>
                         {step.title}
                       </p>
                     </div>
@@ -1539,7 +1539,7 @@ export default function LandingPageClient() {
   useMotionValueEvent(scrollY, 'change', (y) => setNavScrolled(y > 16))
 
   return (
-    <div className="bg-white antialiased overflow-x-hidden">
+    <div className="bg-white antialiased" style={{ overflowX: 'clip' }}>
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_STYLES }} />
 
       {/* ── Navigation ───────────────────────────────────────────────────────── */}

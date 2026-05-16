@@ -131,6 +131,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
         isExpanded ? 'px-3' : 'flex justify-center'
       )}>
         <button
+          suppressHydrationWarning
           onClick={toggle}
           title={isExpanded ? 'Collapse sidebar' : 'Expand sidebar'}
           className={cn(

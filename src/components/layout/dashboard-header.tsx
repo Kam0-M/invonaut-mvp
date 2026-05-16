@@ -63,6 +63,7 @@ export default function DashboardHeader({
       {/* Desktop user menu */}
       <div className="hidden md:block relative">
         <button
+          suppressHydrationWarning
           onClick={() => setMenuOpen(o => !o)}
           className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl hover:bg-gray-50 transition-colors"
         >
@@ -96,6 +97,7 @@ export default function DashboardHeader({
                 Settings
               </Link>
               <button
+                suppressHydrationWarning
                 onClick={handleLogout}
                 className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors border-t border-gray-50"
               >
@@ -109,6 +111,7 @@ export default function DashboardHeader({
 
       {/* Mobile hamburger */}
       <button
+        suppressHydrationWarning
         onClick={() => setMobileOpen(o => !o)}
         className="md:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100"
       >
@@ -120,6 +123,7 @@ export default function DashboardHeader({
         <div className="absolute top-14 left-0 right-0 bg-white border-b border-gray-100 shadow-lg z-50 md:hidden px-6 py-4 space-y-3">
           <p className="text-sm text-gray-500 font-medium">{user.email}</p>
           <button
+            suppressHydrationWarning
             onClick={handleLogout}
             className="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
