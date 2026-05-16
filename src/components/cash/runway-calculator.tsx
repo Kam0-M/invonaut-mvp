@@ -139,6 +139,7 @@ export default function RunwayCalculator({
               min="0"
               step="0.01"
               placeholder="0.00"
+              suppressHydrationWarning
               disabled={isSaving}
               className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-bold
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
@@ -146,6 +147,7 @@ export default function RunwayCalculator({
             />
           </div>
           <button
+            suppressHydrationWarning
             onClick={handleSave}
             disabled={isSaving || !balance}
             className="inline-flex items-center gap-2 px-5 py-3 rounded-xl btn-primary

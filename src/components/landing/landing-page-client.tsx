@@ -945,7 +945,7 @@ function PortalPreview() {
                         <motion.div key={inv.num}
                           initial={{ opacity: 0, x: 12 }}
                           whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
+                          viewport={{ once: false }}
                           transition={{ delay: i * 0.12 + 0.3 }}
                           className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3 border border-gray-100">
                           <div>
@@ -1376,7 +1376,7 @@ function AutomationTimeline() {
           <motion.div key={i}
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-40px' }}
+            viewport={{ once: false, margin: '-40px' }}
             transition={{ delay: i * 0.15, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             className="flex items-start gap-4 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl px-5 py-4 transition-all"
           >
@@ -1404,7 +1404,7 @@ function AutomationTimeline() {
             <motion.div key={i}
               initial={{ opacity: 0, y: 8 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
+              viewport={{ once: false }}
               transition={{ delay: i * 0.08 + 0.6, duration: 0.35 }}
               className="flex items-center gap-3 bg-white/[0.04] border border-white/[0.07] rounded-xl px-4 py-3"
             >
@@ -1468,7 +1468,7 @@ function CompetitorComparison() {
                       key={ri}
                       initial={{ opacity: 0, x: -8 }}
                       whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
+                      viewport={{ once: false }}
                       transition={{ duration: 0.35, delay: ri * 0.04 }}
                       className="border-b border-gray-50 hover:bg-blue-50/30 transition-colors last:border-0"
                     >
@@ -1488,7 +1488,7 @@ function CompetitorComparison() {
                             <motion.div
                               initial={{ scale: 0 }}
                               whileInView={{ scale: 1 }}
-                              viewport={{ once: true }}
+                              viewport={{ once: false }}
                               transition={{ type: 'spring', stiffness: 300, delay: ri * 0.04 + ci * 0.02 }}
                               className="flex justify-center"
                             >
@@ -1880,7 +1880,7 @@ export default function LandingPageClient() {
                     <motion.div key={c.color}
                       initial={{ opacity: 0, scale: 0.7 }}
                       whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
+                      viewport={{ once: false }}
                       transition={{ delay: i * 0.06, duration: 0.35, ease: EASE }}
                       className="flex flex-col items-center gap-1.5 cursor-pointer"
                       onClick={() => setSelectedBrandColor(c.color)}>
