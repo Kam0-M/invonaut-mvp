@@ -1,12 +1,12 @@
-﻿'use client'
+'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { PasswordInput } from '@/components/ui/password-input'
 import { toast } from 'sonner'
-import { CheckCircle, AlertCircle, Sparkles } from 'lucide-react'
 import Link from 'next/link'
+import { KeyRound, CheckCircle, Loader2, XCircle } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
@@ -14,180 +14,109 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [resetComplete, setResetComplete] = useState(false)
+  const [validSession, setValidSession] = useState<boolean | null>(null)
 
-  const validatePassword = () => {
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters long')
-      return false
-    }
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match')
-      return false
-    }
-    return true
-  }
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getSession().then(({ data }) => {
+      setValidSession(!!data.session)
+    })
+  }, [])
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validatePassword()) {
-      return
-    }
+    if (password.length < 8) { toast.error('Password must be at least 8 characters.'); return }
+    if (password !== confirmPassword) { toast.error('Passwords must match.'); return }
 
     setLoading(true)
-
     try {
       const supabase = createClient()
-      
-      const { error } = await supabase.auth.updateUser({
-        password: password
-      })
-
-      if (error) {
-        toast.error(error.message)
-        return
-      }
-
+      const { error } = await supabase.auth.updateUser({ password })
+      if (error) { toast.error(error.message); return }
       setResetComplete(true)
-      toast.success('Password updated successfully!')
-      
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
-    } catch (error: any) {
-      toast.error('Failed to reset password. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+      setTimeout(() => { router.push('/dashboard'); router.refresh() }, 2500)
+    } catch { toast.error('Failed to reset password. Please try again.') }
+    finally { setLoading(false) }
   }
 
-  if (resetComplete) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-blue-50 flex items-center justify-center px-4 py-12">
-        <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(0,0,0,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-        
-        <div className="relative z-10 w-full max-w-md bg-white rounded-2xl p-10 shadow-2xl border-2 border-gray-100">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="p-4 bg-green-100 rounded-full">
-                <CheckCircle className="w-16 h-16 text-green-600" />
-              </div>
-            </div>
-            
-            <div>
-              <h1 className="text-3xl font-black text-gray-900 mb-3">Password Reset Complete!</h1>
-              <p className="text-base text-gray-600 font-medium mb-2">
-                Your password has been successfully updated.
-              </p>
-              <p className="text-base text-gray-500 font-medium">
-                Redirecting you to login...
-              </p>
-            </div>
-          </div>
-        </div>
+  if (validSession === null) return (
+    <div className="flex flex-col items-center gap-4 py-8">
+      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+      <p className="text-sm text-gray-500 font-medium">Verifying reset link…</p>
+    </div>
+  )
+
+  if (validSession === false) return (
+    <>
+      <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-6">
+        <XCircle className="w-6 h-6 text-red-500" />
       </div>
-    )
-  }
+      <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Link expired</h1>
+      <p className="text-gray-500 text-sm font-medium mb-8">
+        This password reset link has expired or has already been used. Request a new one.
+      </p>
+      <Link href="/forgot-password"
+        className="w-full btn-primary py-3 rounded-xl font-bold text-sm text-center block">
+        Request New Link →
+      </Link>
+      <Link href="/login"
+        className="block text-center text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors mt-5">
+        Back to login
+      </Link>
+    </>
+  )
+
+  if (resetComplete) return (
+    <div className="flex flex-col items-center text-center gap-4 py-8">
+      <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center">
+        <CheckCircle className="w-8 h-8 text-teal-600" />
+      </div>
+      <h1 className="text-2xl font-black text-gray-900 tracking-tight">Password updated!</h1>
+      <p className="text-gray-500 text-sm font-medium">Redirecting you to your dashboard…</p>
+      <Loader2 className="w-5 h-5 text-blue-600 animate-spin mt-2" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-12">
-      <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(0,0,0,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
-
-      <div className="relative z-10 w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-6 h-6 text-blue-600" />
-            <span className="text-3xl font-black text-gray-900 tracking-tight">Invonaut</span>
-          </Link>
-        </div>
-
-        {/* Reset Card */}
-        <div className="bg-white rounded-2xl p-10 shadow-2xl border-2 border-gray-100">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-black text-gray-900 mb-3 tracking-tight">Set New Password</h1>
-            <p className="text-base text-gray-600 font-medium">
-              Choose a strong password for your account
-            </p>
-          </div>
-
-          <form onSubmit={handleResetPassword} className="space-y-6">
-            <div>
-              <label htmlFor="password" className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                New Password
-              </label>
-              <PasswordInput
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter new password"
-                required
-                disabled={loading}
-                className="h-12 text-base"
-              />
-              <p className="text-sm text-gray-500 mt-2 font-medium">
-                Must be at least 8 characters long
-              </p>
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-                Confirm New Password
-              </label>
-              <PasswordInput
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                required
-                disabled={loading}
-                className="h-12 text-base"
-              />
-            </div>
-
-            {/* Password strength indicator */}
-            {password.length > 0 && (
-              <div className="space-y-3 bg-gray-50 rounded-xl p-4 border-2 border-gray-100">
-                <div className="flex items-center gap-3">
-                  {password.length >= 8 ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  )}
-                  <span className={`text-sm font-semibold ${password.length >= 8 ? 'text-green-700' : 'text-gray-500'}`}>
-                    At least 8 characters
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  {password === confirmPassword && password.length > 0 ? (
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                  )}
-                  <span className={`text-sm font-semibold ${password === confirmPassword && password.length > 0 ? 'text-green-700' : 'text-gray-500'}`}>
-                    Passwords match
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || password.length < 8 || password !== confirmPassword}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {loading ? 'Updating Password...' : 'Reset Password'}
-            </button>
-          </form>
-
-          <p className="text-sm text-center text-gray-500 mt-6 font-medium">
-            Remember your password?{' '}
-            <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold">
-              Back to Login
-            </Link>
-          </p>
-        </div>
+    <>
+      <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
+        <KeyRound className="w-6 h-6 text-blue-600" />
       </div>
-    </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">Set new password</h1>
+        <p className="text-gray-500 text-sm font-medium">Choose a strong password for your account.</p>
+      </div>
+
+      <form onSubmit={handleReset} className="space-y-5">
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Password</label>
+          <PasswordInput value={password} onChange={e => setPassword(e.target.value)}
+            placeholder="8+ characters" required disabled={loading} className="h-11" />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
+          <PasswordInput value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+            placeholder="Confirm new password" required disabled={loading} className="h-11" />
+        </div>
+
+        <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
+          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Requirements</p>
+          {[
+            { label: '8+ characters',    met: password.length >= 8 },
+            { label: 'Passwords match',   met: password === confirmPassword && confirmPassword.length > 0 },
+          ].map(r => (
+            <div key={r.label} className="flex items-center gap-2 mb-1 last:mb-0">
+              <div className={`w-1.5 h-1.5 rounded-full ${r.met ? 'bg-teal-500' : 'bg-gray-300'}`} />
+              <span className={`text-xs font-medium ${r.met ? 'text-teal-700' : 'text-gray-400'}`}>{r.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <button type="submit" disabled={loading}
+          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+          {loading ? 'Updating…' : 'Update Password →'}
+        </button>
+      </form>
+    </>
   )
 }

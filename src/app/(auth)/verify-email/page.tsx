@@ -1,227 +1,84 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Mail, CheckCircle, Loader2, Sparkles, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import Link from 'next/link'
+import { Mail, RefreshCw, CheckCircle, ArrowLeft } from 'lucide-react'
 
 export default function VerifyEmailPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState<string>('')
-  const [isChecking, setIsChecking] = useState(true)
-  const [manualRedirect, setManualRedirect] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
 
-  useEffect(() => {
-    let isMounted = true
-    
-    const checkEmailConfirmation = async () => {
+  const handleResend = async () => {
+    setResending(true)
+    try {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!isMounted) return
-      
-      if (user?.email) {
-        setEmail(user.email)
-      }
-      
-      // ALWAYS finish checking and show the page
-      // Don't auto-redirect even if confirmed
-      setIsChecking(false)
-    }
-    
-    checkEmailConfirmation()
-
-    // Poll for confirmation every 3 seconds
-    const interval = setInterval(async () => {
-      if (!isMounted) return
-      
-      const supabase = createClient()
-      
-      await supabase.auth.refreshSession()
-      
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user?.email_confirmed_at && !manualRedirect) {
-        setManualRedirect(true)
-        clearInterval(interval)
-      }
-    }, 3000)
-
-    return () => {
-      isMounted = false
-      clearInterval(interval)
-    }
-  }, [manualRedirect])
-
-  const handleManualRedirect = async () => {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      return
-    }
-    
-    // Wait for profile creation
-    let attempts = 0
-    while (attempts < 30) {
-      const { data: profile, error } = await supabase
-        .from('user_profiles')
-        .select('id, email, full_name')
-        .eq('id', user.id)
-        .single()
-      
-      if (profile) {
-        
-        setTimeout(() => {
-          router.push('/dashboard')
-          router.refresh()
-        }, 1000)
-        return
-      }
-      
-      if (error) {
-        // Swallow and retry until attempts exhausted
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 500))
-      attempts++
-    }
-    
-    router.push('/dashboard')
-    router.refresh()
-  }
-
-  const resendEmail = async () => {
-    const supabase = createClient()
-    const { error } = await supabase.auth.resend({
-      type: 'signup',
-      email: email
-    })
-    
-    if (!error) {
-      alert('✅ Confirmation email sent! Check your inbox.')
-    } else {
-      alert('❌ Failed to resend email. Please try again later.')
-    }
+      if (!user?.email) { toast.error('No email address found. Please sign in again.'); return }
+      const { error } = await supabase.auth.resend({ type: 'signup', email: user.email })
+      if (error) { toast.error(error.message); return }
+      setResent(true)
+      setTimeout(() => setResent(false), 4000)
+    } catch { toast.error('Failed to resend. Please try again.') }
+    finally { setResending(false) }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-blue-50 flex flex-col items-center justify-center px-4 py-12">
-      <div className="absolute inset-0 opacity-5" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect width=\'1\' height=\'1\' fill=\'rgba(0,0,0,0.5)\'/%3E%3C/svg%3E")', backgroundSize: '60px 60px'}}></div>
+    <>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${resent ? 'bg-teal-50' : 'bg-blue-50'}`}>
+        {resent
+          ? <CheckCircle className="w-6 h-6 text-teal-600" />
+          : <Mail className="w-6 h-6 text-blue-600" />
+        }
+      </div>
 
-      <div className="relative z-10 w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-4">
-            <Sparkles className="w-6 h-6 text-blue-600" />
-            <span className="text-3xl font-black text-gray-900 tracking-tight">Invonaut</span>
-          </Link>
-        </div>
+      <div className="mb-8">
+        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">
+          {resent ? 'Email sent!' : 'Verify your email'}
+        </h1>
+        <p className="text-gray-500 text-sm font-medium">
+          {resent
+            ? 'Check your inbox for a new verification link.'
+            : "We sent a verification link to your email. Click it to activate your account."
+          }
+        </p>
+      </div>
 
-        {/* Verify Card */}
-        <div className="bg-white rounded-2xl p-10 shadow-2xl border-2 border-gray-100">
-          {/* Icon */}
-          <div className="flex justify-center mb-8">
-            <div className="rounded-full bg-blue-100 p-6">
-              {isChecking ? (
-                <Loader2 className="w-16 h-16 text-blue-600 animate-spin" />
-              ) : manualRedirect ? (
-                <Loader2 className="w-16 h-16 text-green-600 animate-spin" />
-              ) : (
-                <Mail className="w-16 h-16 text-blue-600" />
-              )}
+      <div className="bg-gray-50 rounded-xl border border-gray-100 p-5 mb-6">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">What to do</p>
+        <div className="space-y-3">
+          {[
+            { n: '1', text: 'Check your inbox (and spam folder)' },
+            { n: '2', text: 'Click the "Verify email" button in the email' },
+            { n: '3', text: 'You'll be redirected to your dashboard' },
+          ].map(s => (
+            <div key={s.n} className="flex items-start gap-3">
+              <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
+              <span className="text-sm text-gray-600 font-medium">{s.text}</span>
             </div>
-          </div>
-
-          {/* Content */}
-          <div className="text-center space-y-4 mb-8">
-            <h1 className="text-4xl font-black text-gray-900 tracking-tight">
-              {isChecking ? 'Checking email status...' : 
-               manualRedirect ? 'Email Confirmed!' :
-               'Check Your Email'}
-            </h1>
-            {!isChecking && !manualRedirect && (
-              <>
-                <p className="text-base text-gray-600 font-medium">
-                  We've sent a confirmation link to:
-                </p>
-                {email && (
-                  <p className="text-lg font-black text-blue-600 break-words">
-                    {email}
-                  </p>
-                )}
-              </>
-            )}
-            {manualRedirect && (
-              <p className="text-base text-gray-600 font-medium">
-                Setting up your account...
-              </p>
-            )}
-          </div>
-
-          {/* Instructions */}
-          {!isChecking && !manualRedirect && (
-            <>
-              <div className="rounded-xl bg-blue-50 border-2 border-blue-200 p-6 mb-6">
-                <div className="flex items-start gap-4">
-                  <CheckCircle className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
-                  <div className="text-sm text-gray-700 space-y-3">
-                    <p className="font-bold text-gray-900">To complete signup:</p>
-                    <ol className="list-decimal list-inside space-y-2 ml-2 font-medium">
-                      <li>Check your email inbox for a message from Invonaut</li>
-                      <li>Click the "Confirm Your Email" button in the email</li>
-                      <li>Return to this page</li>
-                      <li>Click "Continue to Dashboard" below once confirmed</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-
-              {/* Manual continue button */}
-              <button
-                onClick={handleManualRedirect}
-                className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition-all hover:scale-105 mb-6"
-              >
-                I've Confirmed - Continue to Dashboard
-              </button>
-
-              {/* Auto-checking indicator */}
-              <div className="rounded-xl bg-green-50 border-2 border-green-200 p-6 mb-6">
-                <div className="flex items-start gap-4">
-                  <Loader2 className="w-6 h-6 text-green-600 animate-spin flex-shrink-0 mt-1" />
-                  <div className="text-sm text-green-700">
-                    <p className="font-bold text-green-900 mb-2">Auto-checking for confirmation...</p>
-                    <p className="font-medium">Or click the button above once you've confirmed your email.</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Resend button */}
-              <div className="text-center">
-                <p className="text-sm text-gray-500 mb-3 font-medium">
-                  Didn't receive the email?
-                </p>
-                <button 
-                  onClick={resendEmail}
-                  className="text-base text-blue-600 hover:text-blue-700 font-bold transition-colors"
-                >
-                  Resend confirmation email
-                </button>
-              </div>
-
-              {/* Help text */}
-              <div className="mt-8 pt-8 border-t-2 border-gray-100">
-                <p className="text-sm text-center text-gray-500 font-medium">
-                  Check your spam folder if you don't see the email.
-                </p>
-              </div>
-            </>
-          )}
-
-          
+          ))}
         </div>
       </div>
-    </div>
+
+      <button
+        onClick={handleResend}
+        disabled={resending || resent}
+        className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+      >
+        <RefreshCw className={`w-4 h-4 ${resending ? 'animate-spin' : ''}`} />
+        {resending ? 'Resending…' : resent ? 'Email resent ✓' : 'Resend verification email'}
+      </button>
+
+      <div className="flex items-center justify-center gap-6 mt-2">
+        <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to login
+        </Link>
+        <span className="text-gray-200">|</span>
+        <Link href="/signup" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+          Wrong email? Sign up again
+        </Link>
+      </div>
+    </>
   )
 }
