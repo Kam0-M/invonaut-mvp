@@ -51,7 +51,7 @@ export default function VerifyEmailPage() {
           {[
             { n: '1', text: 'Check your inbox (and spam folder)' },
             { n: '2', text: 'Click the "Verify email" button in the email' },
-            { n: '3', text: 'You'll be redirected to your dashboard' },
+            { n: '3', text: "You'll be redirected to your dashboard" },
           ].map(s => (
             <div key={s.n} className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
