@@ -247,15 +247,19 @@ button:active:not(:disabled),
 a:active { transform: scale(0.97); }
 /* ── Auth page orb animations ─────────────────────────────── */
 @keyframes auth-orb-drift {
-  0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33%       { transform: translate(24px, -18px) scale(1.06); }
-  66%       { transform: translate(-12px, 14px) scale(0.94); }
+  0%   { transform: translate(0px, 0px) scale(1); }
+  25%  { transform: translate(28px, -22px) scale(1.07); }
+  50%  { transform: translate(18px, 18px) scale(0.95); }
+  75%  { transform: translate(-20px, 8px) scale(1.04); }
+  100% { transform: translate(0px, 0px) scale(1); }
 }
 @keyframes auth-orb-drift-b {
-  0%, 100% { transform: translate(0px, 0px) scale(1); }
-  33%       { transform: translate(-20px, 16px) scale(1.05); }
-  66%       { transform: translate(16px, -10px) scale(0.96); }
+  0%   { transform: translate(0px, 0px) scale(1); }
+  25%  { transform: translate(-24px, 18px) scale(1.05); }
+  50%  { transform: translate(-10px, -20px) scale(0.96); }
+  75%  { transform: translate(22px, -8px) scale(1.03); }
+  100% { transform: translate(0px, 0px) scale(1); }
 }
-.auth-orb-a { animation: auth-orb-drift   20s ease-in-out infinite; }
-.auth-orb-b { animation: auth-orb-drift-b 26s ease-in-out infinite; }
-.auth-orb-c { animation: auth-orb-drift   15s ease-in-out infinite reverse; }
+.auth-orb-a { animation: auth-orb-drift   22s ease-in-out infinite; }
+.auth-orb-b { animation: auth-orb-drift-b 28s ease-in-out infinite; }
+.auth-orb-c { animation: auth-orb-drift   17s ease-in-out infinite reverse; }

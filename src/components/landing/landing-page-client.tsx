@@ -35,14 +35,14 @@ const GLOBAL_STYLES = `
   inherits: false;
 }
 @keyframes orb-drift {
-  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.08; }
-  33%       { transform: translate(30px, -20px) scale(1.08); opacity: 0.13; }
-  66%       { transform: translate(-15px, 15px) scale(0.93); opacity: 0.06; }
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.08); }
+  66%       { transform: translate(-15px, 15px) scale(0.93); }
 }
 @keyframes orb-drift-alt {
-  0%, 100% { transform: translate(0px, 0px) scale(1); opacity: 0.06; }
-  33%       { transform: translate(-25px, 18px) scale(1.06); opacity: 0.11; }
-  66%       { transform: translate(20px, -10px) scale(0.96); opacity: 0.08; }
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  33%       { transform: translate(-25px, 18px) scale(1.06); }
+  66%       { transform: translate(20px, -10px) scale(0.96); }
 }
 @keyframes dot-breathe {
   0%, 100% { opacity: 0.035; }
@@ -1787,11 +1787,11 @@ export default function LandingPageClient() {
         <div className="absolute inset-0 inv-dot-breathe" style={DOT_DARK} />
         {/* Drifting orbs — give the section an always-alive feel */}
         <div className="inv-orb-1 absolute top-[10%] right-[8%] w-80 h-80 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(37,99,235,0.6) 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.55) 0%, transparent 70%)', filter: 'blur(48px)', opacity: 0.55 }} />
         <div className="inv-orb-2 absolute bottom-[15%] left-[5%] w-72 h-72 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(13,148,136,0.5) 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(0,212,170,0.5) 0%, transparent 70%)', filter: 'blur(44px)', opacity: 0.5 }} />
         <div className="inv-orb-3 absolute top-[40%] left-[40%] w-64 h-64 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)' }} />
+          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.28) 0%, transparent 70%)', filter: 'blur(52px)', opacity: 0.35 }} />
         <div className="max-w-5xl mx-auto relative z-10">
           <AnimSection className="text-center mb-12">
             <motion.div variants={fadeUp}>
