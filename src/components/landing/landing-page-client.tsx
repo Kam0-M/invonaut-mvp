@@ -1783,15 +1783,26 @@ export default function LandingPageClient() {
 
       {/* ── Autonomy callout (dark) ───────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        {/* Breathing dot grid — always animating */}
-        <div className="absolute inset-0 inv-dot-breathe" style={DOT_DARK} />
-        {/* Drifting orbs — give the section an always-alive feel */}
-        <div className="inv-orb-1 absolute top-[10%] right-[8%] w-80 h-80 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.55) 0%, transparent 70%)', filter: 'blur(48px)', opacity: 0.55 }} />
-        <div className="inv-orb-2 absolute bottom-[15%] left-[5%] w-72 h-72 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,212,170,0.5) 0%, transparent 70%)', filter: 'blur(44px)', opacity: 0.5 }} />
-        <div className="inv-orb-3 absolute top-[40%] left-[40%] w-64 h-64 rounded-full pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.28) 0%, transparent 70%)', filter: 'blur(52px)', opacity: 0.35 }} />
+        {/* Multi-layer starfield — randomised brightness ──────────────────── */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: [
+            'radial-gradient(circle, rgba(255,255,255,0.55) 0.5px, transparent 0.5px)',
+            'radial-gradient(circle, rgba(255,255,255,0.18) 0.8px, transparent 0.8px)',
+            'radial-gradient(circle, rgba(255,255,255,0.06) 0.4px, transparent 0.4px)',
+            'radial-gradient(circle, rgba(255,255,255,0.40) 1px, transparent 1px)',
+            'radial-gradient(circle, rgba(255,255,255,0.70) 0.6px, transparent 0.6px)',
+          ].join(', '),
+          backgroundSize: '90px 90px, 130px 130px, 22px 22px, 170px 170px, 220px 220px',
+          backgroundPosition: '0 0, 20px 44px, 0 0, 60px 80px, 110px 30px',
+        }} />
+
+        {/* Drifting orbs — NO opacity prop, colour transparency in gradient only */}
+        <div className="inv-orb-1 absolute top-[10%] right-[8%] w-80 h-80 pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.45) 0%, transparent 65%)', filter: 'blur(56px)' }} />
+        <div className="inv-orb-2 absolute bottom-[15%] left-[5%] w-72 h-72 pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(0,212,170,0.40) 0%, transparent 65%)', filter: 'blur(52px)' }} />
+        <div className="inv-orb-3 absolute top-[42%] left-[38%] w-64 h-64 pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.22) 0%, transparent 60%)', filter: 'blur(60px)' }} />
         <div className="max-w-5xl mx-auto relative z-10">
           <AnimSection className="text-center mb-12">
             <motion.div variants={fadeUp}>
