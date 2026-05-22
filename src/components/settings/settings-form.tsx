@@ -127,7 +127,7 @@ export default function SettingsForm({
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Account Information</h2>
+            <h2 className="text-2xl font-black text-gray-900">Account Information</h2>
             <p className="text-sm text-gray-500">Manage your personal and business details</p>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function SettingsForm({
             <CreditCard className="w-5 h-5 text-green-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Current Plan</h2>
+            <h2 className="text-2xl font-black text-gray-900">Current Plan</h2>
             <p className="text-sm text-gray-500">Manage your subscription</p>
           </div>
         </div>
@@ -175,9 +175,9 @@ export default function SettingsForm({
                     </span>
                   </div>
                   <p className="text-gray-700 font-medium">
-                    {subscriptionTier === 'starter' && '$30/month • 25 invoices • Basic AI predictions'}
-                    {subscriptionTier === 'professional' && '$60/month • Unlimited invoices • White label branding'}
-                    {subscriptionTier === 'business' && '$79/month • Everything + Team features + API access'}
+                    {subscriptionTier === 'starter' && '$49/month · 25 invoices · Basic AI predictions'}
+                    {subscriptionTier === 'professional' && '$99/month · Unlimited invoices · White-label branding'}
+                    {subscriptionTier === 'business' && '$149/month · Everything in Pro · Budget alerts · Priority support'}
                   </p>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function SettingsForm({
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">White Label Branding</h2>
+            <h2 className="text-2xl font-black text-gray-900">White Label Branding</h2>
             <p className="text-sm text-gray-500">Customize invoices with your brand colors and logo</p>
           </div>
         </div>
