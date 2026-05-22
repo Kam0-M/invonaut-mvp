@@ -2025,6 +2025,7 @@ export default function LandingPageClient() {
                 <li><Link href="#platform"     className="hover:text-white transition-colors">Platform</Link></li>
                 <li><Link href="#how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
                 <li><Link href="#pricing"      className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link href="/affiliate"     className="hover:text-white transition-colors flex items-center gap-1">Affiliate <span className="text-[10px] font-black text-teal-400 bg-teal-400/10 px-1.5 py-0.5 rounded-full">Earn 30%</span></Link></li>
               </ul>
             </div>
             <div>
