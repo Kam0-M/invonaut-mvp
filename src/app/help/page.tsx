@@ -320,6 +320,24 @@ export default async function HelpPage() {
           </div>
         </section>
 
+        {/* Affiliate strip */}
+        <section className="py-10 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col sm:flex-row items-center gap-5">
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <p className="text-sm font-black text-gray-900">Love using Invonaut?</p>
+                <p className="text-sm text-gray-500 mt-0.5">Refer freelancers and business owners — earn 30% recurring commission for every paying customer you send our way.</p>
+              </div>
+              <Link
+                href="/affiliate"
+                className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-black rounded-xl transition-all hover:-translate-y-0.5 text-sm whitespace-nowrap"
+              >
+                Join affiliate program →
+              </Link>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
   )
