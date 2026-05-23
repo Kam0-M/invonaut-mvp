@@ -1749,9 +1749,9 @@ export default function LandingPageClient() {
                 <div className="space-y-4">
                   {[
                     { word: 'Scattered',   desc: 'invoices in one tool, expenses in another, contracts in email' },
-                    { word: 'Reactive',    desc: 'finding out about problems after they've already cost you' },
+                    { word: 'Reactive',    desc: "finding out about problems after they've already cost you" },
                     { word: 'Manual',      desc: 'chasing payments, logging everything, reconciling by hand' },
-                    { word: 'Unclear',     desc: 'unsure what you'll have in 30 days, let alone 90' },
+                    { word: 'Unclear',     desc: "unsure what you'll have in 30 days, let alone 90" },
                     { word: 'Overwhelmed', desc: 'more time on admin than on the work that pays' },
                   ].map(({ word, desc }) => (
                     <div key={word} className="flex items-start gap-3">
