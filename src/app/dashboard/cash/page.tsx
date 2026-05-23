@@ -10,8 +10,10 @@ import {
   TrendingUp, DollarSign, AlertCircle, Receipt,
   Clock, TrendingDown, Lock, Zap, ArrowRight,
 } from 'lucide-react'
-import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import RunwayCalculator            from '@/components/cash/runway-calculator'
+import { getInvoiceDisplayStatus }        from '@/lib/utils/invoice-status'
+import ConnectedAccountsSection           from '@/components/bank/connected-accounts-section'
+import TransactionList                    from '@/components/bank/transaction-list'
+import RunwayCalculator                   from '@/components/cash/runway-calculator'
 import { ForecastChart }           from '@/components/cash/forecast-chart'
 import { RevenueVsExpenseChart }   from '@/components/cash/revenue-vs-expense-chart'
 import UpcomingPaymentsList        from '@/components/cash/upcoming-payments-list'
@@ -48,6 +50,41 @@ export default async function CashPage() {
 
   const tier    = profile?.subscription_tier ?? 'starter'
   const isPro   = tier === 'professional' || tier === 'business'
+
+  // ── Bank connections (all paid tiers) ────────────────────────────────────
+  const { data: connectedAccounts } = await supabase
+    .from('connected_accounts')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('sync_status', 'active')
+    .order('created_at', { ascending: false })
+
+  const { data: bankTransactions, count: txCount } = await supabase
+    .from('bank_transactions')
+    .select('*', { count: 'exact' })
+    .eq('user_id', user.id)
+    .order('date', { ascending: false })
+    .limit(150)
+
+  // Outstanding invoices for reconciliation suggestions
+  const { data: outstandingForReconcile } = await supabase
+    .from('invoices')
+    .select('id, invoice_number, total_amount, clients(name)')
+    .eq('user_id', user.id)
+    .eq('status', 'sent')
+    .order('due_date', { ascending: true })
+
+  const reconcileInvoices = (outstandingForReconcile ?? []).map((inv: any) => ({
+    id:            inv.id,
+    invoice_number: inv.invoice_number,
+    total_amount:  inv.total_amount,
+    client_name:   (Array.isArray(inv.clients) ? inv.clients[0] : inv.clients)?.name ?? 'Unknown',
+  }))
+
+  // Live bank balance — sum available balance across connected accounts
+  const liveBankBalance = (connectedAccounts ?? []).reduce(
+    (sum, acc) => sum + (acc.available_balance ?? acc.current_balance ?? 0), 0
+  )
 
   if (!hasActiveSubscription) {
     return (
@@ -392,6 +429,48 @@ export default async function CashPage() {
           )}
         </Link>
       </div>
+
+      {/* ── Live Bank Position ────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Bank Position</p>
+            {(connectedAccounts ?? []).length > 0 && liveBankBalance > 0 && (
+              <p className="text-sm font-black text-gray-900 mt-0.5">
+                {`$${liveBankBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} available across ${(connectedAccounts ?? []).length} account${(connectedAccounts ?? []).length !== 1 ? 's' : ''}`}
+              </p>
+            )}
+          </div>
+        </div>
+        <ConnectedAccountsSection
+          accounts={connectedAccounts ?? []}
+          subscriptionTier={tier}
+          transactionCount={txCount ?? 0}
+        />
+      </div>
+
+      {/* ── Transaction Feed ──────────────────────────────────────────────── */}
+      {(bankTransactions ?? []).length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-8 h-8 bg-teal-50 rounded-lg flex items-center justify-center">
+              <Receipt className="w-4 h-4 text-teal-600" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Bank Transactions</p>
+              <p className="text-sm font-black text-gray-900 mt-0.5">Last 90 days · {txCount ?? 0} transactions</p>
+            </div>
+          </div>
+          <TransactionList
+            transactions={bankTransactions ?? []}
+            unmatchedInvoices={reconcileInvoices}
+            isPro={isPro}
+          />
+        </div>
+      )}
 
       {/* ── Runway Calculator ─────────────────────────────────────────────── */}
       <RunwayCalculator
