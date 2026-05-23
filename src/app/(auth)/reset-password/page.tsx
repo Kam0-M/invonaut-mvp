@@ -89,13 +89,13 @@ export default function ResetPasswordPage() {
 
       <form onSubmit={handleReset} className="space-y-5">
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Password</label>
-          <PasswordInput value={password} onChange={e => setPassword(e.target.value)}
+          <label htmlFor="password" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Password</label>
+          <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)}
             placeholder="8+ characters" required disabled={loading} className="h-11" />
         </div>
         <div>
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
-          <PasswordInput value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+          <label htmlFor="confirmPassword" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
+          <PasswordInput id="confirmPassword" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
             placeholder="Confirm new password" required disabled={loading} className="h-11" />
         </div>
 

@@ -10,7 +10,7 @@ import Link              from 'next/link'
 import { Input }         from '@/components/ui/input'
 import {
   ArrowLeft, Save, Loader2, Search, Check, X,
-  Paperclip, Plus, Banknote,
+  Paperclip, Plus, Banknote, Zap,
 } from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
 
