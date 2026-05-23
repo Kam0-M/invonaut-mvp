@@ -97,9 +97,9 @@ const plans = [
   {
     id: 'starter',
     name: 'Starter',
-    monthlyPrice: 49,
-    annualMonthly: 41,
-    annualTotal: 490,
+    monthlyPrice: 19,
+    annualMonthly: 16,
+    annualTotal: 190,
     description: 'For freelancers getting started.',
     highlighted: false,
     features: [
@@ -119,9 +119,9 @@ const plans = [
   {
     id: 'professional',
     name: 'Professional',
-    monthlyPrice: 99,
-    annualMonthly: 83,
-    annualTotal: 990,
+    monthlyPrice: 49,
+    annualMonthly: 41,
+    annualTotal: 490,
     description: 'For established freelancers.',
     highlighted: true,
     features: [
@@ -143,9 +143,9 @@ const plans = [
   {
     id: 'business',
     name: 'Business',
-    monthlyPrice: 149,
-    annualMonthly: 124,
-    annualTotal: 1490,
+    monthlyPrice: 99,
+    annualMonthly: 83,
+    annualTotal: 990,
     description: 'For small agencies and studios.',
     highlighted: false,
     features: [
