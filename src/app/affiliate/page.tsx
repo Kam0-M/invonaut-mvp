@@ -4,9 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  ArrowRight, DollarSign, Users, TrendingUp, Check,
+  ArrowRight, DollarSign, TrendingUp, Check,
   Zap, Globe, BarChart3, ChevronDown, ChevronUp,
-  Mail, Briefcase, MessageSquare, ExternalLink
+  Mail, ExternalLink
 } from 'lucide-react'
 
 const FAQS = [
@@ -74,7 +74,7 @@ export default function AffiliatePage() {
       {/* Nav */}
       <nav className="h-14 border-b border-gray-100 flex items-center justify-between px-6 max-w-7xl mx-auto">
         <Link href="/" className="flex items-center gap-2">
-          <img src="/invonaut-logo.png" alt="Invonaut" className="w-7 h-7 rounded-full" />
+          <img src="/invonaut-logo.png" alt="Invonaut" className="w-7 h-7" />
           <span className="font-black text-gray-900 text-base">Invonaut</span>
         </Link>
         <div className="flex items-center gap-4">
@@ -388,7 +388,7 @@ export default function AffiliatePage() {
       <footer className="bg-gray-950 text-gray-400 py-10 px-6">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/invonaut-logo.png" alt="Invonaut" className="w-6 h-6 rounded-full" />
+            <img src="/invonaut-logo.png" alt="Invonaut" className="w-6 h-6" />
             <span className="text-sm font-black text-white">Invonaut</span>
           </Link>
           <p className="text-xs">© {new Date().getFullYear()} Invonaut. All rights reserved.</p>

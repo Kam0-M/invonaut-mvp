@@ -407,6 +407,23 @@ export default async function BillingPage({
         hasActiveSubscription={hasActiveSubscription}
         hasEverSubscribed={hasEverSubscribed}
       />
+
+      {/* ── Affiliate banner ──────────────────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+          <Zap className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-black text-gray-900">Know someone who would love Invonaut?</p>
+          <p className="text-sm text-gray-500 mt-0.5">Earn 30% recurring commission for every customer you refer — for as long as they stay subscribed.</p>
+        </div>
+        <Link
+          href="/affiliate"
+          className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all hover:-translate-y-0.5 text-sm"
+        >
+          Join affiliate program
+        </Link>
+      </div>
     </div>
   )
 }
