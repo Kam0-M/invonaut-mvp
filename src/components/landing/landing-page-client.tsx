@@ -1607,8 +1607,9 @@ export default function LandingPageClient() {
               </motion.h1>
 
               <motion.p variants={fadeUp} className="text-lg text-gray-500 font-medium leading-relaxed mb-8 max-w-lg">
-                Invonaut follows up on late payments, tracks every dollar you earn,
-                and forecasts the next 90 days — without you lifting a finger.
+                Picture running your business without the admin weight. Every payment followed up.
+                Every dollar accounted for. 90 days of cash flow, always visible.
+                You do the work — Invonaut handles everything around it.
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
@@ -1683,9 +1684,9 @@ export default function LandingPageClient() {
               <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
                 You&apos;re leaving money<br />on the table.
               </h2>
-              <p className="text-lg text-gray-500 font-medium mt-4 max-w-2xl mx-auto">
-                Without automation, these problems compound silently every week.
-                With Invonaut, they disappear.
+              <p className="text-lg text-gray-500 font-medium mt-4 max-w-2xl">
+                Every freelancer and small business owner recognises at least one of these.
+                Most live with all of them — because the tools they use weren&apos;t built to fix them.
               </p>
             </motion.div>
           </AnimSection>
@@ -1726,6 +1727,77 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+
+      {/* ── Transformation — before/after identity shift ─────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-950">
+        <div className="max-w-5xl mx-auto">
+          <AnimSection>
+            <motion.div variants={fadeUp} className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">This is what changes.</h2>
+              <p className="text-gray-400 font-medium mt-3">The shift isn&apos;t about software. It&apos;s about how running your business feels.</p>
+            </motion.div>
+          </AnimSection>
+
+          <AnimSection containerVariant={stagger(0.08)}>
+            <motion.div variants={fadeUp} className="grid grid-cols-1 md:grid-cols-2 gap-0 rounded-2xl overflow-hidden border border-white/[0.07]">
+              {/* Before */}
+              <div className="bg-white/[0.03] border-r border-white/[0.07] p-8 md:p-10">
+                <div className="flex items-center gap-2 mb-7">
+                  <div className="w-2 h-2 rounded-full bg-red-500" />
+                  <p className="text-xs font-black text-red-400 uppercase tracking-widest">Before</p>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { word: 'Scattered',   desc: 'invoices in one tool, expenses in another, contracts in email' },
+                    { word: 'Reactive',    desc: 'finding out about problems after they've already cost you' },
+                    { word: 'Manual',      desc: 'chasing payments, logging everything, reconciling by hand' },
+                    { word: 'Unclear',     desc: 'unsure what you'll have in 30 days, let alone 90' },
+                    { word: 'Overwhelmed', desc: 'more time on admin than on the work that pays' },
+                  ].map(({ word, desc }) => (
+                    <div key={word} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                      </div>
+                      <div>
+                        <span className="text-white font-black text-sm">{word}</span>
+                        <span className="text-gray-400 text-sm"> — {desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* After */}
+              <div className="bg-blue-600/[0.06] p-8 md:p-10">
+                <div className="flex items-center gap-2 mb-7">
+                  <div className="w-2 h-2 rounded-full bg-teal-400" />
+                  <p className="text-xs font-black text-teal-400 uppercase tracking-widest">After Invonaut</p>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { word: 'Unified',     desc: 'every dollar in and out, visible in one place' },
+                    { word: 'Proactive',   desc: 'warnings sent before contracts expire, payments followed up automatically' },
+                    { word: 'Automated',   desc: 'eight processes running daily without you logging in' },
+                    { word: 'Clear',       desc: '90-day cash flow forecast, always current, no maintenance' },
+                    { word: 'In control',  desc: 'operating like a professional — because the system does the work' },
+                  ].map(({ word, desc }) => (
+                    <div key={word} className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-teal-400/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-teal-400" />
+                      </div>
+                      <div>
+                        <span className="text-white font-black text-sm">{word}</span>
+                        <span className="text-gray-400 text-sm"> — {desc}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </AnimSection>
+        </div>
+      </section>
+
       {/* ── Stats bar (dark) ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
@@ -1753,10 +1825,10 @@ export default function LandingPageClient() {
           <AnimSection className="text-center mb-14">
             <motion.div variants={fadeUp} className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
               <div>
-                <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Everything in one place.</h2>
+                <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">One system.<br />Not nine tools.</h2>
                 <p className="text-lg text-gray-500 font-medium mt-4 max-w-xl">
-                  No more switching between invoicing apps, time trackers, and spreadsheets.
-                  Invonaut models how money actually flows through your business.
+                  Most software records what happened. You still have to remember, follow up, and connect the dots yourself.
+                  Invonaut is an operating system — it watches your business, acts automatically, and keeps you informed without being asked.
                 </p>
               </div>
               <p className="text-sm font-bold text-gray-400 lg:text-right lg:flex-shrink-0 whitespace-nowrap">9 modules. 1 login.</p>
@@ -1810,7 +1882,7 @@ export default function LandingPageClient() {
           <AnimSection className="text-center mb-12">
             <motion.div variants={fadeUp}>
               <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Works while you don&apos;t.</h2>
-              <p className="text-gray-400 font-medium mt-4 max-w-xl mx-auto">Eight automated processes run every day without you logging in.</p>
+              <p className="text-gray-400 font-medium mt-4 max-w-xl mx-auto">While you&apos;re working, sleeping, or on a call — Invonaut is chasing late invoices, warning you about expiring contracts, and keeping your cash forecast current. You built a business, not an admin department.</p>
             </motion.div>
           </AnimSection>
           <AnimSection containerVariant={stagger(0.1)}>
@@ -1955,6 +2027,41 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+      {/* ── Trust / credibility ──────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
+        <div className="max-w-5xl mx-auto">
+          <AnimSection>
+            <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Why this exists</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight mb-5">
+                  Built because the<br />problem is real.
+                </h2>
+                <p className="text-gray-500 leading-relaxed mb-4">
+                  Invonaut was built by a 19-year-old who watched freelancers lose money — not because they did bad work, but because they were too busy doing the work to run the business around it.
+                </p>
+                <p className="text-gray-500 leading-relaxed">
+                  Every feature exists because a real business needed it. The platform is pre-revenue, built entirely without external investment, and designed to earn trust through what it does — not what it promises.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { title: 'No lock-in',         body: 'Cancel anytime. Your data is yours. No contracts, no exit fees.' },
+                  { title: 'Free for 14 days',   body: 'Any plan, no card required. See the full product before you pay.' },
+                  { title: 'Finance-grade auth', body: 'Row-level security on every table. Auth by Supabase. Payments by Stripe.' },
+                  { title: 'Built in public',    body: 'No VC pressure, no inflated pricing. A tool built to be genuinely useful.' },
+                ].map(({ title, body }) => (
+                  <div key={title} className="bg-gray-50 rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+                    <p className="text-sm font-black text-gray-900 mb-1.5">{title}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed">{body}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </AnimSection>
+        </div>
+      </section>
+
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
@@ -1981,10 +2088,10 @@ export default function LandingPageClient() {
           <AnimSection>
             <motion.div variants={fadeUp} className="space-y-6">
               <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">
-                Stop chasing invoices.<br />Start getting paid.
+                Run a calmer,<br />more organised business.
               </h2>
               <p className="text-blue-100 text-lg font-medium max-w-xl mx-auto">
-                Try it free for 14 days and see how much time you get back when the system handles the chasing.
+                Most people who try Invonaut don&apos;t go back to the old way. Not because it&apos;s expensive to leave — it&apos;s free to cancel — but because the admin weight stays gone.
               </p>
               <div>
                 <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-blue-700 px-9 py-4 rounded-xl font-black text-base hover:shadow-md hover:-translate-y-0.5 transition-all">
