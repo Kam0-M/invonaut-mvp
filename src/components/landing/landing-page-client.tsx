@@ -1269,7 +1269,6 @@ function PaymentFlowSection() {
     <section ref={ref} className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-16">
-          <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">End to end</p>
           <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
             From contract to cash.<br />Watch it happen.
           </h2>
@@ -1432,7 +1431,6 @@ function CompetitorComparison() {
       <div className="max-w-6xl mx-auto">
         <AnimSection className="text-center mb-12">
           <motion.div variants={fadeUp}>
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">How we stack up</p>
             <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
               One platform.<br />Not four tools.
             </h2>
@@ -1599,18 +1597,18 @@ export default function LandingPageClient() {
               <motion.div variants={fadeUp}>
                 <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-3 py-1.5 mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Finance OS · From $19/mo · 14-day free trial</span>
+                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">From $19/mo · Free for 14 days · No card needed</span>
                 </div>
               </motion.div>
 
               <motion.h1 variants={fadeUp} className="text-5xl sm:text-6xl xl:text-7xl font-black text-gray-900 tracking-tight leading-[0.95] mb-5">
-                Money in your<br />business shouldn&apos;t<br />feel<br />
-                <span className="automated-gradient">unpredictable.</span>
+                You shouldn&apos;t have<br />to chase a single<br />
+                <span className="automated-gradient">invoice.</span>
               </motion.h1>
 
               <motion.p variants={fadeUp} className="text-lg text-gray-500 font-medium leading-relaxed mb-8 max-w-lg">
-                Late invoices. Cash you can&apos;t see. Contracts that expire quietly.
-                Invonaut catches all of it — and handles most of it for you, automatically.
+                Invonaut follows up on late payments, tracks every dollar you earn,
+                and forecasts the next 90 days — without you lifting a finger.
               </motion.p>
 
               <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3">
@@ -1730,14 +1728,13 @@ export default function LandingPageClient() {
 
       {/* ── Stats bar (dark) ─────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }}>
-        <div className="absolute inset-0" style={DOT_DARK} />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           <AnimSection containerVariant={stagger(0.12)} className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
             {[
-              { target: 8,  suffix: '',  label: 'Automated cron jobs'    },
-              { target: 40, suffix: '%', label: 'Faster invoice payment' },
-              { target: 12, suffix: '+', label: 'Modules in one platform'},
-              { target: 0,  suffix: '',  label: 'Tool switching needed'  },
+              { target: 8,  suffix: '',  label: 'Things running without you' },
+              { target: 40, suffix: '%', label: 'Faster to get paid'           },
+              { target: 14, suffix: '',  label: 'Day free trial'               },
+              { target: 0,  suffix: '',  label: 'Tools to juggle'              },
             ].map(stat => (
               <motion.div key={stat.label} variants={fadeUp}>
                 <p className="text-4xl font-black text-white tracking-tight">
@@ -1754,13 +1751,15 @@ export default function LandingPageClient() {
       <section id="platform" className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <AnimSection className="text-center mb-14">
-            <motion.div variants={fadeUp}>
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">The complete platform</p>
-              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Everything in one place.</h2>
-              <p className="text-lg text-gray-500 font-medium mt-4 max-w-2xl mx-auto">
-                No more switching between invoicing apps, time trackers, and spreadsheets.
-                Invonaut models how money actually flows through your business.
-              </p>
+            <motion.div variants={fadeUp} className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+              <div>
+                <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Everything in one place.</h2>
+                <p className="text-lg text-gray-500 font-medium mt-4 max-w-xl">
+                  No more switching between invoicing apps, time trackers, and spreadsheets.
+                  Invonaut models how money actually flows through your business.
+                </p>
+              </div>
+              <p className="text-sm font-bold text-gray-400 lg:text-right lg:flex-shrink-0 whitespace-nowrap">9 modules. 1 login.</p>
             </motion.div>
           </AnimSection>
           <AnimSection containerVariant={stagger(0.06)} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1810,7 +1809,6 @@ export default function LandingPageClient() {
         <div className="max-w-5xl mx-auto relative z-10">
           <AnimSection className="text-center mb-12">
             <motion.div variants={fadeUp}>
-              <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3">Always on</p>
               <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight">Works while you don&apos;t.</h2>
               <p className="text-gray-400 font-medium mt-4 max-w-xl mx-auto">Eight automated processes run every day without you logging in.</p>
             </motion.div>
@@ -1821,9 +1819,9 @@ export default function LandingPageClient() {
           <AnimSection className="mt-10">
             <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 text-center">
               {[
-                { value: '8',    label: 'Active automations'  },
-                { value: '24/7', label: 'System uptime'       },
-                { value: '0',    label: 'Manual tasks needed' },
+                { value: '8',    label: 'Automations running'   },
+                { value: '24/7', label: 'Runs while you sleep'  },
+                { value: '0',    label: 'Manual triggers needed' },
               ].map(s => (
                 <div key={s.label}>
                   <p className="text-2xl font-black text-teal-400">{s.value}</p>
@@ -1839,6 +1837,19 @@ export default function LandingPageClient() {
       <HowItWorksScrollSection />
 
       {/* ── Interactive product demo ──────────────────────────────────────────── */}
+      {/* ── Human voice interlude ──────────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto">
+          <p className="text-2xl sm:text-3xl font-black text-gray-900 leading-snug">
+            Most finance tools make you do the work. You log the invoice, you remember to follow up, you check if it was paid, you reconcile the books.
+            <span className="text-blue-600"> Invonaut just does it.</span>
+          </p>
+          <p className="text-gray-500 font-medium mt-5 text-lg leading-relaxed">
+            It&apos;s not automation for automation&apos;s sake. It&apos;s built around the actual jobs that eat freelancers&apos; time and the financial blind spots that quietly hurt small businesses.
+          </p>
+        </div>
+      </section>
+
       {/* ── Section A: From contract to cash ───────────────────────────────── */}
       <PaymentFlowSection />
 
@@ -1950,7 +1961,7 @@ export default function LandingPageClient() {
           <AnimSection className="text-center mb-14">
             <motion.div variants={fadeUp}>
               <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Pricing</p>
-              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Simple, transparent pricing.</h2>
+              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Pick a plan. Cancel anytime.</h2>
               <p className="text-gray-500 font-medium mt-4 max-w-xl mx-auto">Plans from <strong className="text-gray-900">$19/mo.</strong> 14-day free trial on every plan. No credit card required.</p>
             </motion.div>
           </AnimSection>
@@ -1964,7 +1975,7 @@ export default function LandingPageClient() {
 
       {/* ── Final CTA (dark blue) ─────────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e3a8a 100%)' }}>
-        <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
+
         <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 50%, rgba(96,165,250,0.5) 0%, transparent 70%)' }} />
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <AnimSection>
@@ -1973,8 +1984,7 @@ export default function LandingPageClient() {
                 Stop chasing invoices.<br />Start getting paid.
               </h2>
               <p className="text-blue-100 text-lg font-medium max-w-xl mx-auto">
-                Your financial operations on autopilot. Invoices tracked. Payments logged.
-                Cash flow forecast. Collections automated.
+                Try it free for 14 days and see how much time you get back when the system handles the chasing.
               </p>
               <div>
                 <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-blue-700 px-9 py-4 rounded-xl font-black text-base hover:shadow-md hover:-translate-y-0.5 transition-all">
