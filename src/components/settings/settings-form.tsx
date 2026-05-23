@@ -175,9 +175,9 @@ export default function SettingsForm({
                     </span>
                   </div>
                   <p className="text-gray-700 font-medium">
-                    {subscriptionTier === 'starter' && '$49/month · 25 invoices · Basic AI predictions'}
-                    {subscriptionTier === 'professional' && '$99/month · Unlimited invoices · White-label branding'}
-                    {subscriptionTier === 'business' && '$149/month · Everything in Pro · Budget alerts · Priority support'}
+                    {subscriptionTier === 'starter' && '$19/month · 25 invoices · Basic AI predictions'}
+                    {subscriptionTier === 'professional' && '$49/month · Unlimited invoices · White-label branding'}
+                    {subscriptionTier === 'business' && '$99/month · Everything in Pro · Budget alerts · Priority support'}
                   </p>
                 </div>
               </div>

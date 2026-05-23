@@ -1552,7 +1552,7 @@ export default function LandingPageClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14">
             <Link href="/" className="flex items-center gap-2.5">
-              <img src="/invonaut-logo.png" alt="Invonaut" className="w-8 h-8 rounded-full" />
+              <img src="/invonaut-logo.png" alt="Invonaut" className="w-8 h-8" />
               <div>
                 <span className="text-xl font-black tracking-tight text-gray-900">Invonaut</span>
                 <span className="hidden sm:inline text-xs text-gray-400 font-medium ml-2">Finance OS</span>
@@ -1563,10 +1563,14 @@ export default function LandingPageClient() {
                 { href: '#platform',     label: 'Platform'    },
                 { href: '#how-it-works', label: 'How It Works'},
                 { href: '#pricing',      label: 'Pricing'     },
+                { href: '/affiliate',    label: 'Affiliate', badge: 'Earn 30%' },
               ].map(link => (
                 <Link key={link.href} href={link.href}
-                  className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm px-3 py-1.5 rounded-lg transition-all">
+                  className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-medium text-sm px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5">
                   {link.label}
+                  {'badge' in link && link.badge && (
+                    <span className="text-[10px] font-black text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded-full leading-none">{link.badge}</span>
+                  )}
                 </Link>
               ))}
             </div>
@@ -1595,7 +1599,7 @@ export default function LandingPageClient() {
               <motion.div variants={fadeUp}>
                 <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-full px-3 py-1.5 mb-6">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Built for freelancers &amp; small businesses</span>
+                  <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Finance OS · From $19/mo · 14-day free trial</span>
                 </div>
               </motion.div>
 
@@ -1716,7 +1720,7 @@ export default function LandingPageClient() {
           <AnimSection className="text-center">
             <motion.div variants={fadeUp}>
               <Link href="/signup"
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all">
+                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:shadow-md hover:-translate-y-0.5 transition-all">
                 Fix this — free for 14 days <ArrowRight className="w-4 h-4" />
               </Link>
             </motion.div>
@@ -1947,7 +1951,7 @@ export default function LandingPageClient() {
             <motion.div variants={fadeUp}>
               <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Pricing</p>
               <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">Simple, transparent pricing.</h2>
-              <p className="text-gray-500 font-medium mt-4 max-w-xl mx-auto">Start with a 14-day free trial on any plan. No credit card required.</p>
+              <p className="text-gray-500 font-medium mt-4 max-w-xl mx-auto">Plans from <strong className="text-gray-900">$19/mo.</strong> 14-day free trial on every plan. No credit card required.</p>
             </motion.div>
           </AnimSection>
           <AnimSection>
@@ -1976,7 +1980,7 @@ export default function LandingPageClient() {
                 <Link href="/signup" className="inline-flex items-center gap-2 bg-white text-blue-700 px-9 py-4 rounded-xl font-black text-base hover:shadow-md hover:-translate-y-0.5 transition-all">
                   Start free — 14 days <ArrowRight className="w-4 h-4" />
                 </Link>
-                <p className="text-blue-200 text-xs font-medium mt-3">No credit card · Cancel anytime · 14-day free trial</p>
+                <p className="text-blue-200 text-xs font-medium mt-3">Plans from $19/mo · No credit card · Cancel anytime</p>
               </div>
             </motion.div>
           </AnimSection>

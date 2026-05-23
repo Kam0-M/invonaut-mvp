@@ -12,7 +12,7 @@ import {
 const FAQS = [
   {
     q: "How much can I earn?",
-    a: "30% recurring commission on every paying customer you refer — for as long as they stay subscribed. A single Professional customer ($99/mo) earns you $29.70/mo indefinitely. Refer 10 and you're earning $297+/mo passively."
+    a: "30% recurring commission on every paying customer you refer — for as long as they stay subscribed. A single Professional customer ($49/mo) earns you $14.70/mo indefinitely. Refer 10 and you're earning $147+/mo passively."
   },
   {
     q: "When do I get paid?",
@@ -43,9 +43,9 @@ const STEPS = [
 ]
 
 const TIERS = [
-  { plan: 'Starter',      price: 49, commission: 14.70, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100' },
-  { plan: 'Professional', price: 99, commission: 29.70, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100',  highlight: true },
-  { plan: 'Business',     price: 149, commission: 44.70, color: 'text-teal-600',   bg: 'bg-teal-50',   border: 'border-teal-100' },
+  { plan: 'Starter',      price: 19, commission: 5.70,  color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100' },
+  { plan: 'Professional', price: 49, commission: 14.70, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100',  highlight: true },
+  { plan: 'Business',     price: 99, commission: 29.70, color: 'text-teal-600',   bg: 'bg-teal-50',   border: 'border-teal-100' },
 ]
 
 export default function AffiliatePage() {
@@ -215,7 +215,7 @@ export default function AffiliatePage() {
               <div>
                 <p className="font-black text-gray-900 mb-1">Annual plans pay out more</p>
                 <p className="text-sm text-gray-500 leading-relaxed">
-                  When a customer you referred upgrades to an annual plan, your commission is paid out on the full annual value upfront. A single Professional annual customer ($990/yr) pays you <strong className="text-gray-900">$297 in one payment</strong>.
+                  When a customer you referred upgrades to an annual plan, your commission is paid out on the full annual value upfront. A single Professional annual customer ($490/yr) pays you <strong className="text-gray-900">$147 in one payment</strong>.
                 </p>
               </div>
             </div>

@@ -68,7 +68,7 @@ export default function DowngradeConfirmButton({
   }
 
   const targetName  = targetTier === 'starter' ? 'Starter' : targetTier === 'professional' ? 'Professional' : 'Business'
-  const targetPrice = targetTier === 'starter' ? '$49' : targetTier === 'professional' ? '$99' : '$149'
+  const targetPrice = targetTier === 'starter' ? '$19' : targetTier === 'professional' ? '$49' : '$99'
   const lostFeatures = getFeaturesYouWillLose()
 
   const defaultClassName = className || 'w-full border border-gray-200 text-gray-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm transition-all'
