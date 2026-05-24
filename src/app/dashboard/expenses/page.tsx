@@ -7,6 +7,7 @@ import ExpenseReportGenerator from '@/components/expenses/expense-report-generat
 import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 import BackToTop from '@/components/ui/back-to-top'
+import SubscriptionTracker from '@/components/intelligence/subscription-tracker'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -38,8 +39,18 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
-  const tier = profile?.subscription_tier ?? 'starter'
+  const tier       = profile?.subscription_tier ?? 'starter'
   const isBusiness = tier === 'business'
+  const isPro      = tier === 'professional' || tier === 'business'
+
+  // Fetch subscription detections for Pro+ users
+  const { data: subscriptionDetections } = isPro ? await supabase
+    .from('subscription_detections')
+    .select('*')
+    .eq('user_id', user.id)
+    .neq('log_status', 'dismissed')
+    .order('occurrence_count', { ascending: false })
+  : { data: [] }
 
   // Fetch budgets for Business tier sidebar
   const { data: budgetsRaw } = await supabase
@@ -159,6 +170,22 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
             <div><BudgetSettings budgets={budgets} isBusiness={isBusiness} /></div>
           </div>
         </div>
+
+        {/* ── Subscription Tracker (Pro+) ────────────────────────────────── */}
+        {isPro && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                <Receipt className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recurring Charges Detected</p>
+                <p className="text-sm font-black text-gray-900 mt-0.5">From your connected bank accounts</p>
+              </div>
+            </div>
+            <SubscriptionTracker subscriptions={subscriptionDetections ?? []} />
+          </div>
+        )}
       )}
       <BackToTop />
     </div>

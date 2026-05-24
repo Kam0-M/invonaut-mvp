@@ -71,6 +71,14 @@ export default async function ClientDetailPage({
     ...p, revenue_categories: Array.isArray(p.revenue_categories)?(p.revenue_categories[0]??null):p.revenue_categories
   }))
 
+  // Client risk profile (computed by intelligence cron)
+  const { data: riskProfile } = await supabase
+    .from('client_risk_profiles')
+    .select('risk_level,risk_reason,on_time_rate,avg_days_to_pay,payment_terms_rec,late_invoices,total_invoices')
+    .eq('client_id', id)
+    .eq('user_id', user.id)
+    .single()
+
   const totalRevenue    = invoices.filter(i=>i.displayStatus==='paid').reduce((s:number,i:any)=>s+Number(i.total_amount||0),0)
   const overdueCount    = invoices.filter(i=>i.displayStatus==='overdue').length
   const directTotal     = payments.reduce((s:number,p:any)=>s+Number(p.amount||0),0)
@@ -183,6 +191,39 @@ export default async function ClientDetailPage({
                 className="text-xs font-bold text-red-600 hover:text-red-700 transition-colors flex-shrink-0">
                 Review →
               </Link>
+            </div>
+          )}
+
+          {/* Risk profile card — shown when intelligence cron has computed it */}
+          {riskProfile && riskProfile.risk_level !== 'unknown' && (
+            <div className={`rounded-2xl border px-5 py-4 ${
+              riskProfile.risk_level === 'high'   ? 'bg-red-50 border-red-100'    :
+              riskProfile.risk_level === 'medium' ? 'bg-amber-50 border-amber-100' :
+                                                    'bg-teal-50 border-teal-100'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide ${
+                      riskProfile.risk_level === 'high'   ? 'bg-red-100 text-red-700'    :
+                      riskProfile.risk_level === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                                            'bg-teal-100 text-teal-700'
+                    }`}>
+                      {riskProfile.risk_level} payment risk
+                    </span>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {Math.round((riskProfile.on_time_rate ?? 1) * 100)}% on-time rate
+                      {riskProfile.late_invoices > 0 && ` · ${riskProfile.late_invoices} late of ${riskProfile.total_invoices}`}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600">{riskProfile.risk_reason}</p>
+                  {riskProfile.payment_terms_rec && (
+                    <p className="text-xs font-bold text-gray-700 mt-1">
+                      Recommendation: {riskProfile.payment_terms_rec}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
         </div>
