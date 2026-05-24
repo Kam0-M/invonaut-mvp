@@ -7,6 +7,7 @@ import ViewOnlyBanner from '@/components/view-only-banner'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
+import SmartInvoiceDrafts from '@/components/intelligence/smart-invoice-drafts'
 
 function formatCompact(n: number): string {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -28,7 +29,42 @@ export default async function InvoicesPage() {
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
-  const tier = profile?.subscription_tier ?? 'starter'
+  const tier  = profile?.subscription_tier ?? 'starter'
+  const isPro = tier === 'professional' || tier === 'business'
+
+  // Fetch unbilled time entries for Smart Drafts (Pro+)
+  const { data: unbilledEntries } = isPro ? await supabase
+    .from('time_entries')
+    .select('id, description, duration_seconds, hourly_rate, billable, client_id, clients(name)')
+    .eq('user_id', user.id)
+    .eq('billable', true)
+    .is('invoice_id', null)
+    .gt('duration_seconds', 0)
+  : { data: [] }
+
+  // Group unbilled entries by client
+  const unbilledGroups = (() => {
+    const groups: Record<string, any> = {}
+    for (const entry of (unbilledEntries ?? [])) {
+      const clientName = (Array.isArray(entry.clients) ? entry.clients[0] : entry.clients)?.name ?? 'Unknown Client'
+      if (!groups[entry.client_id]) {
+        groups[entry.client_id] = {
+          client_id:    entry.client_id,
+          client_name:  clientName,
+          total_hours:  0,
+          total_value:  0,
+          entry_count:  0,
+          entries:      [],
+        }
+      }
+      const hrs = entry.duration_seconds / 3600
+      groups[entry.client_id].total_hours  += hrs
+      groups[entry.client_id].total_value  += hrs * (entry.hourly_rate ?? 0)
+      groups[entry.client_id].entry_count  += 1
+      groups[entry.client_id].entries.push(entry)
+    }
+    return Object.values(groups).filter((g: any) => g.total_value > 0).sort((a: any, b: any) => b.total_value - a.total_value)
+  })()
 
   // Check monthly invoice count for Starter
   let monthlyInvoiceCount = 0
@@ -128,6 +164,11 @@ export default async function InvoicesPage() {
       </div>
 
       {!hasActiveSubscription && <ViewOnlyBanner />}
+
+      {/* ── Smart Drafts — unbilled time entries (Pro+) ───────────────────── */}
+      {isPro && unbilledGroups.length > 0 && (
+        <SmartInvoiceDrafts groups={unbilledGroups} />
+      )}
 
       {/* Empty state */}
       {invoices.length === 0 ? (
