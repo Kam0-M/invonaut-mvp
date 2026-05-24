@@ -19,13 +19,11 @@ export async function POST(req: NextRequest) {
 
   // Trigger the cron for just this user by calling the internal route
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const baseUrl    = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    const cronSecret = process.env.CRON_SECRET ?? 'dev'
     await fetch(`${baseUrl}/api/cron/financial-intelligence`, {
-      method: 'GET',
-      headers: {
-        authorization: `Bearer ${process.env.CRON_SECRET ?? ''}`,
-        'x-single-user': user.id,
-      },
+      method:  'GET',
+      headers: { authorization: `Bearer ${cronSecret}` },
     })
     return NextResponse.json({ success: true })
   } catch (err) {

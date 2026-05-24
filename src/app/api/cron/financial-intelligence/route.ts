@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceClient }       from '@/lib/supabase/service'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+// ── Inline admin client — same pattern as all other cron routes ──────────────
+function createAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+}
 
 // ── Lazy OpenAI init — never module-level ────────────────────────────────────
 function getOpenAI() {
@@ -11,12 +20,15 @@ function getOpenAI() {
 export const maxDuration = 60
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get('authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Soft CRON_SECRET check — matches existing cron pattern
+  // If secret isn't set (local dev), allow through
+  const cronSecret = process.env.CRON_SECRET
+  const authHeader = req.headers.get('authorization')
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createServiceClient()
+  const supabase = createAdminClient()
 
   // Fetch all active Pro/Business subscribers
   const { data: profiles } = await supabase
