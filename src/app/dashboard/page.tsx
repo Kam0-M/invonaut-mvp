@@ -16,6 +16,7 @@ import RevenueStorySection         from '@/components/dashboard/revenue-story-se
 import RiskAttentionPanel          from '@/components/dashboard/risk-attention-panel'
 import OpportunityPanel            from '@/components/dashboard/opportunity-panel'
 import ActivityFeedLive, { ActivityItem } from '@/components/dashboard/activity-feed-live'
+import IntelligenceFeed            from '@/components/intelligence/intelligence-feed'
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -38,8 +39,19 @@ export default async function DashboardPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier = profile?.subscription_tier ?? 'starter'
+  const isPro = tier === 'professional' || tier === 'business'
 
-  // Monthly invoice count for Starter limit badge on dashboard
+  // Intelligence insights (Pro+)
+  const { data: insights } = isPro ? await supabase
+    .from('financial_insights')
+    .select('id,type,urgency,title,body,action_label,action_url,status,created_at')
+    .eq('user_id', user.id)
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(10)
+  : { data: [] }
+
+  const lastInsight = (insights ?? [])[0]?.created_at ?? null
   let dashInvoiceCount = 0
   let dashInvoiceLimitReached = false
   if (hasActiveSubscription && tier === 'starter') {
@@ -294,6 +306,15 @@ export default async function DashboardPage() {
         currentMonth={currentMonthRevenue}
         previousMonth={previousMonthRevenue}
       />
+
+      {/* ── Intelligence Feed (Pro+) ──────────────────────────────────────── */}
+      {hasActiveSubscription && (
+        <IntelligenceFeed
+          insights={insights ?? []}
+          isPro={isPro}
+          lastRefreshed={lastInsight}
+        />
+      )}
 
       {/* ── Risk + Opportunity panels ─────────────────────────────────────── */}
       {hasActiveSubscription && (

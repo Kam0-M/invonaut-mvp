@@ -1,20 +1,9 @@
 {
   "crons": [
-    {
-      "path": "/api/cron/contract-reminders",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/budget-alerts",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/weekly-time-summary",
-      "schedule": "0 9 * * 1"
-    },
-    {
-      "path": "/api/cron/invoice-follow-ups",
-      "schedule": "0 9 * * *"
-    }
+    { "path": "/api/cron/contract-reminders",      "schedule": "0 9 * * *"   },
+    { "path": "/api/cron/budget-alerts",           "schedule": "0 9 * * *"   },
+    { "path": "/api/cron/weekly-time-summary",     "schedule": "0 9 * * 1"   },
+    { "path": "/api/cron/invoice-follow-ups",      "schedule": "0 9 * * *"   },
+    { "path": "/api/cron/financial-intelligence",  "schedule": "0 8 * * *"   }
   ]
 }
