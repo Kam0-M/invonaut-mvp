@@ -214,28 +214,74 @@ export default async function CashPage() {
   const pendingPipeline = unpaidInvoices
     .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
 
-  // ── 90-day forecast ───────────────────────────────────────────────────────
+  // ── 90-day forecast — transaction-aware when bank is connected ───────────
   const forecastData = (() => {
     const baseline = (latestBalance ?? 0) + confirmedDirectInflows
     const points   = []
     let running    = baseline
+
+    // ── Detect recurring expenses from bank transactions ───────────────────
+    // Group outflows by week to find consistent patterns (e.g. subscriptions)
+    const txOutflows = (bankTransactions ?? []).filter(
+      (tx: any) => tx.direction === 'outflow' && !tx.pending
+    )
+
+    // Calculate average weekly outflow from real transactions if available
+    const bankWeeklyOut = (() => {
+      if (txOutflows.length < 4) return null  // not enough data
+      const txDates = txOutflows.map((tx: any) => new Date(tx.date + 'T12:00:00').getTime())
+      const earliest = Math.min(...txDates)
+      const weeksCovered = Math.max(1, Math.ceil((Date.now() - earliest) / (7 * 24 * 60 * 60 * 1000)))
+      const totalOut = txOutflows.reduce((s: number, tx: any) => s + Math.abs(tx.amount), 0)
+      return totalOut / weeksCovered
+    })()
+
+    // Use bank-derived weekly spend if available and >0, else fall back to manual expenses
+    const effectiveWeeklyOut = bankWeeklyOut ?? avgWeeklyExp
+
+    // ── Detect recurring inflows (e.g. retainer clients) ──────────────────
+    const txInflows = (bankTransactions ?? []).filter(
+      (tx: any) => tx.direction === 'inflow' && !tx.pending && tx.match_status !== 'dismissed'
+    )
+
+    // Group by approximate amount to detect recurring payments
+    const recurringInflows: { weeklyAmount: number; description: string }[] = []
+    const amountGroups: Record<string, any[]> = {}
+    txInflows.forEach((tx: any) => {
+      const bucket = Math.round(Math.abs(tx.amount) / 50) * 50  // group within $50
+      const key = String(bucket)
+      if (!amountGroups[key]) amountGroups[key] = []
+      amountGroups[key].push(tx)
+    })
+    Object.values(amountGroups).forEach(group => {
+      if (group.length >= 2) {
+        const avg = group.reduce((s: number, tx: any) => s + Math.abs(tx.amount), 0) / group.length
+        recurringInflows.push({ weeklyAmount: avg / 4, description: group[0].merchant_name ?? group[0].description })
+      }
+    })
+    const weeklyRecurring = recurringInflows.reduce((s, r) => s + r.weeklyAmount, 0)
+
     for (let w = 0; w < 13; w++) {
       const weekStart = new Date(now); weekStart.setDate(now.getDate() + w * 7); weekStart.setHours(0,0,0,0)
       const weekEnd   = new Date(weekStart); weekEnd.setDate(weekStart.getDate() + 6); weekEnd.setHours(23,59,59,999)
-      const inflows   = unpaidInvoices
+
+      // Invoice inflows expected this week
+      const invoiceInflows = unpaidInvoices
         .filter((inv: any) => {
-          // Use AI-predicted payment date if available, fall back to due_date
-          // ai_days_to_pay column not yet in DB — use due_date for forecast
           const predicted = new Date(inv.due_date + 'T12:00:00')
           return predicted >= weekStart && predicted <= weekEnd
         })
         .reduce((s: number, inv: any) => s + Number(inv.total_amount || 0), 0)
-      running += inflows - avgWeeklyExp
+
+      // Total inflows this week = invoices + detected recurring patterns
+      const totalInflows = invoiceInflows + weeklyRecurring
+
+      running += totalInflows - effectiveWeeklyOut
       points.push({
         week:             weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         projectedBalance: Math.round(running * 100) / 100,
-        inflows:          Math.round(inflows * 100) / 100,
-        outflows:         Math.round(avgWeeklyExp * 100) / 100,
+        inflows:          Math.round(totalInflows * 100) / 100,
+        outflows:         Math.round(effectiveWeeklyOut * 100) / 100,
       })
     }
     return points
@@ -329,7 +375,9 @@ export default async function CashPage() {
                 </span>
               </>
             )}
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">AI-powered forecast</span>
+            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+              {(connectedAccounts ?? []).length > 0 ? 'Bank-connected forecast' : 'AI-powered forecast'}
+            </span>
           </div>
         </div>
         <Link href="/dashboard/invoices/new"
