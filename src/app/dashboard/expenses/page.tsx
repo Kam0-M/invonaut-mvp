@@ -169,23 +169,23 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
             <div className="xl:col-span-2"><ExpenseReportGenerator /></div>
             <div><BudgetSettings budgets={budgets} isBusiness={isBusiness} /></div>
           </div>
-        </div>
 
-        {/* ── Subscription Tracker (Pro+) ────────────────────────────────── */}
-        {isPro && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
-                <Receipt className="w-4 h-4 text-amber-600" />
+          {/* ── Subscription Tracker (Pro+) ─────────────────────────────── */}
+          {isPro && (
+            <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center">
+                  <Receipt className="w-4 h-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recurring Charges Detected</p>
+                  <p className="text-sm font-black text-gray-900 mt-0.5">From your connected bank accounts</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recurring Charges Detected</p>
-                <p className="text-sm font-black text-gray-900 mt-0.5">From your connected bank accounts</p>
-              </div>
+              <SubscriptionTracker subscriptions={subscriptionDetections ?? []} />
             </div>
-            <SubscriptionTracker subscriptions={subscriptionDetections ?? []} />
-          </div>
-        )}
+          )}
+        </div>
       )}
       <BackToTop />
     </div>

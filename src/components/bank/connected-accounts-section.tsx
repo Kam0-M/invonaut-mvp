@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Building2, RefreshCw, Trash2, AlertCircle,
-  TrendingUp, TrendingDown, CheckCircle2, Clock
+  CheckCircle2,
 } from 'lucide-react'
 import BankConnectButton from './bank-connect-button'
 
@@ -37,29 +37,51 @@ function timeAgo(iso: string | null) {
   if (!iso) return 'Never synced'
   const diff = Date.now() - new Date(iso).getTime()
   const mins = Math.floor(diff / 60000)
-  if (mins < 1)   return 'Just now'
-  if (mins < 60)  return `${mins}m ago`
+  if (mins < 1)  return 'Just now'
+  if (mins < 60) return `${mins}m ago`
   const hrs = Math.floor(mins / 60)
-  if (hrs < 24)   return `${hrs}h ago`
+  if (hrs < 24)  return `${hrs}h ago`
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export default function ConnectedAccountsSection({ accounts, subscriptionTier, transactionCount }: Props) {
-  const router  = useRouter()
-  const [syncing,     setSyncing]     = useState<string | null>(null)
+export default function ConnectedAccountsSection({ accounts: initialAccounts, subscriptionTier, transactionCount }: Props) {
+  const router = useRouter()
+
+  // Local state mirrors the accounts list so sync/disconnect update instantly
+  const [accounts, setAccounts] = useState<ConnectedAccount[]>(initialAccounts)
+  const [syncing,       setSyncing]       = useState<string | null>(null)
   const [disconnecting, setDisconnecting] = useState<string | null>(null)
-  const limit       = TIER_LIMITS[subscriptionTier] ?? 1
+  const [syncError,     setSyncError]     = useState<string | null>(null)
+
+  const limit        = TIER_LIMITS[subscriptionTier] ?? 1
   const limitReached = accounts.length >= limit
 
   const handleSync = async (accountId: string) => {
     setSyncing(accountId)
+    setSyncError(null)
     try {
-      await fetch('/api/plaid/sync', {
+      const res  = await fetch('/api/plaid/sync', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ connected_account_id: accountId }),
       })
-      router.refresh()
+      if (res.ok) {
+        // Update last_synced_at in local state immediately — no server round-trip needed
+        setAccounts(prev => prev.map(acc =>
+          acc.id === accountId
+            ? { ...acc, last_synced_at: new Date().toISOString(), sync_status: 'active' }
+            : acc
+        ))
+        // Also refresh in background so balance updates
+        router.refresh()
+      } else {
+        setSyncError('Sync failed — try again')
+        setAccounts(prev => prev.map(acc =>
+          acc.id === accountId ? { ...acc, sync_status: 'error' } : acc
+        ))
+      }
+    } catch {
+      setSyncError('Sync failed — check your connection')
     } finally {
       setSyncing(null)
     }
@@ -69,12 +91,21 @@ export default function ConnectedAccountsSection({ accounts, subscriptionTier, t
     if (!window.confirm('Disconnect this account? Your transaction history will be deleted.')) return
     setDisconnecting(accountId)
     try {
-      await fetch('/api/plaid/disconnect', {
+      const res = await fetch('/api/plaid/disconnect', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ connected_account_id: accountId }),
       })
-      router.refresh()
+      if (res.ok) {
+        // Remove from local state immediately — instant UI feedback
+        setAccounts(prev => prev.filter(acc => acc.id !== accountId))
+        router.refresh()
+      } else {
+        const data = await res.json().catch(() => ({}))
+        alert(`Disconnect failed: ${data.error ?? 'unknown error'}`)
+      }
+    } catch {
+      alert('Disconnect failed — check your connection')
     } finally {
       setDisconnecting(null)
     }
@@ -92,10 +123,21 @@ export default function ConnectedAccountsSection({ accounts, subscriptionTier, t
           </p>
         </div>
         <BankConnectButton
-          onSuccess={() => router.refresh()}
+          onSuccess={() => {
+            router.refresh()
+            // After new connection, refresh to show new account
+            setTimeout(() => router.refresh(), 1500)
+          }}
           limitReached={limitReached}
         />
       </div>
+
+      {syncError && (
+        <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2">
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          {syncError}
+        </div>
+      )}
 
       {/* Account cards */}
       {accounts.length === 0 ? (
@@ -161,7 +203,7 @@ export default function ConnectedAccountsSection({ accounts, subscriptionTier, t
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
                   >
                     <Trash2 className="w-3 h-3" />
-                    Disconnect
+                    {disconnecting === acc.id ? 'Disconnecting…' : 'Disconnect'}
                   </button>
                 </div>
               </div>
