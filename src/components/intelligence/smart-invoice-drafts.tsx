@@ -54,8 +54,13 @@ export default function SmartInvoiceDrafts({ groups }: Props) {
       if (data.invoice_id) {
         router.push(`/dashboard/invoices/${data.invoice_id}`)
       } else {
+        console.error('[smart-drafts] create failed:', data.error ?? data)
+        alert(`Failed to create invoice: ${data.error ?? 'Unknown error'}`)
         router.refresh()
       }
+    } catch (err) {
+      console.error('[smart-drafts] network error:', err)
+      alert('Failed to create invoice — check your connection and try again.')
     } finally {
       setCreating(null)
     }
