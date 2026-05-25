@@ -71,13 +71,49 @@ export default async function ClientDetailPage({
     ...p, revenue_categories: Array.isArray(p.revenue_categories)?(p.revenue_categories[0]??null):p.revenue_categories
   }))
 
-  // Client risk profile (computed by intelligence cron)
-  const { data: riskProfile } = await supabase
-    .from('client_risk_profiles')
-    .select('risk_level,risk_reason,on_time_rate,avg_days_to_pay,payment_terms_rec,late_invoices,total_invoices')
-    .eq('client_id', id)
-    .eq('user_id', user.id)
-    .single()
+  // ── Client risk profile — computed inline, no cron dependency ──────────────
+  const riskProfile = (() => {
+    const allInv  = invoicesRaw ?? []
+    if (allInv.length === 0) return null
+
+    const now     = new Date()
+    const paidInv = allInv.filter((i:any) => i.status === 'paid')
+
+    // Paid invoices whose due_date has passed are counted as late
+    const lateCount  = allInv.filter((i:any) =>
+      i.status === 'paid' && new Date(i.due_date + 'T12:00:00') < now
+    ).length
+
+    const onTimeRate      = allInv.length > 0 ? Math.max(0, (allInv.length - lateCount)) / allInv.length : 1
+    const riskLevel       = onTimeRate >= 0.85 ? 'low' : onTimeRate >= 0.60 ? 'medium' : 'high'
+    const riskReason      = riskLevel === 'high'   ? `Paid late on ${Math.round((1 - onTimeRate) * 100)}% of invoices`
+                          : riskLevel === 'medium' ? 'Some late payment history — worth monitoring'
+                          : 'Consistently pays on time'
+    const paymentTermsRec = riskLevel === 'high'   ? 'Consider requiring a 50% upfront deposit'
+                          : riskLevel === 'medium' ? 'Consider switching to Net 15 terms'
+                          : null
+    const totalRev   = paidInv.reduce((s:number,i:any) => s + Number(i.total_amount||0), 0)
+    const largestInv = paidInv.length > 0 ? Math.max(...paidInv.map((i:any) => Number(i.total_amount||0))) : 0
+
+    // Write back to table so cron + intelligence feed stay in sync (fire-and-forget)
+    supabase.from('client_risk_profiles').upsert({
+      user_id:           user.id,
+      client_id:         id,
+      total_invoices:    allInv.length,
+      paid_invoices:     paidInv.length,
+      on_time_rate:      Math.round(onTimeRate * 1000) / 1000,
+      late_invoices:     lateCount,
+      largest_invoice:   largestInv,
+      total_revenue:     totalRev,
+      risk_level:        riskLevel,
+      risk_reason:       riskReason,
+      payment_terms_rec: paymentTermsRec,
+      last_computed_at:  now.toISOString(),
+    }, { onConflict: 'user_id,client_id' })
+
+    return { risk_level: riskLevel, risk_reason: riskReason, on_time_rate: onTimeRate,
+             payment_terms_rec: paymentTermsRec, late_invoices: lateCount, total_invoices: allInv.length }
+  })()
 
   const totalRevenue    = invoices.filter(i=>i.displayStatus==='paid').reduce((s:number,i:any)=>s+Number(i.total_amount||0),0)
   const overdueCount    = invoices.filter(i=>i.displayStatus==='overdue').length
