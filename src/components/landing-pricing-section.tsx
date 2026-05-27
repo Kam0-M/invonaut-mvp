@@ -1,114 +1,27 @@
 'use client'
 // src/components/landing-pricing-section.tsx
-// Pricing cards with spinning track borders on CTA buttons
-// and a cycling gradient on the "Most Popular" badge.
+// Rebuilt v2 — editorial clean design, no spinning borders, no gradient animations
+// Matches landing page v4 aesthetic
 
 import { useState } from 'react'
 import Link from 'next/link'
 
-// The @property + border-rotate keyframe is already injected by landing-page-client.tsx.
-// We inject only the button-specific styles here for standalone use (e.g. /pricing page).
-const PRICING_STYLES = `
-@property --border-angle {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-@keyframes border-rotate { to { --border-angle: 360deg; } }
-@keyframes grad-cycle {
-  0%   { background-position: 0%   50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0%   50%; }
-}
-.btn-track-default {
-  background:
-    linear-gradient(rgb(37,99,235), rgb(37,99,235)) padding-box,
-    conic-gradient(
-      from var(--border-angle),
-      rgba(255,255,255,0.9) 0deg,
-      rgba(13,212,170,0.9)  80deg,
-      rgba(255,255,255,0.9) 130deg,
-      rgba(255,255,255,0.1) 170deg,
-      rgba(255,255,255,0.1) 350deg,
-      rgba(255,255,255,0.9) 360deg
-    ) border-box;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  animation: border-rotate 6s linear infinite;
-  color: white;
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 0.75rem;
-  font-weight: 700;
-  font-size: 0.875rem;
-  transition: opacity 0.15s;
-}
-.btn-track-default:hover { opacity: 0.9; }
-.btn-track-highlighted {
-  background:
-    linear-gradient(white, white) padding-box,
-    conic-gradient(
-      from var(--border-angle),
-      #2563EB  0deg,
-      #0D9488  80deg,
-      #2563EB  130deg,
-      rgba(37,99,235,0.12) 170deg,
-      rgba(37,99,235,0.12) 350deg,
-      #2563EB  360deg
-    ) border-box;
-  border: 2px solid transparent;
-  border-radius: 12px;
-  animation: border-rotate 6s linear infinite;
-  color: #2563EB;
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 0.75rem;
-  font-weight: 700;
-  font-size: 0.875rem;
-  transition: opacity 0.15s;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-}
-.btn-track-highlighted:hover { opacity: 0.9; }
-.most-popular-animated {
-  background: linear-gradient(270deg, #F59E0B, #F97316, #EF4444, #F59E0B);
-  background-size: 300% 300%;
-  animation: grad-cycle 3s ease infinite;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 900;
-  padding: 0.375rem 1rem;
-  border-radius: 9999px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  display: inline-block;
-}
-`
-
-const CHECK = (color: string) => (
-  <svg className={`w-4 h-4 flex-shrink-0 mt-0.5 ${color}`} fill="currentColor" viewBox="0 0 20 20">
-    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-  </svg>
-)
-
 const plans = [
   {
-    id: 'starter',
-    name: 'Starter',
+    id:           'starter',
+    name:         'Starter',
     monthlyPrice: 19,
     annualMonthly: 16,
-    annualTotal: 190,
-    description: 'For freelancers getting started.',
-    highlighted: false,
+    annualTotal:  190,
+    accent:       '#F59E0B',
+    description:  'For freelancers getting started.',
     features: [
       '25 invoices per month',
       'Unlimited clients',
       'Direct payment logging (cash, POS, mobile)',
       'Revenue categories',
       'Basic AI payment predictions',
-      'Invoice email with PDF + attachments',
+      'Invoice PDFs with file attachments',
       'Automated follow-up reminders',
       'Expense logging',
       'Client portal (view-only)',
@@ -117,21 +30,22 @@ const plans = [
     ],
   },
   {
-    id: 'professional',
-    name: 'Professional',
+    id:           'professional',
+    name:         'Professional',
     monthlyPrice: 49,
     annualMonthly: 41,
-    annualTotal: 490,
-    description: 'For established freelancers.',
-    highlighted: true,
+    annualTotal:  490,
+    accent:       '#0055FF',
+    description:  'For established freelancers.',
+    highlighted:  true,
     features: [
       'Everything in Starter, plus:',
       'Unlimited invoices',
       'Unlimited direct payments',
       'Revenue intelligence dashboard',
-      'White label branding',
+      'White-label branding',
       'Advanced AI insights',
-      'AI expense categorization',
+      'AI expense categorisation',
       'Branded client portal',
       'Unlimited contracts + e-signatures',
       'AI contract review',
@@ -141,13 +55,13 @@ const plans = [
     ],
   },
   {
-    id: 'business',
-    name: 'Business',
+    id:           'business',
+    name:         'Business',
     monthlyPrice: 99,
     annualMonthly: 83,
-    annualTotal: 990,
-    description: 'For small agencies and studios.',
-    highlighted: false,
+    annualTotal:  990,
+    accent:       '#00B894',
+    description:  'For small agencies and studios.',
     features: [
       { text: 'Everything in Professional, plus:', soon: false },
       { text: 'Budget tracking with 80% & 100% alerts', soon: false },
@@ -166,122 +80,162 @@ export default function LandingPricingSection() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
 
   return (
-    <div>
-      <style dangerouslySetInnerHTML={{ __html: PRICING_STYLES }} />
+    <div style={{ fontFamily: "'DM Sans', sans-serif" }}>
 
-      {/* Toggle */}
-      <div className="flex items-center justify-center gap-4 mb-12">
-        <span className={`text-sm font-bold ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>
+      {/* ── Toggle ────────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 52 }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: billing === 'monthly' ? '#0A0A0A' : '#9CA3AF' }}>
           Monthly
         </span>
         <button
           suppressHydrationWarning
           onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            billing === 'annual' ? 'bg-blue-600' : 'bg-gray-300'
-          }`}
+          style={{
+            position: 'relative', width: 44, height: 24,
+            background: billing === 'annual' ? '#0055FF' : '#D1D5DB',
+            borderRadius: 999, border: 'none', cursor: 'pointer',
+            transition: 'background 0.2s', flexShrink: 0,
+          }}
         >
-          <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-            billing === 'annual' ? 'translate-x-6' : 'translate-x-1'
-          }`} />
+          <span style={{
+            position: 'absolute', top: 4, width: 16, height: 16,
+            background: '#fff', borderRadius: '50%',
+            left: billing === 'annual' ? 24 : 4,
+            transition: 'left 0.2s',
+          }} />
         </button>
-        <span className={`text-sm font-bold ${billing === 'annual' ? 'text-gray-900' : 'text-gray-400'}`}>
+        <span style={{ fontSize: '0.875rem', fontWeight: 700, color: billing === 'annual' ? '#0A0A0A' : '#9CA3AF', display: 'flex', alignItems: 'center', gap: 10 }}>
           Annual
-          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+          <span style={{
+            background: '#EFF6FF', color: '#0055FF',
+            fontSize: '0.7rem', fontWeight: 700,
+            padding: '3px 10px', borderRadius: 999,
+          }}>
             2 months free
           </span>
         </span>
       </div>
 
-      {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        {plans.map(plan => (
-          <div
-            key={plan.id}
-            className={`relative rounded-2xl p-8 flex flex-col transition-all duration-200 hover:-translate-y-0.5 ${
-              plan.highlighted
-                ? 'bg-blue-600 text-white border-2 border-blue-500'
-                : plan.id === 'starter'
-                ? 'bg-white border-2 border-orange-200'
-                : plan.id === 'business'
-                ? 'bg-white border-2 border-teal-200'
-                : 'bg-white border-2 border-blue-200'
-            }`}
-            style={{
-              boxShadow: plan.id === 'starter'
-                ? '0 0 36px rgba(255,107,53,0.14), 0 2px 14px rgba(0,0,0,0.05)'
-                : plan.id === 'professional'
-                ? '0 0 40px rgba(0,102,255,0.18), 0 2px 14px rgba(0,0,0,0.07)'
-                : '0 0 36px rgba(0,212,170,0.14), 0 2px 14px rgba(0,0,0,0.05)',
-            }}
-          >
-            {plan.highlighted && (
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <span className="most-popular-animated">Most Popular</span>
-              </div>
-            )}
+      {/* ── Cards ─────────────────────────────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24, maxWidth: 960, margin: '0 auto' }}
+        className="pricing-cards">
+        <style dangerouslySetInnerHTML={{ __html: `
+          @media (max-width: 768px) { .pricing-cards { grid-template-columns: 1fr !important; } }
+        `}} />
 
-            <div className="mb-6">
-              <h3 className={`text-xl font-black mb-1 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                {plan.name}
-              </h3>
-              <p className={`text-sm ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
-                {plan.description}
+        {plans.map(plan => {
+          const hl  = !!(plan as any).highlighted
+          const bg  = hl ? '#0A0A0A' : '#fff'
+          const fg  = hl ? '#fff'    : '#0A0A0A'
+          const sub = hl ? 'rgba(255,255,255,0.45)' : '#6B7280'
+          const bdr = hl ? '#0A0A0A' : '#E5E7EB'
+          const price = billing === 'monthly' ? plan.monthlyPrice : plan.annualMonthly
+
+          return (
+            <div
+              key={plan.id}
+              style={{
+                background: bg, border: `1px solid ${bdr}`,
+                borderRadius: 16, padding: '36px 32px',
+                display: 'flex', flexDirection: 'column',
+                position: 'relative',
+                boxShadow: hl ? '0 24px 64px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+              }}
+            >
+              {/* Most popular badge */}
+              {hl && (
+                <div style={{
+                  position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)',
+                  background: '#0055FF', color: '#fff',
+                  fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.08em',
+                  textTransform: 'uppercase', padding: '5px 16px', borderRadius: 999,
+                  whiteSpace: 'nowrap',
+                }}>
+                  Most popular
+                </div>
+              )}
+
+              {/* Plan header */}
+              <div style={{ marginBottom: 24 }}>
+                <p style={{ fontWeight: 800, fontSize: '1rem', color: fg, marginBottom: 4, letterSpacing: '-0.01em' }}>
+                  {plan.name}
+                </p>
+                <p style={{ fontSize: '0.825rem', color: sub }}>
+                  {plan.description}
+                </p>
+              </div>
+
+              {/* Price */}
+              <div style={{ marginBottom: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+                  <span style={{ fontSize: '3.2rem', fontWeight: 900, color: fg, letterSpacing: '-0.04em', lineHeight: 1 }}>
+                    ${price}
+                  </span>
+                  <span style={{ fontSize: '0.825rem', color: sub, marginBottom: 6 }}>/mo</span>
+                </div>
+                {billing === 'annual' && (
+                  <p style={{ fontSize: '0.75rem', fontWeight: 700, color: hl ? 'rgba(255,255,255,0.5)' : '#0055FF', marginTop: 6 }}>
+                    ${plan.annualTotal}/year · saves ${plan.monthlyPrice * 2}
+                  </p>
+                )}
+              </div>
+
+              {/* Features */}
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {plan.features.map((f: any, i: number) => {
+                  const text = typeof f === 'string' ? f : f.text
+                  const soon = typeof f === 'object' && f.soon
+                  const isHeader = text.startsWith('Everything')
+                  return (
+                    <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      {!isHeader && (
+                        <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0, marginTop: 3, color: hl ? 'rgba(255,255,255,0.5)' : (plan as any).accent || '#0055FF' }} fill="currentColor">
+                          <path fillRule="evenodd" d="M11.78 3.97a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 0 1-1.06 0l-2.5-2.5a.75.75 0 1 1 1.06-1.06L5.75 8.94l4.97-4.97a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      <span style={{
+                        fontSize: '0.825rem',
+                        color: isHeader ? sub : (hl ? 'rgba(255,255,255,0.75)' : '#374151'),
+                        fontWeight: isHeader ? 600 : 400,
+                        lineHeight: 1.5,
+                        paddingLeft: isHeader ? 24 : 0,
+                        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+                      }}>
+                        {text}
+                        {soon && (
+                          <span style={{
+                            fontSize: '0.6rem', fontWeight: 800, textTransform: 'uppercase',
+                            letterSpacing: '0.06em', padding: '2px 7px', borderRadius: 4,
+                            background: hl ? 'rgba(255,255,255,0.12)' : '#FEF3C7',
+                            color: hl ? 'rgba(255,255,255,0.6)' : '#B45309',
+                          }}>Soon</span>
+                        )}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+
+              {/* CTA */}
+              <Link href="/signup" style={{
+                display: 'block', width: '100%', textAlign: 'center',
+                padding: '13px 0', borderRadius: 10,
+                fontWeight: 700, fontSize: '0.875rem', textDecoration: 'none',
+                background: hl ? '#fff'       : 'var(--ink, #0A0A0A)',
+                color:      hl ? '#0A0A0A'    : '#fff',
+                transition: 'opacity 0.15s',
+              }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
+                onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
+              >
+                Start free trial
+              </Link>
+              <p style={{ fontSize: '0.72rem', textAlign: 'center', marginTop: 10, color: sub }}>
+                14-day free trial · No credit card required
               </p>
             </div>
-
-            <div className="mb-8">
-              <div className="flex items-end gap-1">
-                <span className={`text-5xl font-black tracking-tight ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                  ${billing === 'monthly' ? plan.monthlyPrice : plan.annualMonthly}
-                </span>
-                <span className={`text-sm font-medium mb-2 ${plan.highlighted ? 'text-blue-100' : 'text-gray-400'}`}>
-                  /mo
-                </span>
-              </div>
-              {billing === 'annual' && (
-                <p className={`text-xs font-bold mt-1 ${plan.highlighted ? 'text-blue-100' : 'text-blue-600'}`}>
-                  ${plan.annualTotal}/year — save ${plan.monthlyPrice * 2}
-                </p>
-              )}
-            </div>
-
-            <ul className="space-y-3 mb-8 flex-1">
-              {plan.features.map((feature: any, i: number) => {
-                const text = typeof feature === 'string' ? feature : feature.text
-                const soon = typeof feature === 'object' && feature.soon
-                return (
-                  <li key={i} className="flex items-start gap-2.5 text-sm">
-                    {CHECK(
-                        plan.highlighted ? 'text-blue-200' :
-                        plan.id === 'starter' ? 'text-orange-400' :
-                        plan.id === 'business' ? 'text-teal-500' : 'text-blue-500'
-                      )}
-                    <span className={`flex items-center gap-2 flex-wrap ${plan.highlighted ? 'text-blue-50' : 'text-gray-600'}`}>
-                      {text}
-                      {soon && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-700 leading-none flex-shrink-0">
-                          Soon
-                        </span>
-                      )}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-
-            {/* Spinning track border CTA button */}
-            <Link
-              href="/signup"
-              className={plan.highlighted ? 'btn-track-highlighted' : 'btn-track-default'}
-            >
-              Start free trial
-            </Link>
-            <p className={`text-xs text-center mt-3 ${plan.highlighted ? 'text-blue-100' : 'text-gray-400'}`}>
-              14-day free trial · No credit card required
-            </p>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
