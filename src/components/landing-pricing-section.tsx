@@ -189,7 +189,7 @@ export default function LandingPricingSection() {
                   return (
                     <li key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                       {!isHeader && (
-                        <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0, marginTop: 3, color: hl ? 'rgba(255,255,255,0.5)' : (plan as any).accent || '#0055FF' }} fill="currentColor">
+                        <svg width="14" height="14" viewBox="0 0 14 14" style={{ flexShrink: 0, marginTop: 3, color: hl ? '#60A5FA' : (plan as any).accent || '#0055FF' }} fill="currentColor">
                           <path fillRule="evenodd" d="M11.78 3.97a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 0 1-1.06 0l-2.5-2.5a.75.75 0 1 1 1.06-1.06L5.75 8.94l4.97-4.97a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
                         </svg>
                       )}

@@ -1,402 +1,306 @@
-'use client'
+// src/app/affiliate/page.tsx
+// Affiliate programme page — editorial design matching landing page v5
+// Fraunces headlines, blue gradient accents, clean layout
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import {
-  ArrowRight, DollarSign, TrendingUp, Check,
-  Zap, Globe, BarChart3, ChevronDown, ChevronUp,
-  Mail, ExternalLink
-} from 'lucide-react'
+import { Check, ArrowRight, DollarSign, Users, TrendingUp, Zap, Clock, Globe } from 'lucide-react'
 
-const FAQS = [
-  {
-    q: "How much can I earn?",
-    a: "30% recurring commission on every paying customer you refer — for as long as they stay subscribed. A single Professional customer ($49/mo) earns you $14.70/mo indefinitely. Refer 10 and you're earning $147+/mo passively."
-  },
-  {
-    q: "When do I get paid?",
-    a: "Commissions are paid out monthly via PayPal or bank transfer, with a 30-day holding period to account for refunds. There's a minimum payout threshold of $50."
-  },
-  {
-    q: "Who should apply?",
-    a: "Anyone with an audience of freelancers, solopreneurs, or small business owners. Content creators, newsletter writers, YouTube channels about business/freelance, accountants, coaches, and community managers all tend to convert well."
-  },
-  {
-    q: "Is there a cost to join?",
-    a: "No. Applying is free, there's no lock-in, and you can leave at any time. We only make money when you do."
-  },
-  {
-    q: "How does tracking work?",
-    a: "You get a unique referral link. Every signup through your link is tracked for 90 days with a cookie, so even if someone signs up a month after clicking your link, you get credit."
-  },
-  {
-    q: "Do I need to be an Invonaut customer?",
-    a: "No, but it helps. Affiliates who use the product convert 2–3x better because they can speak authentically about the experience."
+export const metadata = { title: 'Affiliate Programme — Invonaut' }
+
+const HOW_IT_WORKS = [
+  { n: '01', title: 'Sign up',           body: 'Join the programme for free in under a minute. No approval process, no waiting period.' },
+  { n: '02', title: 'Share your link',   body: 'Get a unique referral link. Share it anywhere — your site, social media, email newsletters, client conversations.' },
+  { n: '03', title: 'Earn every month',  body: 'Earn 30% of every monthly payment your referrals make, for as long as they stay subscribed. There is no cap.' },
+]
+
+const WHO_FOR = [
+  { icon: Users,      title: 'Freelance communities',  body: 'Run a Discord, Slack, or forum for freelancers? Your members need exactly what Invonaut solves.' },
+  { icon: Globe,      title: 'Content creators',        body: 'Newsletters, YouTube channels, podcasts, blogs. If your audience runs their own business, this converts.' },
+  { icon: TrendingUp, title: 'Consultants and coaches', body: 'You work with people who need better financial systems. Recommending Invonaut helps them and pays you.' },
+  { icon: Zap,        title: 'Accountants and bookkeepers', body: 'Recommend Invonaut to clients who still chase invoices manually. They save time, you earn recurring income.' },
+]
+
+const EARNINGS = [
+  { refs: 5,   monthly: '$49',  annual: '$588'  },
+  { refs: 20,  monthly: '$196', annual: '$2,352' },
+  { refs: 50,  monthly: '$490', annual: '$5,880' },
+  { refs: 100, monthly: '$980', annual: '$11,760' },
+]
+
+const CSS = `
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&display=swap');
+  .f-display { font-family:'Fraunces',serif; font-optical-sizing:auto; }
+  .aff-mesh {
+    background:
+      radial-gradient(ellipse 80% 60% at 100% 0%,   rgba(0,85,255,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 50% at 0%   110%,  rgba(255,107,53,0.04) 0%, transparent 55%),
+      #ffffff;
   }
-]
-
-const STEPS = [
-  { icon: Mail,       step: '01', title: 'Apply',       desc: 'Fill out the form below. We review every application within 2–3 business days.' },
-  { icon: ExternalLink, step: '02', title: 'Get your link', desc: 'Once approved, you receive a unique referral link and access to your affiliate dashboard.' },
-  { icon: DollarSign,  step: '03', title: 'Get paid',   desc: '30% recurring commission deposited monthly. No cap. No expiry.' },
-]
-
-const TIERS = [
-  { plan: 'Starter',      price: 19, commission: 5.70,  color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100' },
-  { plan: 'Professional', price: 49, commission: 14.70, color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100',  highlight: true },
-  { plan: 'Business',     price: 99, commission: 29.70, color: 'text-teal-600',   bg: 'bg-teal-50',   border: 'border-teal-100' },
-]
+  @media(max-width:768px){
+    .earn-grid  { grid-template-columns:1fr !important; }
+    .who-grid   { grid-template-columns:1fr 1fr !important; }
+    .steps-grid { grid-template-columns:1fr !important; }
+  }
+  @media(max-width:480px){
+    .who-grid { grid-template-columns:1fr !important; }
+  }
+`
 
 export default function AffiliatePage() {
-  const [openFaq, setOpenFaq] = useState<number | null>(null)
-  const [form, setForm] = useState({ name: '', email: '', website: '', audience: '', reason: '' })
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
-
-  const handleSubmit = async () => {
-    if (!form.name || !form.email) return
-    setStatus('submitting')
-    try {
-      const res = await fetch('/api/affiliate-apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      })
-      const data = await res.json()
-      setStatus(data.success ? 'success' : 'error')
-    } catch {
-      setStatus('error')
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Nav */}
-      <nav className="h-14 border-b border-gray-100 flex items-center justify-between px-6 max-w-7xl mx-auto">
-        <Link href="/" className="flex items-center gap-2">
-          <img src="/invonaut-logo.png" alt="Invonaut" className="w-7 h-7" />
-          <span className="font-black text-gray-900 text-base">Invonaut</span>
+    <div style={{ fontFamily:"'DM Sans',sans-serif", color:'#0A0A0A', background:'#fff', overflowX:'clip' }}>
+      <style dangerouslySetInnerHTML={{ __html: CSS }} />
+
+      {/* ── NAV ────────────────────────────────────────────────────────────── */}
+      <nav style={{ borderBottom:'1px solid #E2E8F0', padding:'0 24px', height:58, display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff' }}>
+        <Link href="/" style={{ textDecoration:'none' }}>
+          <span className="f-display" style={{ fontSize:'1.2rem', fontWeight:700, color:'#0A0A0A', letterSpacing:'-.02em' }}>Invonaut</span>
         </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/pricing" className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">Pricing</Link>
-          <Link href="/signup" className="btn-primary px-4 py-2 rounded-xl text-sm">Get started</Link>
+        <div style={{ display:'flex', gap:12, alignItems:'center' }}>
+          <Link href="/login"  style={{ fontSize:'.875rem', fontWeight:500, color:'#64748B', textDecoration:'none' }}>Sign in</Link>
+          <Link href="/signup" style={{ background:'linear-gradient(135deg,#0044EE,#0066FF)', color:'#fff', padding:'8px 20px', borderRadius:8, fontWeight:700, fontSize:'.875rem', textDecoration:'none', boxShadow:'0 2px 10px rgba(0,85,255,0.25)' }}>
+            Start free
+          </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gray-950 pt-20 pb-24 px-6">
-        {/* Star background */}
-        <div className="absolute inset-0 pointer-events-none">
-          {[...Array(60)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full bg-white"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${0.5 + Math.random() * 1.2}px`,
-                height: `${0.5 + Math.random() * 1.2}px`,
-                opacity: 0.08 + Math.random() * 0.5,
-              }}
-            />
-          ))}
-        </div>
-        {/* Orbs */}
-        <div className="absolute top-10 left-1/4 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.18) 0%, transparent 70%)', filter: 'blur(40px)' }} />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(0,212,170,0.14) 0%, transparent 70%)', filter: 'blur(40px)' }} />
-
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-blue-600/20 text-blue-300 px-4 py-1.5 rounded-full text-xs font-bold mb-6 border border-blue-500/20">
-            <DollarSign className="w-3.5 h-3.5" />
-            Affiliate Program
+      {/* ── HERO ───────────────────────────────────────────────────────────── */}
+      <section className="aff-mesh" style={{ padding:'96px 24px 88px' }}>
+        <div style={{ maxWidth:760, margin:'0 auto', textAlign:'center' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, border:'1px solid rgba(255,107,53,0.3)', borderRadius:100, padding:'6px 16px', marginBottom:40, fontSize:'.75rem', fontWeight:700, color:'#FF6B35', background:'rgba(255,107,53,0.04)' }}>
+            <span style={{ width:7, height:7, borderRadius:'50%', background:'#FF6B35', display:'inline-block', flexShrink:0 }}/>
+            Affiliate Programme
           </div>
-          <h1 className="text-5xl sm:text-6xl font-black text-white leading-tight mb-6">
-            Earn 30% recurring.<br />
-            <span className="text-blue-400">Forever.</span>
+          <h1 className="f-display" style={{ fontSize:'clamp(2.8rem,6vw,5rem)', fontWeight:800, letterSpacing:'-.025em', lineHeight:1.03, marginBottom:24, color:'#0A0A0A' }}>
+            Earn 30% recurring<br/>
+            <span style={{ background:'linear-gradient(135deg,#0044EE,#4D8EFF)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>
+              for every referral.
+            </span>
           </h1>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto leading-relaxed mb-10">
-            Refer freelancers and small business owners to Invonaut. Every month they stay subscribed, you get paid. No cap. No expiry. Just passive income from helping people run their business better.
+          <p style={{ fontSize:'1.15rem', color:'#64748B', lineHeight:1.75, marginBottom:48, maxWidth:540, margin:'0 auto 48px' }}>
+            Refer freelancers and small businesses to Invonaut. Earn 30% of every payment they make, every month, for as long as they stay subscribed. No cap, no expiry.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a
-              href="#apply"
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-black px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              Apply now — it's free <ArrowRight className="w-4 h-4" />
-            </a>
-            <a
-              href="#how-it-works"
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 text-white font-bold px-8 py-4 rounded-xl transition-all"
-            >
-              How it works
+          <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
+            <Link href="/signup" style={{ background:'linear-gradient(135deg,#0044EE,#0066FF)', color:'#fff', padding:'14px 32px', borderRadius:10, fontWeight:700, fontSize:'.95rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8, boxShadow:'0 4px 20px rgba(0,85,255,0.3)' }}>
+              Join the programme <ArrowRight size={16} strokeWidth={2.5}/>
+            </Link>
+            <a href="#earnings" style={{ padding:'14px 24px', borderRadius:10, border:'1px solid #E2E8F0', background:'#fff', fontWeight:600, fontSize:'.9rem', color:'#64748B', textDecoration:'none' }}>
+              See earnings calculator
             </a>
           </div>
         </div>
       </section>
 
-      {/* Stats strip */}
-      <section className="border-b border-gray-100">
-        <div className="max-w-5xl mx-auto grid grid-cols-3 divide-x divide-gray-100">
+      {/* ── HEADLINE STATS ─────────────────────────────────────────────────── */}
+      <div style={{ borderTop:'1px solid #E2E8F0', borderBottom:'1px solid #E2E8F0', background:'#F8FAFF', padding:'32px 24px' }}>
+        <div style={{ maxWidth:840, margin:'0 auto', display:'flex', flexWrap:'wrap', justifyContent:'center', gap:48 }}>
           {[
-            { value: '30%', label: 'Recurring commission', icon: TrendingUp },
-            { value: '90d', label: 'Cookie window', icon: Globe },
-            { value: '$0', label: 'Cost to join', icon: Zap },
-          ].map(({ value, label, icon: Icon }) => (
-            <div key={label} className="py-8 px-6 text-center">
-              <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center mx-auto mb-3">
-                <Icon className="w-4 h-4 text-blue-600" />
-              </div>
-              <p className="text-3xl font-black text-gray-900">{value}</p>
-              <p className="text-sm text-gray-500 mt-1 font-medium">{label}</p>
+            { v:'30%',       l:'Recurring commission on every payment' },
+            { v:'Forever',   l:'No expiry on your referral earnings'   },
+            { v:'$0',        l:'Cost to join — free, always'           },
+            { v:'Monthly',   l:'Payouts sent every 30 days'            },
+          ].map(s => (
+            <div key={s.l} style={{ textAlign:'center' }}>
+              <p className="f-display" style={{ fontSize:'2rem', fontWeight:800, color:'#0055FF', letterSpacing:'-.025em', marginBottom:4 }}>{s.v}</p>
+              <p style={{ fontSize:'.8rem', color:'#64748B', fontWeight:500, maxWidth:160 }}>{s.l}</p>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">How it works</p>
-            <h2 className="text-4xl font-black text-gray-900">Three steps to passive income</h2>
+      {/* ── HOW IT WORKS ───────────────────────────────────────────────────── */}
+      <section style={{ padding:'96px 24px', background:'#fff' }}>
+        <div style={{ maxWidth:1000, margin:'0 auto' }}>
+          <div style={{ marginBottom:64 }}>
+            <p style={{ fontSize:'.72rem', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'#94A3B8', marginBottom:20 }}>How it works</p>
+            <h2 className="f-display" style={{ fontSize:'clamp(1.9rem,4vw,3rem)', fontWeight:800, letterSpacing:'-.022em', lineHeight:1.08, color:'#0A0A0A', maxWidth:480 }}>
+              Three steps to passive income.
+            </h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {STEPS.map(({ icon: Icon, step, title, desc }) => (
-              <div key={step} className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-4.5 h-4.5 text-white" style={{ width: '18px', height: '18px' }} />
-                  </div>
-                  <span className="text-xs font-black text-gray-300 tracking-widest">{step}</span>
+          <div className="steps-grid" style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', border:'1px solid #E2E8F0', borderRadius:16, overflow:'hidden' }}>
+            {HOW_IT_WORKS.map((s, i) => (
+              <div key={i} style={{ padding:'40px 32px', background:'#fff', borderRight:i<2?'1px solid #E2E8F0':'none' }}>
+                <div className="f-display" style={{ fontSize:'2.4rem', fontWeight:800, marginBottom:24, lineHeight:1,
+                  background:'linear-gradient(135deg,#0055FF,#4D8EFF)',
+                  WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text', opacity:.3 }}>
+                  {s.n}
                 </div>
-                <h3 className="text-lg font-black text-gray-900 mb-2">{title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                <p style={{ fontWeight:700, fontSize:'.9rem', color:'#0A0A0A', marginBottom:10, letterSpacing:'-.01em' }}>{s.title}</p>
+                <p style={{ fontSize:'.85rem', color:'#64748B', lineHeight:1.8 }}>{s.body}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Commission breakdown */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">What you earn</p>
-            <h2 className="text-4xl font-black text-gray-900">Every plan. Every month.</h2>
-            <p className="text-gray-500 mt-3 font-medium">You earn 30% of every subscription payment — including annual plans.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5 mb-10">
-            {TIERS.map(({ plan, price, commission, color, bg, border, highlight }) => (
-              <div
-                key={plan}
-                className={`bg-white rounded-2xl border p-6 ${border} ${highlight ? 'ring-2 ring-blue-500/20 shadow-md' : ''} transition-all`}
-              >
-                {highlight && (
-                  <div className="text-xs font-black text-blue-600 uppercase tracking-widest mb-3">Most referred</div>
-                )}
-                <p className="text-sm font-black text-gray-400 uppercase tracking-wider mb-1">{plan}</p>
-                <p className="text-3xl font-black text-gray-900">${price}<span className="text-base font-bold text-gray-400">/mo</span></p>
-                <div className={`mt-4 ${bg} rounded-xl p-3`}>
-                  <p className="text-xs text-gray-500 font-medium">You earn per customer/mo</p>
-                  <p className={`text-2xl font-black ${color} mt-0.5`}>${commission.toFixed(2)}</p>
-                </div>
-                <div className={`mt-3 ${bg} rounded-xl p-3`}>
-                  <p className="text-xs text-gray-500 font-medium">Refer 10 customers → /mo</p>
-                  <p className={`text-xl font-black ${color} mt-0.5`}>${(commission * 10).toFixed(2)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-9 h-9 bg-teal-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <BarChart3 className="w-4.5 h-4.5 text-teal-600" style={{ width: '18px', height: '18px' }} />
-              </div>
-              <div>
-                <p className="font-black text-gray-900 mb-1">Annual plans pay out more</p>
-                <p className="text-sm text-gray-500 leading-relaxed">
-                  When a customer you referred upgrades to an annual plan, your commission is paid out on the full annual value upfront. A single Professional annual customer ($490/yr) pays you <strong className="text-gray-900">$147 in one payment</strong>.
-                </p>
-              </div>
+      {/* ── EARNINGS CALCULATOR ────────────────────────────────────────────── */}
+      <section id="earnings" style={{ padding:'96px 24px', background:'#F8FAFF', borderTop:'1px solid #E2E8F0' }}>
+        <div style={{ maxWidth:900, margin:'0 auto' }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:24, marginBottom:56 }}>
+            <div>
+              <p style={{ fontSize:'.72rem', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'#94A3B8', marginBottom:20 }}>Earnings calculator</p>
+              <h2 className="f-display" style={{ fontSize:'clamp(1.9rem,4vw,3rem)', fontWeight:800, letterSpacing:'-.022em', lineHeight:1.08, color:'#0A0A0A' }}>
+                What 30% actually looks like.
+              </h2>
             </div>
+            <p style={{ fontSize:'.875rem', color:'#64748B', maxWidth:300, lineHeight:1.75 }}>
+              Based on the Professional plan at $49/mo. Business plan referrals earn even more.
+            </p>
+          </div>
+
+          <div className="earn-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:1, background:'#E2E8F0', borderRadius:16, overflow:'hidden' }}>
+            {/* Header */}
+            {['Referrals', 'Monthly earnings', 'Annual earnings', 'Your ROI'].map((h, i) => (
+              <div key={i} style={{ background:'#0A0A0A', padding:'16px 20px' }}>
+                <p style={{ fontSize:'.72rem', fontWeight:700, textTransform:'uppercase', letterSpacing:'.08em', color:'rgba(255,255,255,0.4)' }}>{h}</p>
+              </div>
+            ))}
+            {EARNINGS.map((row, ri) => {
+              const cols = [
+                `${row.refs} people`,
+                row.monthly + '/mo',
+                row.annual + '/yr',
+                'Free',
+              ]
+              return cols.map((val, ci) => (
+                <div key={`${ri}-${ci}`} style={{ background: ri%2===0 ? '#fff' : '#F8FAFF', padding:'18px 20px' }}>
+                  <p style={{ fontSize: ci === 0 ? '.875rem' : '1rem', fontWeight: ci > 0 ? 800 : 600,
+                    color: ci === 1 ? '#0055FF' : ci === 2 ? '#16A34A' : '#0A0A0A',
+                    letterSpacing:'-.01em' }}>
+                    {val}
+                  </p>
+                </div>
+              ))
+            })}
+          </div>
+
+          <p style={{ fontSize:'.8rem', color:'#94A3B8', marginTop:16, textAlign:'center' }}>
+            Earnings compound as referrals upgrade their plan. Business plan ($99/mo) earns you $29.70/mo per referral.
+          </p>
+        </div>
+      </section>
+
+      {/* ── WHO IT'S FOR ───────────────────────────────────────────────────── */}
+      <section style={{ padding:'96px 24px', background:'#fff', borderTop:'1px solid #E2E8F0' }}>
+        <div style={{ maxWidth:1000, margin:'0 auto' }}>
+          <div style={{ marginBottom:64 }}>
+            <p style={{ fontSize:'.72rem', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'#94A3B8', marginBottom:20 }}>Who it's for</p>
+            <h2 className="f-display" style={{ fontSize:'clamp(1.9rem,4vw,3rem)', fontWeight:800, letterSpacing:'-.022em', lineHeight:1.08, color:'#0A0A0A', maxWidth:500 }}>
+              Built for people with an audience.
+            </h2>
+          </div>
+          <div className="who-grid" style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:20 }}>
+            {WHO_FOR.map((w, i) => {
+              const Icon = w.icon
+              return (
+                <div key={i} style={{ padding:'28px 24px', border:'1px solid #E2E8F0', borderRadius:16, background:'#fff', transition:'background .15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFF')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+                  <div style={{ width:40, height:40, borderRadius:10, background:'#EFF6FF', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+                    <Icon size={18} color="#0055FF" />
+                  </div>
+                  <p style={{ fontWeight:700, fontSize:'.875rem', color:'#0A0A0A', marginBottom:8, letterSpacing:'-.01em' }}>{w.title}</p>
+                  <p style={{ fontSize:'.825rem', color:'#64748B', lineHeight:1.75 }}>{w.body}</p>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Who it's for */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Who it's for</p>
-            <h2 className="text-4xl font-black text-gray-900">You probably qualify</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* ── WHAT YOU GET ───────────────────────────────────────────────────── */}
+      <section style={{ padding:'80px 24px', background:'#F8FAFF', borderTop:'1px solid #E2E8F0', borderBottom:'1px solid #E2E8F0' }}>
+        <div style={{ maxWidth:760, margin:'0 auto', textAlign:'center' }}>
+          <p style={{ fontSize:'.72rem', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'#94A3B8', marginBottom:20 }}>What you get</p>
+          <h2 className="f-display" style={{ fontSize:'clamp(1.6rem,3.5vw,2.4rem)', fontWeight:800, letterSpacing:'-.022em', lineHeight:1.1, color:'#0A0A0A', marginBottom:48 }}>
+            Everything you need to promote Invonaut.
+          </h2>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:12, textAlign:'left' }}>
             {[
-              { title: 'Content creators', desc: 'YouTube, blogs, newsletters about freelancing, business, or finance.' },
-              { title: 'Community managers', desc: 'Run a Discord, Slack, or Facebook group of freelancers or entrepreneurs.' },
-              { title: 'Accountants & bookkeepers', desc: 'Refer clients who need better invoicing and cash flow tools.' },
-              { title: 'Business coaches', desc: 'Help clients systematise their finances alongside your coaching.' },
-              { title: 'Course creators', desc: 'Teach freelancing or business skills? Recommend the tools they need.' },
-              { title: 'Anyone with an audience', desc: "If your followers run their own business, they need Invonaut." },
-            ].map(({ title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <Check className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                  <p className="font-black text-gray-900 text-sm">{title}</p>
+              'Unique referral link active immediately after signup',
+              'Real-time dashboard showing clicks, signups, and earnings',
+              'Monthly payouts via PayPal or bank transfer',
+              'Pre-written email and social copy you can use directly',
+              'Landing page assets and product screenshots',
+              '30-day cookie window — credit even if they sign up later',
+              'Dedicated affiliate support via email',
+              'Access to new features first for genuine reviews',
+            ].map((feat, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12, padding:'14px 16px', background:'#fff', borderRadius:10, border:'1px solid #E2E8F0' }}>
+                <div style={{ width:20, height:20, borderRadius:'50%', background:'#EFF6FF', border:'1px solid #BFDBFE', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1 }}>
+                  <Check size={11} color="#0055FF" strokeWidth={3}/>
                 </div>
-                <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
+                <p style={{ fontSize:'.825rem', color:'#374151', lineHeight:1.6 }}>{feat}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 px-6 bg-gray-50">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">FAQ</p>
-            <h2 className="text-4xl font-black text-gray-900">Common questions</h2>
-          </div>
-          <div className="space-y-2">
-            {FAQS.map((faq, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-                >
-                  <span className="font-black text-gray-900 text-sm pr-4">{faq.q}</span>
-                  {openFaq === i
-                    ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />}
-                </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-5">
-                    <p className="text-sm text-gray-600 leading-relaxed">{faq.a}</p>
-                  </div>
-                )}
+      {/* ── FAQ ────────────────────────────────────────────────────────────── */}
+      <section style={{ padding:'88px 24px', background:'#fff' }}>
+        <div style={{ maxWidth:680, margin:'0 auto' }}>
+          <p style={{ fontSize:'.72rem', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase', color:'#94A3B8', marginBottom:20 }}>FAQ</p>
+          <h2 className="f-display" style={{ fontSize:'clamp(1.6rem,3.5vw,2.4rem)', fontWeight:800, letterSpacing:'-.022em', color:'#0A0A0A', marginBottom:48 }}>
+            Common questions.
+          </h2>
+          <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+            {[
+              { q: 'When do I get paid?',
+                a: 'Payouts go out monthly, within the first 5 business days of each month, for the previous month\'s confirmed earnings.' },
+              { q: 'What counts as a confirmed referral?',
+                a: 'Someone who signs up through your link and completes at least one paid billing cycle. Trial users are not counted until they pay.' },
+              { q: 'What if my referral upgrades their plan?',
+                a: 'You earn 30% of whatever they pay. If they start on Starter ($19/mo) and upgrade to Business ($99/mo), your commission increases automatically.' },
+              { q: 'Is there a limit to how much I can earn?',
+                a: 'None. Refer 1 person or 10,000 — the 30% rate applies to all of them, forever.' },
+              { q: 'What if my referral cancels and resubscribes?',
+                a: 'If they resubscribe within 90 days using any link, you retain credit. After 90 days, the cookie resets.' },
+              { q: 'Can I refer my own account?',
+                a: 'Self-referrals are not eligible for commission. The programme is for referring other businesses and individuals.' },
+            ].map((faq, i, arr) => (
+              <div key={i} style={{ padding:'24px 0', borderBottom: i < arr.length-1 ? '1px solid #E2E8F0' : 'none' }}>
+                <p style={{ fontWeight:700, fontSize:'.925rem', color:'#0A0A0A', marginBottom:8, letterSpacing:'-.01em' }}>{faq.q}</p>
+                <p style={{ fontSize:'.875rem', color:'#64748B', lineHeight:1.75 }}>{faq.a}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Application form */}
-      <section id="apply" className="py-20 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-3">Apply now</p>
-            <h2 className="text-4xl font-black text-gray-900">Join the program</h2>
-            <p className="text-gray-500 mt-3">We review every application within 2–3 business days.</p>
-          </div>
-
-          {status === 'success' ? (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-teal-50 border border-teal-100 rounded-2xl p-10 text-center"
-            >
-              <div className="w-14 h-14 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Check className="w-7 h-7 text-teal-600" />
-              </div>
-              <h3 className="text-2xl font-black text-gray-900 mb-2">Application received</h3>
-              <p className="text-gray-600 font-medium">We'll review your application and get back to you within 2–3 business days. Check your inbox for a confirmation email.</p>
-            </motion.div>
-          ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 p-8 space-y-5">
-              <div className="grid sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Full Name <span className="text-red-500">*</span></label>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white placeholder-gray-400"
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Email <span className="text-red-500">*</span></label>
-                  <input
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white placeholder-gray-400"
-                    placeholder="you@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Website / Social Profile</label>
-                <input
-                  type="url"
-                  value={form.website}
-                  onChange={(e) => setForm({ ...form, website: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white placeholder-gray-400"
-                  placeholder="https://yoursite.com or @handle"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Describe your audience</label>
-                <input
-                  type="text"
-                  value={form.audience}
-                  onChange={(e) => setForm({ ...form, audience: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white placeholder-gray-400"
-                  placeholder="e.g. 5k newsletter subscribers, freelance designers"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Why do you want to be an affiliate?</label>
-                <textarea
-                  value={form.reason}
-                  onChange={(e) => setForm({ ...form, reason: e.target.value })}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-gray-900 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white placeholder-gray-400 resize-none"
-                  placeholder="Tell us how you'd promote Invonaut..."
-                />
-              </div>
-
-              {status === 'error' && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-700 text-xs font-medium">
-                  Something went wrong. Please try again or email kamohelo.thakhisi@gmail.com directly.
-                </div>
-              )}
-
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={!form.name || !form.email || status === 'submitting'}
-                className="w-full btn-primary py-3.5 rounded-xl font-black text-base disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {status === 'submitting' ? 'Submitting...' : 'Submit Application'}
-              </button>
-
-              <p className="text-xs text-gray-400 text-center">
-                By applying you agree to our affiliate terms. Free to join, cancel any time.
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-950 text-gray-400 py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/invonaut-logo.png" alt="Invonaut" className="w-6 h-6" />
-            <span className="text-sm font-black text-white">Invonaut</span>
+      {/* ── CTA ────────────────────────────────────────────────────────────── */}
+      <section style={{ background:'linear-gradient(145deg,#002ECC 0%,#0044EE 35%,#0055FF 65%,#003DCC 100%)', padding:'96px 24px', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 70% 70% at 110% -10%,rgba(255,107,53,0.12) 0%,transparent 55%)', pointerEvents:'none' }}/>
+        <div style={{ maxWidth:640, margin:'0 auto', textAlign:'center', position:'relative' }}>
+          <h2 className="f-display" style={{ fontSize:'clamp(2.2rem,5vw,3.8rem)', fontWeight:800, letterSpacing:'-.025em', lineHeight:1.05, color:'#fff', marginBottom:24 }}>
+            Turn your audience into income.
+          </h2>
+          <p style={{ fontSize:'1.05rem', color:'rgba(255,255,255,0.55)', lineHeight:1.8, marginBottom:44, maxWidth:440, margin:'0 auto 44px' }}>
+            Join the affiliate programme for free. Start earning 30% recurring commission the moment your first referral subscribes.
+          </p>
+          <Link href="/signup" style={{ background:'#fff', color:'#0044EE', padding:'15px 40px', borderRadius:10, fontWeight:800, fontSize:'1rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:10, boxShadow:'0 4px 24px rgba(0,0,0,0.2)' }}>
+            Join free — start earning <ArrowRight size={17} strokeWidth={2.5}/>
           </Link>
-          <p className="text-xs">© {new Date().getFullYear()} Invonaut. All rights reserved.</p>
-          <div className="flex items-center gap-5 text-sm">
-            <Link href="/" className="hover:text-white transition-colors">Home</Link>
-            <Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-            <Link href="/help" className="hover:text-white transition-colors">Help</Link>
+          <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'.75rem', marginTop:18 }}>
+            Free to join · No approval required · Payouts every month
+          </p>
+        </div>
+      </section>
+
+      {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
+      <footer style={{ background:'#030712', padding:'40px 24px', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ maxWidth:1000, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16 }}>
+          <span className="f-display" style={{ fontSize:'1rem', fontWeight:700, color:'rgba(255,255,255,0.4)' }}>Invonaut</span>
+          <div style={{ display:'flex', gap:24 }}>
+            {[{href:'/',l:'Home'},{href:'/pricing',l:'Pricing'},{href:'/help',l:'Help'},{href:'/privacy',l:'Privacy'},{href:'/terms',l:'Terms'}].map(lk => (
+              <Link key={lk.href} href={lk.href} style={{ fontSize:'.8rem', color:'rgba(255,255,255,0.3)', textDecoration:'none', transition:'color .15s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}>
+                {lk.l}
+              </Link>
+            ))}
           </div>
+          <p style={{ fontSize:'.75rem', color:'rgba(255,255,255,0.2)' }}>© {new Date().getFullYear()} Invonaut</p>
         </div>
       </footer>
     </div>
