@@ -7,14 +7,15 @@ import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Loader2, CheckCircle, Zap } from 'lucide-react'
+import { Loader2, ArrowRight } from 'lucide-react'
+import OAuthButtons from '@/components/auth/oauth-buttons'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
+  const router   = useRouter()
+  const [email,    setEmail]    = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loginSuccess, setLoginSuccess] = useState(false)
+  const [loading,  setLoading]  = useState(false)
+  const [done,     setDone]     = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,61 +24,97 @@ export default function LoginPage() {
       const supabase = createClient()
       const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) {
-        if (error.message.includes('Invalid login credentials')) toast.error('Invalid email or password. Please try again.')
-        else if (error.message.includes('Email not confirmed'))  toast.error('Please verify your email before logging in.')
+        if (error.message.includes('Invalid login credentials')) toast.error('Incorrect email or password.')
+        else if (error.message.includes('Email not confirmed'))  toast.error('Please verify your email first.')
         else toast.error(error.message)
         setLoading(false)
         return
       }
       if (data.user) {
-        setLoginSuccess(true)
-        setTimeout(() => { router.push('/dashboard'); router.refresh() }, 1500)
+        setDone(true)
+        setTimeout(() => { router.push('/dashboard'); router.refresh() }, 800)
       }
-    } catch { toast.error('An unexpected error occurred.'); setLoading(false) }
+    } catch { toast.error('Something went wrong. Please try again.'); setLoading(false) }
   }
 
-  if (loading || loginSuccess) return (
-    <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex flex-col items-center gap-5 text-center">
-        {loginSuccess
-          ? <><div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center"><CheckCircle className="w-8 h-8 text-teal-600" /></div><p className="text-xl font-black text-gray-900">Welcome back!</p><p className="text-gray-500 text-sm font-medium">Taking you to your dashboard…</p></>
-          : <><Loader2 className="w-10 h-10 text-blue-600 animate-spin" /><p className="text-gray-600 font-medium text-sm">Signing you in…</p></>
-        }
+  if (done) return (
+    <div style={{ textAlign: 'center', paddingTop: 40 }}>
+      <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <ArrowRight size={20} color="#16A34A" />
       </div>
+      <p style={{ fontFamily: "'Fraunces', serif", fontSize: '1.3rem', fontWeight: 700, color: '#0A0A0A', marginBottom: 6 }}>Signing you in…</p>
+      <p style={{ fontSize: '.85rem', color: '#64748B' }}>Taking you to your dashboard.</p>
     </div>
   )
 
   return (
-    <>
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">Welcome back</h1>
-        <p className="text-gray-500 font-medium text-sm">Sign in to your Invonaut account</p>
+    <div>
+      {/* Heading */}
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '2rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 8 }}>
+        Welcome back.
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', marginBottom: 32 }}>
+        Don't have an account?{' '}
+        <Link href="/signup" style={{ color: '#0055FF', fontWeight: 600, textDecoration: 'none' }}>Sign up free</Link>
+      </p>
+
+      {/* OAuth */}
+      <OAuthButtons redirectTo="/dashboard" />
+
+      {/* Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+        <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+        <span style={{ fontSize: '.75rem', color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap' }}>or continue with email</span>
+        <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-5">
+      {/* Form */}
+      <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <label htmlFor="email" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email</label>
-          <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com" required disabled={loading} className="h-11" />
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>
+            Email address
+          </label>
+          <Input
+            type="email" value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="you@example.com" required autoComplete="email"
+            style={{ width: '100%' }}
+          />
         </div>
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <label htmlFor="password" className="block text-xs font-bold text-gray-500 uppercase tracking-widest">Password</label>
-            <Link href="/forgot-password" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">Forgot password?</Link>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label style={{ fontSize: '.78rem', fontWeight: 700, color: '#374151' }}>Password</label>
+            <Link href="/forgot-password" style={{ fontSize: '.75rem', color: '#0055FF', fontWeight: 600, textDecoration: 'none' }}>
+              Forgot password?
+            </Link>
           </div>
-          <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="Enter your password" required disabled={loading} className="h-11" />
+          <PasswordInput
+            id="password" value={password} onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••" required autoComplete="current-password"
+            className="w-full"
+          />
         </div>
-        <button type="submit" disabled={loading}
-          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-2">
-          {loading ? 'Signing in…' : 'Sign In →'}
+
+        <button
+          type="submit" disabled={loading}
+          style={{
+            width: '100%', padding: '13px', borderRadius: 10, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+            background: 'linear-gradient(135deg, #0044EE, #0066FF)', color: '#fff',
+            fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '.9rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: '0 4px 16px rgba(0,85,255,0.3)', opacity: loading ? 0.7 : 1,
+            marginTop: 4,
+          }}
+        >
+          {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+          {loading ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-8">
-        No account?{' '}
-        <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">Create one free →</Link>
+      <p style={{ fontSize: '.72rem', color: '#94A3B8', textAlign: 'center', marginTop: 24, lineHeight: 1.6 }}>
+        By signing in you agree to our{' '}
+        <Link href="/terms"   style={{ color: '#64748B', textDecoration: 'underline' }}>Terms</Link> and{' '}
+        <Link href="/privacy" style={{ color: '#64748B', textDecoration: 'underline' }}>Privacy Policy</Link>.
       </p>
-    </>
+    </div>
   )
 }

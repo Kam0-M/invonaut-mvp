@@ -1,141 +1,117 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
-import { Zap, FileCheck, Bot, TrendingUp, Shield } from 'lucide-react'
+import { Check } from 'lucide-react'
 
-const PROPS = [
-  { Icon: FileCheck, title: 'Contracts & e-signatures',  sub: 'Send, sign, and track — expiry reminders automated' },
-  { Icon: Bot,       title: 'AI-powered follow-ups',     sub: 'Overdue invoices chased automatically at 9am daily' },
-  { Icon: TrendingUp,title: '90-day cash flow forecast', sub: 'Know your runway before you run out of it' },
+const VALUE_PROPS = [
+  { title: 'Invoices followed up automatically',   sub: 'AI risk-scores every invoice and fires reminders at 9am daily' },
+  { title: 'Contracts with built-in e-signatures', sub: 'Six templates, 19 clauses, expiry alerts — nothing slips' },
+  { title: '90-day cash flow forecast',             sub: 'Know your runway before it becomes a problem' },
+  { title: 'Every dollar captured',                 sub: 'Invoiced, cash, POS, mobile — all income in one place' },
 ]
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen flex relative">
+    <div style={{ minHeight: '100vh', display: 'flex', position: 'relative', fontFamily: "'DM Sans', sans-serif" }}>
+      {/* Google Fonts */}
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+      <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&display=swap" rel="stylesheet" />
 
-      {/* ── Left panel — brand ────────────────────────────────────────────── */}
+      {/* ── Left panel ─────────────────────────────────────────────────────── */}
       <div
         className="hidden lg:flex lg:w-5/12 xl:w-[42%] flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: 'linear-gradient(145deg, #0a0f1e 0%, #0f1a2e 40%, #0d1f3c 100%)' }}
+        style={{
+          background: 'linear-gradient(145deg, #002ECC 0%, #0044EE 35%, #0055FF 65%, #003DCC 100%)',
+        }}
       >
-        {/* Starfield */}
-        <div className="absolute inset-0 pointer-events-none" style={{
-          backgroundImage: [
-            'radial-gradient(circle, rgba(255,255,255,0.60) 0.5px, transparent 0.5px)',
-            'radial-gradient(circle, rgba(255,255,255,0.20) 0.8px, transparent 0.8px)',
-            'radial-gradient(circle, rgba(255,255,255,0.07) 0.4px, transparent 0.4px)',
-            'radial-gradient(circle, rgba(255,255,255,0.45) 1px, transparent 1px)',
-            'radial-gradient(circle, rgba(255,255,255,0.75) 0.6px, transparent 0.6px)',
+        {/* Gradient mesh overlay — same as landing CTA */}
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: [
+            'radial-gradient(ellipse 70% 70% at 110% -5%, rgba(0,196,160,0.18) 0%, transparent 55%)',
+            'radial-gradient(ellipse 50% 50% at -10% 110%, rgba(255,255,255,0.05) 0%, transparent 55%)',
           ].join(', '),
-          backgroundSize: '90px 90px, 130px 130px, 22px 22px, 170px 170px, 220px 220px',
-          backgroundPosition: '0 0, 20px 44px, 0 0, 60px 80px, 110px 30px',
         }} />
 
-        {/* Orbs — no opacity prop, colour transparency in gradient only */}
-        <div className="auth-orb-a absolute top-[12%] right-[8%] w-72 h-72 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.55) 0%, transparent 65%)', filter: 'blur(44px)' }} />
-        <div className="auth-orb-b absolute bottom-[15%] left-[3%] w-60 h-60 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,212,170,0.45) 0%, transparent 65%)', filter: 'blur(40px)' }} />
-        <div className="auth-orb-c absolute top-[45%] left-[30%] w-52 h-52 pointer-events-none"
-          style={{ background: 'radial-gradient(circle, rgba(0,102,255,0.22) 0%, transparent 60%)', filter: 'blur(52px)' }} />
-
         {/* Logo */}
-        <div className="relative z-10">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center"
-              style={{ boxShadow: '0 0 20px rgba(0,102,255,0.5)' }}>
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-xl font-black text-white tracking-tight">Invonaut</span>
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontSize: '1.4rem', fontWeight: 700, color: '#fff', letterSpacing: '-.02em' }}>
+              Invonaut
+            </span>
           </Link>
         </div>
 
-        {/* Value props */}
-        <div className="relative z-10 space-y-10">
-          <div>
-            <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-3">Autonomous Finance OS</p>
-            <h2 className="text-3xl font-black text-white leading-[1.15] tracking-tight">
-              From contract<br />to cash.<br />
-              <span className="text-blue-400">Automated.</span>
-            </h2>
-            <p className="text-gray-400 font-medium mt-4 leading-relaxed text-sm max-w-xs">
-              The only platform that captures all your income, chases late payments, and forecasts your cash flow without you lifting a finger.
-            </p>
-          </div>
-          <div className="space-y-4">
-            {PROPS.map((p, i) => (
-              <div key={i} className="flex items-start gap-3.5">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                  style={{ backgroundColor: 'rgba(0,102,255,0.18)', border: '1px solid rgba(0,102,255,0.25)' }}>
-                  <p.Icon className="w-4 h-4 text-blue-400" />
+        {/* Headline + value props */}
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <p style={{ fontSize: '.72rem', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)', marginBottom: 18 }}>
+            Autonomous Finance OS
+          </p>
+          <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: 'clamp(1.9rem, 2.8vw, 2.6rem)', fontWeight: 800, color: '#fff', lineHeight: 1.08, letterSpacing: '-.025em', marginBottom: 40 }}>
+            From contract<br />to cash.<br />
+            <span style={{ opacity: .65 }}>Automated.</span>
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 48 }}>
+            {VALUE_PROPS.map((p, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 1 }}>
+                  <Check size={11} color="#fff" strokeWidth={3} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">{p.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{p.sub}</p>
+                  <p style={{ fontSize: '.875rem', fontWeight: 700, color: '#fff', marginBottom: 3 }}>{p.title}</p>
+                  <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,0.45)', lineHeight: 1.5 }}>{p.sub}</p>
                 </div>
               </div>
             ))}
           </div>
-          <div className="flex gap-6">
-            {[['9','automations'],['$0','setup cost'],['3','plan tiers']].map(([n,l]) => (
+
+          {/* Stats */}
+          <div style={{ display: 'flex', gap: 32 }}>
+            {[['8', 'daily automations'], ['14 days', 'free trial'], ['$0', 'setup cost']].map(([n, l]) => (
               <div key={l}>
-                <p className="text-xl font-black text-white">{n}</p>
-                <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">{l}</p>
+                <p style={{ fontFamily: "'Fraunces', serif", fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-.02em', marginBottom: 2 }}>{n}</p>
+                <p style={{ fontSize: '.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: 'rgba(255,255,255,0.35)' }}>{l}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-3">
-            <Shield className="w-3.5 h-3.5 text-gray-600" />
-            <p className="text-xs text-gray-600 font-medium">Free tier available · No credit card required</p>
-          </div>
-          <div className="flex gap-3">
-            {['Supabase','Stripe','OpenAI'].map(t => (
-              <span key={t} className="text-[10px] font-bold text-gray-700 bg-white/[0.05] px-2 py-1 rounded-md border border-white/[0.07]">{t}</span>
+        <div style={{ position: 'relative', zIndex: 10 }}>
+          <p style={{ fontSize: '.75rem', color: 'rgba(255,255,255,0.3)', marginBottom: 12 }}>
+            No credit card required · Cancel anytime
+          </p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {['Supabase', 'Stripe', 'OpenAI'].map(t => (
+              <span key={t} style={{ fontSize: '.65rem', fontWeight: 700, color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.06)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(255,255,255,0.08)' }}>
+                {t}
+              </span>
             ))}
           </div>
         </div>
       </div>
 
-      {/* ── Vertical wave art — seam between dark and white ──────────────────── */}
+      {/* ── Wave seam ──────────────────────────────────────────────────────── */}
       <div className="hidden lg:block absolute top-0 bottom-0 z-20 pointer-events-none"
         style={{ left: 'calc(42% - 28px)', width: '56px' }}>
         <svg viewBox="0 0 56 1000" xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-          {/* Main wave — white fill coming from the right */}
-          <path fill="white"
-            d="M56,0 L56,1000 L28,1000
-               C22,870  38,750  26,620
-               C14,490  36,370  22,240
-               C8,110   34,55   28,0 Z" />
-          {/* Mid shimmer layer */}
-          <path fill="rgba(255,255,255,0.25)"
-            d="M56,0 L56,1000 L38,1000
-               C32,880  48,730  36,590
-               C24,450  44,320  32,180
-               C20,80   44,30   38,0 Z" />
-          {/* Faint leading edge */}
-          <path fill="rgba(255,255,255,0.08)"
-            d="M56,0 L56,1000 L20,1000
-               C10,900  30,760  16,620
-               C2,480   26,340  12,200
-               C-2,90   22,40   20,0 Z" />
+          preserveAspectRatio="none" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+          <path fill="white" d="M56,0 L56,1000 L28,1000 C22,870 38,750 26,620 C14,490 36,370 22,240 C8,110 34,55 28,0 Z"/>
+          <path fill="rgba(255,255,255,0.25)" d="M56,0 L56,1000 L38,1000 C32,880 48,730 36,590 C24,450 44,320 32,180 C20,80 44,30 38,0 Z"/>
+          <path fill="rgba(255,255,255,0.07)" d="M56,0 L56,1000 L20,1000 C10,900 30,760 16,620 C2,480 26,340 12,200 C-2,90 22,40 20,0 Z"/>
         </svg>
       </div>
 
-      {/* ── Right panel — form ────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center bg-white px-6 py-12 min-h-screen">
-        <div className="lg:hidden mb-10 w-full max-w-sm">
-          <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-xl font-black text-gray-900">Invonaut</span>
+      {/* ── Right panel — form ─────────────────────────────────────────────── */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#fff', padding: '48px 24px', minHeight: '100vh' }}>
+        {/* Mobile logo */}
+        <div className="lg:hidden" style={{ marginBottom: 40, width: '100%', maxWidth: 360 }}>
+          <Link href="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontSize: '1.25rem', fontWeight: 700, color: '#0A0A0A' }}>Invonaut</span>
           </Link>
         </div>
-        <div className="w-full max-w-sm">
+        <div style={{ width: '100%', maxWidth: 360 }}>
           {children}
         </div>
       </div>

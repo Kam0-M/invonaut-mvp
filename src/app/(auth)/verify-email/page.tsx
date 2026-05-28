@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Mail, RefreshCw, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Mail, RefreshCw, Check, ArrowLeft } from 'lucide-react'
 
 export default function VerifyEmailPage() {
   const [resending, setResending] = useState(false)
-  const [resent, setResent] = useState(false)
+  const [resent,    setResent]    = useState(false)
 
   const handleResend = async () => {
     setResending(true)
@@ -19,66 +19,45 @@ export default function VerifyEmailPage() {
       const { error } = await supabase.auth.resend({ type: 'signup', email: user.email })
       if (error) { toast.error(error.message); return }
       setResent(true)
-      setTimeout(() => setResent(false), 4000)
+      setTimeout(() => setResent(false), 5000)
     } catch { toast.error('Failed to resend. Please try again.') }
     finally { setResending(false) }
   }
 
   return (
-    <>
-      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 transition-colors ${resent ? 'bg-teal-50' : 'bg-blue-50'}`}>
+    <div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: resent ? '#F0FDF4' : '#EFF6FF', border: `1px solid ${resent ? '#BBF7D0' : '#BFDBFE'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, transition: 'all .2s' }}>
         {resent
-          ? <CheckCircle className="w-6 h-6 text-teal-600" />
-          : <Mail className="w-6 h-6 text-blue-600" />
+          ? <Check size={22} color="#16A34A" strokeWidth={2.5} />
+          : <Mail size={20} color="#0055FF" />
         }
       </div>
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">
-          {resent ? 'Email sent!' : 'Verify your email'}
-        </h1>
-        <p className="text-gray-500 text-sm font-medium">
-          {resent
-            ? 'Check your inbox for a new verification link.'
-            : "We sent a verification link to your email. Click it to activate your account."
-          }
-        </p>
-      </div>
-
-      <div className="bg-gray-50 rounded-xl border border-gray-100 p-5 mb-6">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">What to do</p>
-        <div className="space-y-3">
-          {[
-            { n: '1', text: 'Check your inbox (and spam folder)' },
-            { n: '2', text: 'Click the "Verify email" button in the email' },
-            { n: '3', text: "You'll be redirected to your dashboard" },
-          ].map(s => (
-            <div key={s.n} className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5">{s.n}</span>
-              <span className="text-sm text-gray-600 font-medium">{s.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.9rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 12 }}>
+        {resent ? 'Email sent again.' : 'Verify your email.'}
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.75, marginBottom: 32 }}>
+        {resent
+          ? 'We sent another confirmation link. Check your inbox and spam folder.'
+          : "We sent a confirmation link to your email. Click it to activate your account. Check your spam folder if you don't see it."
+        }
+      </p>
 
       <button
-        onClick={handleResend}
-        disabled={resending || resent}
-        className="w-full flex items-center justify-center gap-2 border border-gray-200 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 hover:-translate-y-0.5 hover:shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+        onClick={handleResend} disabled={resending || resent}
+        style={{ width: '100%', padding: '13px', borderRadius: 10, border: '1px solid #E2E8F0', background: '#fff', cursor: resending || resent ? 'not-allowed' : 'pointer', fontFamily: "'DM Sans',sans-serif", fontWeight: 600, fontSize: '.875rem', color: '#374151', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: resending || resent ? 0.6 : 1, transition: 'background .15s' }}
+        onMouseEnter={e => { if (!resending && !resent) e.currentTarget.style.background = '#F8FAFF' }}
+        onMouseLeave={e => { e.currentTarget.style.background = '#fff' }}
       >
-        <RefreshCw className={`w-4 h-4 ${resending ? 'animate-spin' : ''}`} />
-        {resending ? 'Resending…' : resent ? 'Email resent ✓' : 'Resend verification email'}
+        <RefreshCw size={15} style={{ animation: resending ? 'spin 1s linear infinite' : 'none' }} />
+        {resending ? 'Sending…' : resent ? 'Email sent ✓' : 'Resend confirmation email'}
       </button>
 
-      <div className="flex items-center justify-center gap-6 mt-2">
-        <Link href="/login" className="flex items-center gap-1.5 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Back to login
-        </Link>
-        <span className="text-gray-200">|</span>
-        <Link href="/signup" className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
-          Wrong email? Sign up again
+      <div style={{ marginTop: 24 }}>
+        <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.85rem', color: '#64748B', fontWeight: 600, textDecoration: 'none' }}>
+          <ArrowLeft size={14} /> Back to sign in
         </Link>
       </div>
-    </>
+    </div>
   )
 }

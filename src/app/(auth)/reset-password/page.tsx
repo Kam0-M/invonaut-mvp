@@ -6,117 +6,94 @@ import { createClient } from '@/lib/supabase/client'
 import { PasswordInput } from '@/components/ui/password-input'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { KeyRound, CheckCircle, Loader2, XCircle } from 'lucide-react'
+import { KeyRound, Check, Loader2, AlertCircle } from 'lucide-react'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [resetComplete, setResetComplete] = useState(false)
-  const [validSession, setValidSession] = useState<boolean | null>(null)
+  const [password,   setPassword]   = useState('')
+  const [confirm,    setConfirm]    = useState('')
+  const [loading,    setLoading]    = useState(false)
+  const [done,       setDone]       = useState(false)
+  const [validSession, setValid]    = useState<boolean | null>(null)
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getSession().then(({ data }) => {
-      setValidSession(!!data.session)
-    })
+    createClient().auth.getSession().then(({ data }) => setValid(!!data.session))
   }, [])
 
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault()
     if (password.length < 8) { toast.error('Password must be at least 8 characters.'); return }
-    if (password !== confirmPassword) { toast.error('Passwords must match.'); return }
-
+    if (password !== confirm) { toast.error('Passwords must match.'); return }
     setLoading(true)
     try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.updateUser({ password })
+      const { error } = await createClient().auth.updateUser({ password })
       if (error) { toast.error(error.message); return }
-      setResetComplete(true)
-      setTimeout(() => { router.push('/dashboard'); router.refresh() }, 2500)
-    } catch { toast.error('Failed to reset password. Please try again.') }
+      setDone(true)
+      setTimeout(() => { router.push('/dashboard'); router.refresh() }, 2000)
+    } catch { toast.error('Failed to reset password.') }
     finally { setLoading(false) }
   }
 
   if (validSession === null) return (
-    <div className="flex flex-col items-center gap-4 py-8">
-      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-      <p className="text-sm text-gray-500 font-medium">Verifying reset link…</p>
+    <div style={{ textAlign: 'center', paddingTop: 40 }}>
+      <Loader2 size={24} style={{ animation: 'spin 1s linear infinite', color: '#0055FF', margin: '0 auto' }} />
     </div>
   )
 
-  if (validSession === false) return (
-    <>
-      <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center mb-6">
-        <XCircle className="w-6 h-6 text-red-500" />
+  if (!validSession) return (
+    <div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: '#FEF2F2', border: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        <AlertCircle size={22} color="#DC2626" />
       </div>
-      <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Link expired</h1>
-      <p className="text-gray-500 text-sm font-medium mb-8">
-        This password reset link has expired or has already been used. Request a new one.
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.9rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 12 }}>Link expired.</h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.7, marginBottom: 28 }}>
+        This password reset link has expired or already been used. Request a new one.
       </p>
-      <Link href="/forgot-password"
-        className="w-full btn-primary py-3 rounded-xl font-bold text-sm text-center block">
-        Request New Link →
+      <Link href="/forgot-password" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '13px', borderRadius: 10, background: 'linear-gradient(135deg,#0044EE,#0066FF)', color: '#fff', fontWeight: 700, fontSize: '.9rem', textDecoration: 'none', boxShadow: '0 4px 16px rgba(0,85,255,0.3)' }}>
+        Request a new link
       </Link>
-      <Link href="/login"
-        className="block text-center text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors mt-5">
-        Back to login
-      </Link>
-    </>
+    </div>
   )
 
-  if (resetComplete) return (
-    <div className="flex flex-col items-center text-center gap-4 py-8">
-      <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center">
-        <CheckCircle className="w-8 h-8 text-teal-600" />
+  if (done) return (
+    <div style={{ textAlign: 'center', paddingTop: 40 }}>
+      <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F0FDF4', border: '2px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+        <Check size={22} color="#16A34A" strokeWidth={3} />
       </div>
-      <h1 className="text-2xl font-black text-gray-900 tracking-tight">Password updated!</h1>
-      <p className="text-gray-500 text-sm font-medium">Redirecting you to your dashboard…</p>
-      <Loader2 className="w-5 h-5 text-blue-600 animate-spin mt-2" />
+      <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.6rem', fontWeight: 800, color: '#0A0A0A', marginBottom: 10 }}>Password updated.</h2>
+      <p style={{ fontSize: '.875rem', color: '#64748B' }}>Taking you to your dashboard…</p>
     </div>
   )
 
   return (
-    <>
-      <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-        <KeyRound className="w-6 h-6 text-blue-600" />
+    <div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        <KeyRound size={20} color="#0055FF" />
       </div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">Set new password</h1>
-        <p className="text-gray-500 text-sm font-medium">Choose a strong password for your account.</p>
-      </div>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.9rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 10 }}>
+        Choose a new password.
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.7, marginBottom: 32 }}>
+        Pick something strong that you haven't used before.
+      </p>
 
-      <form onSubmit={handleReset} className="space-y-5">
+      <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <label htmlFor="password" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">New Password</label>
-          <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)}
-            placeholder="8+ characters" required disabled={loading} className="h-11" />
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>New password</label>
+          <PasswordInput id="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="8+ characters" required autoComplete="new-password" className="w-full" />
         </div>
         <div>
-          <label htmlFor="confirmPassword" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
-          <PasswordInput id="confirmPassword" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Confirm new password" required disabled={loading} className="h-11" />
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Confirm new password</label>
+          <PasswordInput id="confirm" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="Same password again" required autoComplete="new-password" className="w-full" />
         </div>
-
-        <div className="bg-gray-50 rounded-xl border border-gray-100 p-3">
-          <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Requirements</p>
-          {[
-            { label: '8+ characters',    met: password.length >= 8 },
-            { label: 'Passwords match',   met: password === confirmPassword && confirmPassword.length > 0 },
-          ].map(r => (
-            <div key={r.label} className="flex items-center gap-2 mb-1 last:mb-0">
-              <div className={`w-1.5 h-1.5 rounded-full ${r.met ? 'bg-teal-500' : 'bg-gray-300'}`} />
-              <span className={`text-xs font-medium ${r.met ? 'text-teal-700' : 'text-gray-400'}`}>{r.label}</span>
-            </div>
-          ))}
-        </div>
-
-        <button type="submit" disabled={loading}
-          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-          {loading ? 'Updating…' : 'Update Password →'}
+        <button
+          type="submit" disabled={loading}
+          style={{ width: '100%', padding: '13px', borderRadius: 10, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg,#0044EE,#0066FF)', color: '#fff', fontFamily: "'DM Sans',sans-serif", fontWeight: 700, fontSize: '.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,85,255,0.3)', opacity: loading ? 0.7 : 1, marginTop: 4 }}
+        >
+          {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+          {loading ? 'Updating…' : 'Update password'}
         </button>
       </form>
-    </>
+    </div>
   )
 }

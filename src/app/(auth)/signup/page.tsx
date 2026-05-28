@@ -6,113 +6,141 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, CheckCircle } from 'lucide-react'
+import { Loader2, Check } from 'lucide-react'
+import OAuthButtons from '@/components/auth/oauth-buttons'
 
-type FormData = { fullName: string; email: string; password: string; confirmPassword: string }
-type FormErrors = { fullName?: string; email?: string; password?: string; confirmPassword?: string; general?: string }
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+type F = { fullName: string; email: string; password: string; confirm: string }
+type E = Partial<Record<keyof F | 'general', string>>
+
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function SignupPage() {
   const router = useRouter()
-  const supabase = createClient()
-  const [formData, setFormData] = useState<FormData>({ fullName: '', email: '', password: '', confirmPassword: '' })
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [form,    setForm]    = useState<F>({ fullName: '', email: '', password: '', confirm: '' })
+  const [errors,  setErrors]  = useState<E>({})
+  const [loading, setLoading] = useState(false)
+  const [done,    setDone]    = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  const set = (k: keyof F) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(p => ({ ...p, [k]: e.target.value }))
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setErrors({})
-    const v: FormErrors = {}
-    if (!formData.fullName.trim())                                v.fullName = 'Full name is required.'
-    if (!emailPattern.test(formData.email))                      v.email = 'Enter a valid email address.'
-    if (formData.password.length < 8)                            v.password = 'Password must be at least 8 characters.'
-    if (formData.password !== formData.confirmPassword)          v.confirmPassword = 'Passwords must match.'
-    if (Object.keys(v).length > 0) { setErrors(v); return }
+    const v: E = {}
+    if (!form.fullName.trim())          v.fullName = 'Your name is required.'
+    if (!emailRe.test(form.email))      v.email    = 'Enter a valid email address.'
+    if (form.password.length < 8)       v.password = 'At least 8 characters.'
+    if (form.password !== form.confirm) v.confirm  = 'Passwords must match.'
+    if (Object.keys(v).length) { setErrors(v); return }
 
-    setIsLoading(true)
+    setLoading(true); setErrors({})
     try {
+      const supabase = createClient()
       const { data, error } = await supabase.auth.signUp({
-        email: formData.email, password: formData.password,
-        options: { data: { full_name: formData.fullName.trim() } }
+        email: form.email, password: form.password,
+        options: { data: { full_name: form.fullName.trim() } },
       })
-      if (error || !data.user) throw new Error(error?.message ?? 'Unable to create account.')
-
-      setSuccess(true)
-      let attempts = 0
-      while (attempts < 30) {
-        const { data: profile } = await supabase.from('user_profiles').select('id').eq('id', data.user.id).single()
-        if (profile) { router.push('/dashboard'); router.refresh(); return }
-        await new Promise(r => setTimeout(r, 500))
-        attempts++
+      if (error) { setErrors({ general: error.message }); setLoading(false); return }
+      if (data.user) {
+        if (data.session) {
+          // Email confirmation disabled — go straight to dashboard
+          router.push('/dashboard'); router.refresh()
+        } else {
+          setDone(true)
+        }
       }
-      router.push('/dashboard'); router.refresh()
-    } catch (err) {
-      setErrors({ general: err instanceof Error ? err.message : 'An unexpected error occurred.' })
-      setSuccess(false)
-    } finally { setIsLoading(false) }
+    } catch { setErrors({ general: 'Something went wrong. Please try again.' }); setLoading(false) }
   }
 
-  if (success || isLoading) return (
-    <div className="fixed inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="flex flex-col items-center gap-5 text-center">
-        {success
-          ? <><div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center"><CheckCircle className="w-8 h-8 text-teal-600" /></div><p className="text-xl font-black text-gray-900">Account created!</p><p className="text-gray-500 text-sm font-medium">Setting up your workspace…</p></>
-          : <><Loader2 className="w-10 h-10 text-blue-600 animate-spin" /><p className="text-gray-600 font-medium text-sm">Creating your account…</p></>
-        }
+  if (done) return (
+    <div style={{ textAlign: 'center', paddingTop: 40 }}>
+      <div style={{ width: 52, height: 52, borderRadius: '50%', background: '#F0FDF4', border: '2px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+        <Check size={22} color="#16A34A" strokeWidth={3} />
       </div>
+      <h2 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.6rem', fontWeight: 800, color: '#0A0A0A', marginBottom: 10 }}>Check your email.</h2>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.7 }}>
+        We sent a confirmation link to<br/>
+        <strong style={{ color: '#0A0A0A' }}>{form.email}</strong>.<br/>
+        Click it to activate your account.
+      </p>
+      <Link href="/login" style={{ display: 'inline-block', marginTop: 28, fontSize: '.85rem', color: '#0055FF', fontWeight: 600, textDecoration: 'none' }}>
+        Back to sign in →
+      </Link>
     </div>
   )
 
   return (
-    <>
-      <div className="mb-7">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">Create your account</h1>
-        <p className="text-gray-500 font-medium text-sm">Start free — no credit card required</p>
+    <div>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '2rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 8 }}>
+        Start for free.
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', marginBottom: 32 }}>
+        Already have an account?{' '}
+        <Link href="/login" style={{ color: '#0055FF', fontWeight: 600, textDecoration: 'none' }}>Sign in</Link>
+      </p>
+
+      {/* OAuth */}
+      <OAuthButtons redirectTo="/dashboard" />
+
+      {/* Divider */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '20px 0' }}>
+        <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+        <span style={{ fontSize: '.75rem', color: '#94A3B8', fontWeight: 600, whiteSpace: 'nowrap' }}>or continue with email</span>
+        <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
-        {errors.general && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 font-medium">
-            {errors.general}
-          </div>
-        )}
-        {[
-          { id: 'fullName', label: 'Full Name',       type: 'text',     ph: 'Jordan Mendoza',         err: errors.fullName },
-          { id: 'email',    label: 'Email Address',   type: 'email',    ph: 'you@example.com',        err: errors.email },
-        ].map(f => (
-          <div key={f.id}>
-            <label htmlFor={f.id} className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{f.label}</label>
-            <Input id={f.id} name={f.id} type={f.type} value={(formData as any)[f.id]}
-              onChange={handleChange} placeholder={f.ph} className="h-11" />
-            {f.err && <p className="mt-1.5 text-xs font-semibold text-red-600">{f.err}</p>}
-          </div>
-        ))}
+      {errors.general && (
+        <div style={{ padding: '10px 14px', borderRadius: 8, background: '#FEF2F2', border: '1px solid #FECACA', fontSize: '.825rem', color: '#DC2626', marginBottom: 14 }}>
+          {errors.general}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <label htmlFor="password" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Password</label>
-          <PasswordInput id="password" name="password" value={formData.password}
-            onChange={handleChange} placeholder="8+ characters" className="h-11" />
-          {errors.password && <p className="mt-1.5 text-xs font-semibold text-red-600">{errors.password}</p>}
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Full name</label>
+          <Input value={form.fullName} onChange={set('fullName')} placeholder="Your name" required style={{ width: '100%' }} />
+          {errors.fullName && <p style={{ fontSize: '.72rem', color: '#DC2626', marginTop: 4 }}>{errors.fullName}</p>}
         </div>
         <div>
-          <label htmlFor="confirmPassword" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Confirm Password</label>
-          <PasswordInput id="confirmPassword" name="confirmPassword" value={formData.confirmPassword}
-            onChange={handleChange} placeholder="Confirm password" className="h-11" />
-          {errors.confirmPassword && <p className="mt-1.5 text-xs font-semibold text-red-600">{errors.confirmPassword}</p>}
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Email address</label>
+          <Input type="email" value={form.email} onChange={set('email')} placeholder="you@example.com" required autoComplete="email" style={{ width: '100%' }} />
+          {errors.email && <p style={{ fontSize: '.72rem', color: '#DC2626', marginTop: 4 }}>{errors.email}</p>}
         </div>
-        <button type="submit" disabled={isLoading}
-          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed mt-1">
-          {isLoading ? 'Creating account…' : 'Create Account →'}
+        <div>
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Password</label>
+          <PasswordInput id="password" value={form.password} onChange={set('password')} placeholder="8+ characters" required autoComplete="new-password" className="w-full" />
+          {errors.password && <p style={{ fontSize: '.72rem', color: '#DC2626', marginTop: 4 }}>{errors.password}</p>}
+        </div>
+        <div>
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Confirm password</label>
+          <PasswordInput id="confirm" value={form.confirm} onChange={set('confirm')} placeholder="Same password again" required autoComplete="new-password" className="w-full" />
+          {errors.confirm && <p style={{ fontSize: '.72rem', color: '#DC2626', marginTop: 4 }}>{errors.confirm}</p>}
+        </div>
+
+        <button
+          type="submit" disabled={loading}
+          style={{
+            width: '100%', padding: '13px', borderRadius: 10, border: 'none', cursor: loading ? 'not-allowed' : 'pointer',
+            background: 'linear-gradient(135deg, #0044EE, #0066FF)', color: '#fff',
+            fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '.9rem',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: '0 4px 16px rgba(0,85,255,0.3)', opacity: loading ? 0.7 : 1,
+            marginTop: 4,
+          }}
+        >
+          {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+          {loading ? 'Creating account…' : 'Create free account'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-7">
-        Already have an account?{' '}
-        <Link href="/login" className="text-blue-600 hover:text-blue-700 font-bold transition-colors">Sign in →</Link>
+      <p style={{ fontSize: '.72rem', color: '#94A3B8', textAlign: 'center', marginTop: 20, lineHeight: 1.6 }}>
+        No credit card required · 14-day free trial · Cancel anytime
       </p>
-    </>
+      <p style={{ fontSize: '.72rem', color: '#94A3B8', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
+        By signing up you agree to our{' '}
+        <Link href="/terms"   style={{ color: '#64748B', textDecoration: 'underline' }}>Terms</Link> and{' '}
+        <Link href="/privacy" style={{ color: '#64748B', textDecoration: 'underline' }}>Privacy Policy</Link>.
+      </p>
+    </div>
   )
 }
