@@ -5,81 +5,87 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import Link from 'next/link'
-import { Mail, CheckCircle, ArrowLeft } from 'lucide-react'
+import { Loader2, Check, ArrowLeft, Mail } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('')
+  const [email,   setEmail]   = useState('')
   const [loading, setLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
+  const [sent,    setSent]    = useState(false)
 
-  const handleResetRequest = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     try {
       const supabase = createClient()
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
+        redirectTo: `${window.location.origin}/reset-password`,
       })
       if (error) { toast.error(error.message); return }
-      setEmailSent(true)
-    } catch { toast.error('Failed to send reset email. Please try again.') }
+      setSent(true)
+    } catch { toast.error('Failed to send reset email.') }
     finally { setLoading(false) }
   }
 
-  if (emailSent) return (
-    <>
-      <div className="w-12 h-12 bg-teal-50 rounded-2xl flex items-center justify-center mb-6">
-        <CheckCircle className="w-6 h-6 text-teal-600" />
+  if (sent) return (
+    <div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: '#F0FDF4', border: '1px solid #BBF7D0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        <Check size={22} color="#16A34A" strokeWidth={2.5} />
       </div>
-      <h1 className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Check your email</h1>
-      <p className="text-gray-500 text-sm font-medium mb-1">We sent a password reset link to:</p>
-      <p className="text-sm font-black text-blue-600 mb-8 break-all">{email}</p>
-
-      <div className="bg-gray-50 rounded-xl border border-gray-100 p-4 mb-6 text-sm text-gray-600 space-y-2">
-        <p className="font-bold text-gray-900 text-xs uppercase tracking-widest mb-3">Next steps</p>
-        {['Check your inbox','Click the reset link in the email','Set your new password','Sign in'].map((s,i) => (
-          <div key={i} className="flex items-center gap-2.5">
-            <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i+1}</span>
-            <span className="font-medium">{s}</span>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.9rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 12 }}>
+        Check your email.
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.75, marginBottom: 6 }}>
+        We sent a reset link to
+      </p>
+      <p style={{ fontSize: '.9rem', fontWeight: 700, color: '#0055FF', marginBottom: 28, wordBreak: 'break-all' }}>
+        {email}
+      </p>
+      <div style={{ padding: '14px 16px', background: '#F8FAFF', borderRadius: 10, border: '1px solid #E2E8F0', fontSize: '.8rem', color: '#64748B', lineHeight: 1.7, marginBottom: 28 }}>
+        <p style={{ fontWeight: 700, color: '#0A0A0A', marginBottom: 8, fontSize: '.75rem', textTransform: 'uppercase', letterSpacing: '.06em' }}>Next steps</p>
+        {['Open the email from Invonaut', 'Click the reset link', 'Choose a new password', 'Sign in'].map((s, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: i < 3 ? 6 : 0 }}>
+            <span style={{ width: 18, height: 18, borderRadius: '50%', background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '.65rem', fontWeight: 700, color: '#0055FF' }}>{i + 1}</span>
+            {s}
           </div>
         ))}
       </div>
-
-      <p className="text-xs text-gray-400 text-center mb-6">
-        Didn't get it? Check spam or{' '}
-        <button onClick={() => setEmailSent(false)} className="text-blue-600 font-bold hover:text-blue-700">try again</button>
-      </p>
-      <Link href="/login" className="flex items-center justify-center gap-2 text-sm font-bold text-gray-600 hover:text-gray-900 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to login
+      <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.85rem', color: '#64748B', textDecoration: 'none', fontWeight: 600 }}>
+        <ArrowLeft size={14} /> Back to sign in
       </Link>
-    </>
+    </div>
   )
 
   return (
-    <>
-      <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-6">
-        <Mail className="w-6 h-6 text-blue-600" />
+    <div>
+      <div style={{ width: 48, height: 48, borderRadius: 12, background: '#EFF6FF', border: '1px solid #BFDBFE', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+        <Mail size={20} color="#0055FF" />
       </div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-1.5">Forgot password?</h1>
-        <p className="text-gray-500 text-sm font-medium">Enter your email and we'll send a reset link.</p>
-      </div>
+      <h1 style={{ fontFamily: "'Fraunces', serif", fontSize: '1.9rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.025em', lineHeight: 1.1, marginBottom: 10 }}>
+        Reset your password.
+      </h1>
+      <p style={{ fontSize: '.875rem', color: '#64748B', lineHeight: 1.7, marginBottom: 32 }}>
+        Enter your email and we'll send you a link to reset your password.
+      </p>
 
-      <form onSubmit={handleResetRequest} className="space-y-5">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div>
-          <label htmlFor="email" className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Email Address</label>
-          <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
-            placeholder="you@example.com" required disabled={loading} className="h-11" />
+          <label style={{ display: 'block', fontSize: '.78rem', fontWeight: 700, color: '#374151', marginBottom: 6 }}>Email address</label>
+          <Input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required style={{ width: '100%' }} />
         </div>
-        <button type="submit" disabled={loading}
-          className="w-full btn-primary py-3 rounded-xl font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-          {loading ? 'Sending…' : 'Send Reset Link →'}
+        <button
+          type="submit" disabled={loading}
+          style={{ width: '100%', padding: '13px', borderRadius: 10, border: 'none', cursor: loading ? 'not-allowed' : 'pointer', background: 'linear-gradient(135deg, #0044EE, #0066FF)', color: '#fff', fontFamily: "'DM Sans', sans-serif", fontWeight: 700, fontSize: '.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 16px rgba(0,85,255,0.3)', opacity: loading ? 0.7 : 1 }}
+        >
+          {loading ? <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> : null}
+          {loading ? 'Sending…' : 'Send reset link'}
         </button>
       </form>
 
-      <Link href="/login" className="flex items-center justify-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors mt-7">
-        <ArrowLeft className="w-4 h-4" /> Back to login
-      </Link>
-    </>
+      <div style={{ marginTop: 24 }}>
+        <Link href="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: '.85rem', color: '#64748B', textDecoration: 'none', fontWeight: 600 }}>
+          <ArrowLeft size={14} /> Back to sign in
+        </Link>
+      </div>
+    </div>
   )
 }
