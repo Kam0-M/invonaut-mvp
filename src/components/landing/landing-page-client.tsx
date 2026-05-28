@@ -357,6 +357,137 @@ function ProductDemo() {
   )
 }
 
+// ─── Particle Field ──────────────────────────────────────────────────────────
+// Interactive blue constellation mesh — fills hero right panel, reacts to mouse
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mouseRef  = useRef({ x: -9999, y: -9999 })
+  const animRef   = useRef(0)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    // Gaussian random (for clustered center distribution)
+    const gauss = () => {
+      let u = 0, v = 0
+      while (!u) u = Math.random()
+      while (!v) v = Math.random()
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+    }
+
+    type Particle = { x:number; y:number; ox:number; oy:number; vx:number; vy:number; r:number; op:number; phase:number; freq:number }
+    let particles: Particle[] = []
+    let W = 0, H = 0
+
+    const init = () => {
+      const parent = canvas.parentElement
+      if (!parent) return
+      W = parent.offsetWidth
+      H = parent.offsetHeight
+      canvas.width  = W
+      canvas.height = H
+      const CX = W / 2, CY = H / 2
+      const spread = Math.min(W, H) * 0.34
+      particles = Array.from({ length: 90 }, () => {
+        const r     = Math.abs(gauss()) * spread
+        const theta = Math.random() * Math.PI * 2
+        const ox    = CX + Math.cos(theta) * r
+        const oy    = CY + Math.sin(theta) * r
+        return { x:ox, y:oy, ox, oy,
+          vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25,
+          r:Math.random()*1.6+.6, op:.15+Math.random()*.4,
+          phase:Math.random()*Math.PI*2, freq:.007+Math.random()*.011 }
+      })
+    }
+
+    let frame = 0
+    const draw = () => {
+      frame++
+      ctx.clearRect(0, 0, W, H)
+      const { x:mx, y:my } = mouseRef.current
+
+      particles.forEach(p => {
+        const dx = p.x - mx, dy = p.y - my
+        const d  = Math.sqrt(dx*dx + dy*dy)
+        if (d < 170 && d > 0) {
+          const f = (1 - d/170) * 0.9
+          p.vx += (dx/d) * f * 0.09
+          p.vy += (dy/d) * f * 0.09
+        }
+        // Spring back to home
+        p.vx += (p.ox - p.x) * 0.007
+        p.vy += (p.oy - p.y) * 0.007
+        // Organic drift
+        p.vx += (Math.random()-.5) * 0.012
+        p.vy += (Math.random()-.5) * 0.012
+        p.vx *= 0.91; p.vy *= 0.91
+        p.x  += p.vx;  p.y  += p.vy
+      })
+
+      // Connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i+1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x
+          const dy = particles[i].y - particles[j].y
+          const d  = Math.sqrt(dx*dx + dy*dy)
+          if (d < 78) {
+            ctx.beginPath()
+            ctx.strokeStyle = `rgba(0,68,238,${(1-d/78)*.13})`
+            ctx.lineWidth   = 0.65
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.stroke()
+          }
+        }
+      }
+
+      // Dots
+      particles.forEach(p => {
+        const pulse = Math.sin(frame * p.freq + p.phase) * 0.07
+        const op    = Math.max(.04, Math.min(.75, p.op + pulse))
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2)
+        ctx.fillStyle = `rgba(0,68,238,${op})`
+        ctx.fill()
+      })
+
+      animRef.current = requestAnimationFrame(draw)
+    }
+
+    init()
+    draw()
+
+    // Track mouse globally — canvas has pointerEvents:none so we listen on window
+    const onMove = (e: MouseEvent) => {
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }
+    }
+    window.addEventListener('mousemove', onMove, { passive: true })
+
+    const ro = new ResizeObserver(() => init())
+    if (canvas.parentElement) ro.observe(canvas.parentElement)
+
+    return () => {
+      cancelAnimationFrame(animRef.current)
+      window.removeEventListener('mousemove', onMove)
+      ro.disconnect()
+    }
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{ position:'absolute', inset:0, width:'100%', height:'100%',
+               display:'block', pointerEvents:'none', zIndex:0 }}
+    />
+  )
+}
+
+
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PAINS = [
   { n:'01', head:'Your invoices are being paid whenever your clients feel like it.',
@@ -431,7 +562,7 @@ export default function LandingPageClient() {
             <span className="f-display" style={{fontSize:'1.25rem',fontWeight:700,color:'var(--ink)',letterSpacing:'-.02em'}}>Invonaut</span>
           </Link>
           <div style={{display:'flex',gap:2,alignItems:'center'}} className="hidden md:flex">
-            {[{href:'#demo',l:'Demo'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'}].map(lk=>(
+            {[{href:'#demo',l:'Demo'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate'}].map(lk=>(
               <Link key={lk.href} href={lk.href} style={{color:'var(--mid)',fontWeight:500,fontSize:'.875rem',padding:'7px 14px',borderRadius:8,textDecoration:'none',transition:'color .15s'}}
                 onMouseEnter={e=>(e.currentTarget.style.color='var(--ink)')}
                 onMouseLeave={e=>(e.currentTarget.style.color='var(--mid)')}>
@@ -484,11 +615,14 @@ export default function LandingPageClient() {
               </motion.p>
             </motion.div>
 
-            {/* Right — log */}
+            {/* Right — particle mesh + system log */}
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.65,duration:.9}}
               className="hidden lg:block"
-              style={{background:'rgba(255,255,255,0.8)',backdropFilter:'blur(8px)',border:'1px solid rgba(0,85,255,0.1)',borderRadius:16,padding:28,boxShadow:'0 8px 40px rgba(0,85,255,0.08)'}}>
-              <SystemLog/>
+              style={{position:'relative',minHeight:400,borderRadius:16,overflow:'hidden'}}>
+              <ParticleField/>
+              <div style={{position:'relative',zIndex:1,background:'rgba(255,255,255,0.88)',backdropFilter:'blur(12px)',border:'1px solid rgba(0,85,255,0.12)',borderRadius:16,padding:28,boxShadow:'0 8px 40px rgba(0,85,255,0.1)'}}>
+                <SystemLog/>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -512,7 +646,7 @@ export default function LandingPageClient() {
       </div>
 
       {/* ── PAIN ─────────────────────────────────────────────────────────── */}
-      <section style={{background:'linear-gradient(160deg,#070714 0%,#06060f 100%)',padding:'96px 24px'}}>
+      <section style={{background:'linear-gradient(160deg,#060620 0%,#07071a 50%,#060618 100%)',padding:'96px 24px'}}>
         <div style={{maxWidth:920,margin:'0 auto'}}>
           <Reveal>
             <motion.p variants={fadeUp} style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.28)',marginBottom:72}}>
@@ -529,8 +663,8 @@ export default function LandingPageClient() {
                   {p.n}
                 </div>
                 <div>
-                  <p className="f-display" style={{fontSize:'clamp(1.3rem,2.5vw,1.85rem)',fontWeight:700,color:'#fff',lineHeight:1.25,marginBottom:16}}>{p.head}</p>
-                  <p style={{fontSize:'1rem',color:'rgba(255,255,255,0.42)',lineHeight:1.8}}>{p.body}</p>
+                  <p className="f-display" style={{fontSize:'clamp(1.3rem,2.5vw,1.85rem)',fontWeight:700,color:'#EEF2FF',lineHeight:1.25,marginBottom:16}}>{p.head}</p>
+                  <p style={{fontSize:'1rem',color:'rgba(180,193,255,0.52)',lineHeight:1.8}}>{p.body}</p>
                 </div>
               </motion.div>
             </Reveal>
@@ -788,7 +922,7 @@ export default function LandingPageClient() {
               <p style={{fontSize:'.85rem',color:'rgba(255,255,255,0.3)',lineHeight:1.75,maxWidth:240}}>From Contract to Cash. Automated.</p>
             </div>
             {[
-              {head:'Product',links:[{href:'#demo',l:'Demo'},{href:'#platform',l:'Platform'},{href:'#how-it-works',l:'How it works'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate — Earn 30%'}]},
+              {head:'Product',links:[{href:'#demo',l:'Demo'},{href:'#platform',l:'Platform'},{href:'#how-it-works',l:'How it works'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate',earn:true}]},
               {head:'Account',links:[{href:'/signup',l:'Sign up'},{href:'/login',l:'Sign in'},{href:'/help',l:'Help'}]},
               {head:'Legal',  links:[{href:'/privacy',l:'Privacy Policy'},{href:'/terms',l:'Terms of Service'}]},
             ].map(col=>(
