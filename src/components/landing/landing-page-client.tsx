@@ -615,12 +615,14 @@ export default function LandingPageClient() {
               </motion.p>
             </motion.div>
 
-            {/* Right — particle mesh + system log */}
+            {/* Right — particle mesh fills tall container, log card centered inside */}
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.65,duration:.9}}
               className="hidden lg:block"
-              style={{position:'relative',minHeight:400,borderRadius:16,overflow:'hidden'}}>
+              style={{position:'relative',minHeight:540,display:'flex',flexDirection:'column',justifyContent:'center',padding:'56px 0',borderRadius:20}}>
+              {/* Particle field fills full height — visible above + below the card */}
               <ParticleField/>
-              <div style={{position:'relative',zIndex:1,background:'rgba(255,255,255,0.88)',backdropFilter:'blur(12px)',border:'1px solid rgba(0,85,255,0.12)',borderRadius:16,padding:28,boxShadow:'0 8px 40px rgba(0,85,255,0.1)'}}>
+              {/* System log card sits in center — particles visible around it */}
+              <div style={{position:'relative',zIndex:1,background:'rgba(255,255,255,0.9)',backdropFilter:'blur(14px)',border:'1px solid rgba(0,85,255,0.12)',borderRadius:16,padding:28,boxShadow:'0 8px 40px rgba(0,85,255,0.1)',margin:'0 4px'}}>
                 <SystemLog/>
               </div>
             </motion.div>
@@ -863,31 +865,31 @@ export default function LandingPageClient() {
         <div style={{maxWidth:1060,margin:'0 auto',position:'relative'}}>
           <div className="cta-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center'}}>
             {/* Left */}
-            <Reveal>
-              <motion.div variants={stagger(.1)} initial="hidden">
-                <motion.p variants={fadeUp} style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:24}}>
-                  Ready when you are
-                </motion.p>
-                <motion.h2 variants={fadeUp} className="f-display" style={{fontSize:'clamp(2.4rem,5vw,4rem)',fontWeight:800,letterSpacing:'-.025em',lineHeight:1.05,color:'#fff',marginBottom:28}}>
-                  Run a calmer,<br/>more organised<br/>business.
-                </motion.h2>
-                <motion.p variants={fadeUp} style={{fontSize:'1.05rem',color:'rgba(255,255,255,0.55)',lineHeight:1.8,marginBottom:44,maxWidth:420}}>
-                  The admin weight doesn't come back. That's the part most people don't expect.
-                </motion.p>
-                <motion.div variants={fadeUp} style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center'}}>
-                  <Link href="/signup" style={{background:'#fff',color:'#0044EE',padding:'15px 36px',borderRadius:10,fontWeight:800,fontSize:'1rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:10,boxShadow:'0 4px 24px rgba(0,0,0,0.2)'}}>
-                    Start free — 14 days <ArrowRight size={17} strokeWidth={2.5}/>
-                  </Link>
-                </motion.div>
-                <motion.p variants={fadeUp} style={{color:'rgba(255,255,255,0.3)',fontSize:'.75rem',marginTop:18}}>
-                  Plans from $19/mo · No credit card · Cancel anytime
-                </motion.p>
-              </motion.div>
-            </Reveal>
+            <div>
+              <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:24}}>
+                Ready when you are
+              </p>
+              <h2 className="f-display" style={{fontSize:'clamp(2.4rem,5vw,4rem)',fontWeight:800,letterSpacing:'-.025em',lineHeight:1.05,color:'#fff',marginBottom:28}}>
+                Run a calmer,<br/>more organised<br/>business.
+              </h2>
+              <p style={{fontSize:'1.05rem',color:'rgba(255,255,255,0.55)',lineHeight:1.8,marginBottom:44,maxWidth:420}}>
+                The admin weight doesn't come back. That's the part most people don't expect.
+              </p>
+              <div style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center',marginBottom:18}}>
+                <Link href="/signup" style={{background:'#fff',color:'#0044EE',padding:'15px 36px',borderRadius:10,fontWeight:800,fontSize:'1rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:10,boxShadow:'0 4px 24px rgba(0,0,0,0.2)'}}>
+                  Start free — 14 days <ArrowRight size={17} strokeWidth={2.5}/>
+                </Link>
+                <Link href="#pricing" style={{color:'rgba(255,255,255,0.55)',fontWeight:600,fontSize:'.9rem',textDecoration:'none'}}>
+                  See pricing →
+                </Link>
+              </div>
+              <p style={{color:'rgba(255,255,255,0.3)',fontSize:'.75rem'}}>
+                Plans from $19/mo · No credit card · Cancel anytime · 14-day free trial
+              </p>
+            </div>
 
             {/* Right — stat cards */}
-            <Reveal>
-              <motion.div variants={stagger(.12)} initial="hidden" style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 {[
                   {icon:Zap,    color:'#60A5FA', bg:'rgba(96,165,250,0.12)', v:'8 processes',   l:'fire every day without you logging in'},
                   {icon:Clock,  color:'#34D399', bg:'rgba(52,211,153,0.12)', v:'Zero chasing',  l:'invoices are followed up automatically'},
@@ -896,7 +898,7 @@ export default function LandingPageClient() {
                 ].map((card,i)=>{
                   const Icon=card.icon
                   return (
-                    <motion.div key={i} variants={fadeUp} style={{display:'flex',alignItems:'center',gap:16,padding:'16px 20px',borderRadius:14,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(8px)'}}>
+                    <div key={i} style={{display:'flex',alignItems:'center',gap:16,padding:'16px 20px',borderRadius:14,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(8px)'}}>
                       <div style={{width:38,height:38,borderRadius:10,background:card.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                         <Icon size={17} style={{color:card.color}}/>
                       </div>
@@ -904,11 +906,10 @@ export default function LandingPageClient() {
                         <p style={{fontWeight:800,fontSize:'.9rem',color:'#fff',letterSpacing:'-.01em',marginBottom:2}}>{card.v}</p>
                         <p style={{fontSize:'.78rem',color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>{card.l}</p>
                       </div>
-                    </motion.div>
+                    </div>
                   )
                 })}
-              </motion.div>
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>
@@ -931,10 +932,15 @@ export default function LandingPageClient() {
                 <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:14}}>
                   {col.links.map(lk=>(
                     <li key={lk.href}>
-                      <Link href={lk.href} style={{color:'rgba(255,255,255,0.4)',fontSize:'.85rem',textDecoration:'none',transition:'color .15s'}}
+                      <Link href={lk.href} style={{color:'rgba(255,255,255,0.4)',fontSize:'.85rem',textDecoration:'none',transition:'color .15s',display:'inline-flex',alignItems:'center',gap:7}}
                         onMouseEnter={e=>(e.currentTarget.style.color='#fff')}
                         onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.4)')}>
                         {lk.l}
+                        {(lk as any).earn && (
+                          <span style={{fontSize:'.6rem',fontWeight:800,letterSpacing:'.04em',background:'#FF6B35',color:'#fff',padding:'2px 7px',borderRadius:4,flexShrink:0}}>
+                            30%
+                          </span>
+                        )}
                       </Link>
                     </li>
                   ))}
