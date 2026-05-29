@@ -1,11 +1,11 @@
+export const metadata = { title: 'Affiliate Programme — Invonaut' }
+
 // src/app/affiliate/page.tsx
 // Affiliate programme page — editorial design matching landing page v5
 // Fraunces headlines, blue gradient accents, clean layout
 
 import Link from 'next/link'
 import { Check, ArrowRight, DollarSign, Users, TrendingUp, Zap, Clock, Globe } from 'lucide-react'
-
-export const metadata = { title: 'Affiliate Programme — Invonaut' }
 
 const HOW_IT_WORKS = [
   { n: '01', title: 'Sign up',           body: 'Join the programme for free in under a minute. No approval process, no waiting period.' },
@@ -44,6 +44,10 @@ const CSS = `
   @media(max-width:480px){
     .who-grid { grid-template-columns:1fr !important; }
   }
+  .who-card { transition: background .15s; cursor: default; }
+  .who-card:hover { background: #F8FAFF !important; }
+  .aff-footer-link { transition: color .15s; }
+  .aff-footer-link:hover { color: #fff !important; }
 `
 
 export default function AffiliatePage() {
@@ -193,9 +197,7 @@ export default function AffiliatePage() {
             {WHO_FOR.map((w, i) => {
               const Icon = w.icon
               return (
-                <div key={i} style={{ padding:'28px 24px', border:'1px solid #E2E8F0', borderRadius:16, background:'#fff', transition:'background .15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#F8FAFF')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+                <div key={i} className="who-card" style={{ padding:'28px 24px', border:'1px solid #E2E8F0', borderRadius:16, background:'#fff' }}>
                   <div style={{ width:40, height:40, borderRadius:10, background:'#EFF6FF', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
                     <Icon size={18} color="#0055FF" />
                   </div>
@@ -293,9 +295,7 @@ export default function AffiliatePage() {
           <span className="f-display" style={{ fontSize:'1rem', fontWeight:700, color:'rgba(255,255,255,0.4)' }}>Invonaut</span>
           <div style={{ display:'flex', gap:24 }}>
             {[{href:'/',l:'Home'},{href:'/pricing',l:'Pricing'},{href:'/help',l:'Help'},{href:'/privacy',l:'Privacy'},{href:'/terms',l:'Terms'}].map(lk => (
-              <Link key={lk.href} href={lk.href} style={{ fontSize:'.8rem', color:'rgba(255,255,255,0.3)', textDecoration:'none', transition:'color .15s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.3)')}>
+              <Link key={lk.href} href={lk.href} className="aff-footer-link" style={{ fontSize:'.8rem', color:'rgba(255,255,255,0.3)', textDecoration:'none' }}>
                 {lk.l}
               </Link>
             ))}
