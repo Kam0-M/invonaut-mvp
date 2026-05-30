@@ -454,7 +454,7 @@ export default function LandingPageClient() {
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="hero-mesh" style={{padding:'56px 24px 64px'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
-          <div className="hero-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'flex-start'}}>
+          <div className="hero-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center'}}>
             {/* Left */}
             <motion.div variants={stagger(.1)} initial="hidden" animate="show">
               <motion.p variants={fadeUp} style={{fontSize:'.76rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--faint)',marginBottom:24}}>
