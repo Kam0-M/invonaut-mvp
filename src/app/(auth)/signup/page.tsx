@@ -42,6 +42,23 @@ export default function SignupPage() {
       })
       if (error) { setErrors({ general: error.message }); setLoading(false); return }
       if (data.user) {
+        // ── Capture affiliate referral if cookie present ──────────────────
+        try {
+          const refCookie = document.cookie
+            .split('; ')
+            .find(c => c.startsWith('inv_ref='))
+            ?.split('=')[1]
+          if (refCookie) {
+            await fetch('/api/affiliate/track-signup', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ referral_code: refCookie, referred_user_id: data.user.id }),
+            })
+            // Clear the cookie after capturing
+            document.cookie = 'inv_ref=; max-age=0; path=/'
+          }
+        } catch { /* non-fatal — don't block signup flow */ }
+
         if (data.session) {
           // Email confirmation disabled — go straight to dashboard
           router.push('/dashboard'); router.refresh()

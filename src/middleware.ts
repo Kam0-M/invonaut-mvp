@@ -33,6 +33,17 @@ export async function middleware(request: NextRequest) {
   // Refresh session — do NOT remove this line. It keeps the session alive.
   await supabase.auth.getUser()
 
+  // ── Referral cookie: persist ?ref=CODE for 30 days ──────────────────────
+  const ref = request.nextUrl.searchParams.get('ref')
+  if (ref && /^[A-Z0-9]{6,20}$/i.test(ref)) {
+    supabaseResponse.cookies.set('inv_ref', ref.toUpperCase(), {
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      path: '/',
+      sameSite: 'lax',
+      httpOnly: false, // needs to be readable by client JS on signup
+    })
+  }
+
   return supabaseResponse
 }
 

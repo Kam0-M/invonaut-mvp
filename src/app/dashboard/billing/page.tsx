@@ -409,19 +409,47 @@ export default async function BillingPage({
       />
 
       {/* ── Affiliate banner ──────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5">
-        <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
-          <Zap className="w-5 h-5 text-white" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-black text-gray-900">Know someone who would love Invonaut?</p>
-          <p className="text-sm text-gray-500 mt-0.5">Earn 30% recurring commission for every customer you refer — for as long as they stay subscribed.</p>
+      <div style={{
+        background: 'linear-gradient(135deg, #002ECC 0%, #0044EE 40%, #0055FF 70%, #003DCC 100%)',
+        borderRadius: 16,
+        padding: '28px 32px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 24,
+        flexWrap: 'wrap',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 60% 80% at 110% 50%,rgba(0,196,160,0.2) 0%,transparent 60%)',pointerEvents:'none'}}/>
+        <div style={{flex:1,minWidth:220,position:'relative'}}>
+          <p style={{fontSize:'.68rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:6}}>Affiliate Programme</p>
+          <p style={{fontWeight:800,fontSize:'1rem',color:'#fff',marginBottom:4,letterSpacing:'-.01em'}}>
+            Earn 30% recurring — for every referral.
+          </p>
+          <p style={{fontSize:'.825rem',color:'rgba(255,255,255,0.55)',lineHeight:1.6}}>
+            Know a freelancer or small business? Share your link. Earn every month they stay subscribed.
+          </p>
         </div>
         <Link
-          href="/affiliate"
-          className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl transition-all hover:-translate-y-0.5 text-sm"
+          href="/dashboard/affiliate"
+          style={{
+            flexShrink: 0,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '11px 24px',
+            background: '#fff',
+            color: '#0044EE',
+            fontWeight: 800,
+            fontSize: '.875rem',
+            borderRadius: 10,
+            textDecoration: 'none',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
+            position: 'relative',
+          }}
         >
-          Join affiliate program
+          Get my referral link
+          <Zap size={14}/>
         </Link>
       </div>
     </div>
