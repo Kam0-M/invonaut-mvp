@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import SettingsForm from '@/components/settings/settings-form'
 import RevenueCategoryManager from '@/components/settings/revenue-category-manager'
 import Link from 'next/link'
-import { Tag } from 'lucide-react'
+import { Tag, Users2 } from 'lucide-react'
 
 export default async function SettingsPage() {
   const supabase = await createClient()
@@ -88,6 +88,37 @@ export default async function SettingsPage() {
         </div>
         <RevenueCategoryManager initialCategories={initialCategories} />
       </div>
+
+      {/* Affiliate Programme */}
+      <Link href="/dashboard/affiliate" style={{ textDecoration:'none', display:'block' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #002ECC 0%, #0044EE 40%, #0055FF 70%, #003DCC 100%)',
+          borderRadius: 16,
+          padding: '24px 28px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 20,
+          position: 'relative',
+          overflow: 'hidden',
+          cursor: 'pointer',
+        }}>
+          <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 50% 80% at 110% 50%,rgba(0,196,160,0.18) 0%,transparent 60%)',pointerEvents:'none'}}/>
+          <div style={{width:40,height:40,borderRadius:12,background:'rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,position:'relative'}}>
+            <Users2 size={18} color="#fff"/>
+          </div>
+          <div style={{flex:1,position:'relative'}}>
+            <p style={{fontWeight:800,fontSize:'.95rem',color:'#fff',marginBottom:3,letterSpacing:'-.01em'}}>
+              Affiliate Programme — Earn 30% recurring
+            </p>
+            <p style={{fontSize:'.8rem',color:'rgba(255,255,255,0.55)',lineHeight:1.5}}>
+              Refer freelancers and small businesses. Earn 30% of every payment they make, every month.
+            </p>
+          </div>
+          <div style={{flexShrink:0,fontSize:'.78rem',fontWeight:700,color:'rgba(255,255,255,0.6)',display:'flex',alignItems:'center',gap:5,position:'relative'}}>
+            View dashboard →
+          </div>
+        </div>
+      </Link>
 
     </div>
   )

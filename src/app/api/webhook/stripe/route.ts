@@ -261,6 +261,96 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   } else {
     console.log(`User ${userId} subscription canceled (tier preserved)`)
   }
+
+  // ── Mark affiliate referral as churned ───────────────────────────────
+  await supabase
+    .from('affiliate_referrals')
+    .update({ status: 'churned' })
+    .eq('referred_user_id', userId)
+    .eq('status', 'active')
+}
+
+// ── Affiliate commission helper ──────────────────────────────────────────────
+async function creditAffiliateCommission({
+  supabase,
+  userId,
+  amountPaidCents,
+  stripeInvoiceId,
+  stripePaymentIntentId,
+  periodStart,
+  periodEnd,
+}: {
+  supabase: ReturnType<typeof createAdminClient>
+  userId: string
+  amountPaidCents: number
+  stripeInvoiceId?: string
+  stripePaymentIntentId?: string | null
+  periodStart: Date | null
+  periodEnd: Date | null
+}) {
+  try {
+    // Find if this user was referred
+    const { data: referral } = await supabase
+      .from('affiliate_referrals')
+      .select('id, affiliate_id, status')
+      .eq('referred_user_id', userId)
+      .single()
+
+    if (!referral) return // user was not referred via affiliate link
+
+    // Mark referral as active if still pending
+    if (referral.status === 'pending') {
+      await supabase
+        .from('affiliate_referrals')
+        .update({ status: 'active', conversion_date: new Date().toISOString() })
+        .eq('id', referral.id)
+    }
+
+    const COMMISSION_RATE = 0.30
+    const commissionAmount = Math.round(amountPaidCents * COMMISSION_RATE) / 100
+
+    // Insert commission record
+    await supabase
+      .from('affiliate_commissions')
+      .insert({
+        affiliate_id:              referral.affiliate_id,
+        referral_id:               referral.id,
+        amount:                    commissionAmount,
+        stripe_invoice_id:         stripeInvoiceId || null,
+        stripe_payment_intent_id:  stripePaymentIntentId || null,
+        status:                    'approved', // auto-approve; manual review not needed at this scale
+        period_start:              periodStart ? periodStart.toISOString().split('T')[0] : null,
+        period_end:                periodEnd   ? periodEnd.toISOString().split('T')[0]   : null,
+      })
+
+    // Update total_earned on affiliate account
+    await supabase.rpc('increment_affiliate_earned', {
+      p_affiliate_id: referral.affiliate_id,
+      p_amount:       commissionAmount,
+    }).then(({ error }) => {
+      if (error) {
+        // RPC may not exist yet — fall back to direct update
+        return supabase
+          .from('affiliate_accounts')
+          .select('total_earned')
+          .eq('id', referral.affiliate_id)
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              return supabase
+                .from('affiliate_accounts')
+                .update({ total_earned: Number(data.total_earned) + commissionAmount })
+                .eq('id', referral.affiliate_id)
+            }
+          })
+      }
+    })
+
+    console.log(`Affiliate commission $${commissionAmount} credited to affiliate ${referral.affiliate_id}`)
+  } catch (err) {
+    // Never let affiliate errors break the main webhook
+    console.error('Affiliate commission error (non-fatal):', err)
+  }
 }
 
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
@@ -293,6 +383,21 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       console.error('Error updating payment status:', error)
     } else {
       console.log(`Payment succeeded for user ${userId}`)
+    }
+
+    // ── Affiliate commission tracking ────────────────────────────────────
+    // Only credit commissions on actual payments (not $0 trial invoices)
+    const amountPaid = invoice.amount_paid ?? 0
+    if (amountPaid > 0) {
+      await creditAffiliateCommission({
+        supabase,
+        userId,
+        amountPaidCents: amountPaid,
+        stripeInvoiceId: invoice.id,
+        stripePaymentIntentId: (invoice as any).payment_intent as string | null,
+        periodStart: invoice.period_start ? new Date(invoice.period_start * 1000) : null,
+        periodEnd: invoice.period_end ? new Date(invoice.period_end * 1000) : null,
+      })
     }
   } catch (error) {
     console.error('Error in handleInvoicePaymentSucceeded:', error)
