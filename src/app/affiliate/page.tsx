@@ -1,14 +1,14 @@
-export const metadata = { title: 'Affiliate Program — Invonaut' }
+export const metadata = { title: 'Affiliate Programme — Invonaut' }
 
 // src/app/affiliate/page.tsx
-// Affiliate program page — editorial design matching landing page v5
+// Affiliate programme page — editorial design matching landing page v5
 // Fraunces headlines, blue gradient accents, clean layout
 
 import Link from 'next/link'
 import { Check, ArrowRight, DollarSign, Users, TrendingUp, Zap, Clock, Globe } from 'lucide-react'
 
 const HOW_IT_WORKS = [
-  { n: '01', title: 'Sign up',           body: 'Join the program for free in under a minute. No approval process, no waiting period.' },
+  { n: '01', title: 'Sign up',           body: 'Join the programme for free in under a minute. No approval process, no waiting period.' },
   { n: '02', title: 'Share your link',   body: 'Get a unique referral link. Share it anywhere — your site, social media, email newsletters, client conversations.' },
   { n: '03', title: 'Earn every month',  body: 'Earn 30% of every monthly payment your referrals make, for as long as they stay subscribed. There is no cap.' },
 ]
@@ -73,7 +73,7 @@ export default function AffiliatePage() {
         <div style={{ maxWidth:760, margin:'0 auto', textAlign:'center' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, border:'1px solid rgba(255,107,53,0.3)', borderRadius:100, padding:'6px 16px', marginBottom:40, fontSize:'.75rem', fontWeight:700, color:'#FF6B35', background:'rgba(255,107,53,0.04)' }}>
             <span style={{ width:7, height:7, borderRadius:'50%', background:'#FF6B35', display:'inline-block', flexShrink:0 }}/>
-            Affiliate Program
+            Affiliate Programme
           </div>
           <h1 className="f-display" style={{ fontSize:'clamp(2.8rem,6vw,5rem)', fontWeight:800, letterSpacing:'-.025em', lineHeight:1.03, marginBottom:24, color:'#0A0A0A' }}>
             Earn 30% recurring<br/>
@@ -86,7 +86,7 @@ export default function AffiliatePage() {
           </p>
           <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
             <Link href="/signup" style={{ background:'linear-gradient(135deg,#0044EE,#0066FF)', color:'#fff', padding:'14px 32px', borderRadius:10, fontWeight:700, fontSize:'.95rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8, boxShadow:'0 4px 20px rgba(0,85,255,0.3)' }}>
-              Join the program <ArrowRight size={16} strokeWidth={2.5}/>
+              Join the programme <ArrowRight size={16} strokeWidth={2.5}/>
             </Link>
             <a href="#earnings" style={{ padding:'14px 24px', borderRadius:10, border:'1px solid #E2E8F0', background:'#fff', fontWeight:600, fontSize:'.9rem', color:'#64748B', textDecoration:'none' }}>
               See earnings calculator
@@ -259,7 +259,7 @@ export default function AffiliatePage() {
               { q: 'What if my referral cancels and resubscribes?',
                 a: 'If they resubscribe within 90 days using any link, you retain credit. After 90 days, the cookie resets.' },
               { q: 'Can I refer my own account?',
-                a: 'Self-referrals are not eligible for commission. The program is for referring other businesses and individuals.' },
+                a: 'Self-referrals are not eligible for commission. The programme is for referring other businesses and individuals.' },
             ].map((faq, i, arr) => (
               <div key={i} style={{ padding:'24px 0', borderBottom: i < arr.length-1 ? '1px solid #E2E8F0' : 'none' }}>
                 <p style={{ fontWeight:700, fontSize:'.925rem', color:'#0A0A0A', marginBottom:8, letterSpacing:'-.01em' }}>{faq.q}</p>
@@ -278,7 +278,7 @@ export default function AffiliatePage() {
             Turn your audience into income.
           </h2>
           <p style={{ fontSize:'1.05rem', color:'rgba(255,255,255,0.55)', lineHeight:1.8, marginBottom:44, maxWidth:440, margin:'0 auto 44px' }}>
-            Join the affiliate program for free. Start earning 30% recurring commission the moment your first referral subscribes.
+            Join the affiliate programme for free. Start earning 30% recurring commission the moment your first referral subscribes.
           </p>
           <Link href="/signup" style={{ background:'#fff', color:'#0044EE', padding:'15px 40px', borderRadius:10, fontWeight:800, fontSize:'1rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:10, boxShadow:'0 4px 24px rgba(0,0,0,0.2)' }}>
             Join free — start earning <ArrowRight size={17} strokeWidth={2.5}/>
