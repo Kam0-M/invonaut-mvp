@@ -452,15 +452,8 @@ export default function LandingPageClient() {
       </nav>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
-      <section className="hero-mesh" style={{padding:'72px 24px 64px'}}>
+      <section className="hero-mesh" style={{padding:'56px 24px 64px'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
-          {/* Founding strip */}
-          <motion.div initial={{opacity:0,y:-10}} animate={{opacity:1,y:0}} transition={{duration:.5}}
-            style={{display:'inline-flex',alignItems:'center',gap:10,border:'1px solid rgba(0,85,255,0.2)',borderRadius:100,padding:'7px 18px',marginBottom:32,fontSize:'.75rem',fontWeight:600,color:'var(--blue)',background:'rgba(0,85,255,0.04)'}}>
-            <span style={{width:7,height:7,borderRadius:'50%',background:'var(--blue)',flexShrink:0,display:'inline-block'}}/>
-            Founding member pricing · $19/mo locks in forever · Ends at public launch in August
-          </motion.div>
-
           <div className="hero-grid" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'flex-start'}}>
             {/* Left */}
             <motion.div variants={stagger(.1)} initial="hidden" animate="show">
