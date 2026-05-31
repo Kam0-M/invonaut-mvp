@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { cn }          from '@/lib/utils'
 import {
   LayoutDashboard, FileText, ScrollText, Users, ExternalLink,
-  BarChart3, Sparkles,
+  BarChart3, HelpCircle, Sparkles,
   Receipt, Clock, TrendingUp, Banknote,
   ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen,
   FileBarChart2,
@@ -28,6 +28,7 @@ const NAV = [
   { name: 'Client Portal', href: '/dashboard/portal',    icon: ExternalLink    },
   { name: 'Analytics',     href: '/dashboard/analytics', icon: BarChart3       },
   { name: 'Reports',       href: '/dashboard/reports',   icon: FileBarChart2   },
+  { name: 'Help',          href: '/help',                icon: HelpCircle      },
 ]
 
 export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {

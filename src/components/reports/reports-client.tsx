@@ -113,8 +113,8 @@ const CSS = `
     .print-only { display: flex !important; }
     .stat-grid  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
     .cat-cols   { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .rpt-stat   { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; }
-    .rpt-section { page-break-inside: avoid; box-shadow: none !important; }
+    .rpt-stat   { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; overflow: visible !important; }
+    .rpt-section { page-break-inside: avoid; box-shadow: none !important; overflow: visible !important; }
     table { page-break-inside: avoid; font-size: 11px !important; }
     .rpt-table td, .rpt-table th { padding: 9px 14px !important; font-size: 10.5px !important; }
     .bs-hero { border-radius: 10px !important; }
@@ -433,8 +433,8 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
         ))}
       </div>
 
-      {/* Date range — P&L and Period only */}
-      {(tab==='pl'||tab==='period') && (
+      {/* Date range — P&L only (period tab has its own fixed 12-month view) */}
+      {tab==='pl' && (
         <div className="no-print" style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:28,alignItems:'center'}}>
           <span style={{fontSize:'.72rem',fontWeight:700,color:'#94A3B8',letterSpacing:'.06em',textTransform:'uppercase',marginRight:4}}>Period</span>
           {RANGE_OPTS.map(o=>(

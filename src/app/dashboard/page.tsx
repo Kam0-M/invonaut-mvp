@@ -247,13 +247,6 @@ export default async function DashboardPage() {
     isNewUser,
   })
 
-  const statusPill: Record<string, string> = {
-    draft:   'bg-gray-100 text-gray-600',
-    sent:    'bg-blue-50 text-blue-700',
-    paid:    'bg-teal-50 text-teal-700',
-    overdue: 'bg-red-50 text-red-700',
-  }
-
   return (
     <div className="space-y-6">
       <DashboardAutoRefresh />
@@ -268,19 +261,37 @@ export default async function DashboardPage() {
       )}
 
       {/* ── Greeting ─────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 inv-fade-up inv-fade-up-1">
-        <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-0.5">
-            {timeGreeting}, {firstName}
-          </p>
-          <h1 className="text-xl font-black text-gray-900">{motivational}</h1>
+      <div className="inv-fade-up inv-fade-up-1">
+        <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div>
+            <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[.12em] mb-2">
+              {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+            <h1 className="text-[1.65rem] font-black text-gray-900 tracking-tight leading-tight mb-1">
+              {timeGreeting}, {firstName}.
+            </h1>
+            <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-lg">{motivational}</p>
+          </div>
+          {hasActiveSubscription ? (
+            <div className="flex gap-3 flex-wrap items-start">
+              {[
+                { label: 'This month',  value: fmt(paidThisMonth),    accent: 'border-blue-100 text-blue-700 bg-blue-50/60'  },
+                { label: 'Outstanding', value: fmt(pendingPayments),  accent: overdueCount > 0 ? 'border-red-100 text-red-700 bg-red-50/60' : 'border-orange-100 text-orange-700 bg-orange-50/60' },
+                { label: 'Net profit',  value: profitMargin !== null ? `${profitMargin}%` : '—', accent: netProfit >= 0 ? 'border-teal-100 text-teal-700 bg-teal-50/60' : 'border-red-100 text-red-700 bg-red-50/60' },
+              ].map(s => (
+                <div key={s.label} className={`border rounded-xl px-4 py-2.5 min-w-[96px] ${s.accent}`}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-0.5">{s.label}</p>
+                  <p className="text-base font-black font-mono">{s.value}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <Link href="/pricing"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl btn-primary text-sm transition-all flex-shrink-0">
+              <Lock className="w-3.5 h-3.5" />Start Free Trial
+            </Link>
+          )}
         </div>
-        {!hasActiveSubscription && (
-          <Link href="/pricing"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl btn-primary text-sm transition-all flex-shrink-0">
-            <Lock className="w-3.5 h-3.5" />Start Free Trial
-          </Link>
-        )}
       </div>
 
       {!hasActiveSubscription && <ViewOnlyBanner />}
@@ -339,20 +350,24 @@ export default async function DashboardPage() {
         <ActivityFeedLive items={recentActivity} viewAll="/dashboard/invoices" />
 
         {/* Recent invoices */}
-        <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden inv-fade-up inv-fade-up-5">
+        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-5">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Invoices</p>
+            <div className="flex items-center gap-2">
+              <FileText className="w-3.5 h-3.5 text-gray-400" />
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Invoices</p>
+            </div>
             <Link href="/dashboard/invoices" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">View all →</Link>
           </div>
           {invoices.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center px-5">
-              <FileText className="w-8 h-8 text-gray-200 mb-2" />
+              <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
+                <FileText className="w-5 h-5 text-gray-300" />
+              </div>
               <p className="text-sm font-bold text-gray-400 mb-1">No invoices yet</p>
               {hasActiveSubscription && (
                 dashInvoiceLimitReached ? (
                   <span className="mt-2 text-xs font-bold text-orange-500">
-                    25/25 invoices this month ·{' '}
-                    <Link href="/dashboard/billing" className="underline">Upgrade</Link>
+                    25/25 this month · <Link href="/dashboard/billing" className="underline">Upgrade</Link>
                   </span>
                 ) : (
                   <Link href="/dashboard/invoices/new" className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-700">
@@ -362,24 +377,49 @@ export default async function DashboardPage() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
-              {invoices.slice(0, 8).map((inv: any) => (
-                <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
-                  className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors group">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-xs font-black text-gray-900 font-mono">{inv.invoice_number}</span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md uppercase ${statusPill[inv.displayStatus] ?? statusPill.draft}`}>
-                        {inv.displayStatus}
-                      </span>
+            <div>
+              {invoices.slice(0, 8).map((inv: any) => {
+                const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }> = {
+                  paid:    { dot: 'bg-teal-500',   pill: 'bg-teal-50 text-teal-700',   label: 'Paid'    },
+                  sent:    { dot: 'bg-blue-500',   pill: 'bg-blue-50 text-blue-700',   label: 'Sent'    },
+                  overdue: { dot: 'bg-red-500',    pill: 'bg-red-50 text-red-700',     label: 'Overdue' },
+                  draft:   { dot: 'bg-gray-300',   pill: 'bg-gray-50 text-gray-500',   label: 'Draft'   },
+                }
+                const sc = STATUS_CONFIG[inv.displayStatus] ?? STATUS_CONFIG.draft
+                const showDue = (inv.displayStatus === 'sent' || inv.displayStatus === 'overdue') && inv.due_date
+                return (
+                  <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
+                    className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-gray-50/80 transition-colors group border-b border-gray-50 last:border-0">
+                    {/* Status dot */}
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.dot}`} />
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs font-black text-gray-900 font-mono tracking-tight">{inv.invoice_number}</span>
+                        <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide ${sc.pill}`}>
+                          {sc.label}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 font-medium truncate">
+                        {inv.clients?.name ?? '—'}
+                        {showDue && (
+                          <span className={`ml-2 ${inv.displayStatus === 'overdue' ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                            · Due {new Date(inv.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-400 font-medium truncate">{inv.clients?.name ?? '—'}</p>
-                  </div>
-                  <span className="text-sm font-black text-gray-900 group-hover:text-blue-600 transition-colors flex-shrink-0">
-                    {fmt(inv.total_amount)}
-                  </span>
-                </Link>
-              ))}
+                    {/* Amount */}
+                    <span className={`text-sm font-black font-mono flex-shrink-0 transition-colors ${
+                      inv.displayStatus === 'overdue' ? 'text-red-600' :
+                      inv.displayStatus === 'paid'    ? 'text-teal-600 group-hover:text-teal-700' :
+                      'text-gray-900 group-hover:text-blue-600'
+                    }`}>
+                      {fmt(inv.total_amount)}
+                    </span>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>
@@ -389,23 +429,38 @@ export default async function DashboardPage() {
       {clients.length > 0 && (
         <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-5">
           <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Clients</p>
+            <div className="flex items-center gap-2">
+              <Users className="w-3.5 h-3.5 text-gray-400" />
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Clients</p>
+            </div>
             <Link href="/dashboard/clients" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">View all →</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-y divide-gray-50">
-            {clients.slice(0, 8).map((client: any) => {
-              const palette = ['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-indigo-100 text-indigo-700','bg-cyan-100 text-cyan-700']
+          <div className="grid grid-cols-2 sm:grid-cols-4">
+            {clients.slice(0, 8).map((client: any, idx: number) => {
+              const ACCENTS = [
+                { bg: 'bg-blue-600',  text: 'text-white' },
+                { bg: 'bg-teal-500',  text: 'text-white' },
+                { bg: 'bg-gray-800',  text: 'text-white' },
+                { bg: 'bg-orange-500',text: 'text-white' },
+              ]
               let hash = 0
               for (let i = 0; i < client.name.length; i++) hash = client.name.charCodeAt(i) + ((hash << 5) - hash)
-              const av       = palette[Math.abs(hash) % palette.length]
+              const accent   = ACCENTS[Math.abs(hash) % ACCENTS.length]
               const initials = client.name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()
+              const borderR  = (idx + 1) % 4 !== 0 ? 'border-r' : ''
+              const borderB  = idx < clients.slice(0, 8).length - 4 ? 'border-b' : ''
               return (
                 <Link key={client.id} href={`/dashboard/clients/${client.id}`}
-                  className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 transition-colors group">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 font-black text-xs ${av}`}>{initials}</div>
+                  className={`flex items-center gap-3 px-5 py-4 hover:bg-gray-50/80 transition-colors group border-gray-50 ${borderR} ${borderB}`}>
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-[11px] font-black ${accent.bg} ${accent.text}`}>
+                    {initials}
+                  </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-gray-900 group-hover:text-blue-700 transition-colors truncate">{client.name}</p>
-                    {client.company && <p className="text-xs text-gray-400 truncate">{client.company}</p>}
+                    <p className="text-sm font-bold text-gray-900 group-hover:text-blue-700 transition-colors truncate leading-tight">{client.name}</p>
+                    {client.company
+                      ? <p className="text-[11px] text-gray-400 font-medium truncate mt-0.5">{client.company}</p>
+                      : <p className="text-[11px] text-gray-300 font-medium mt-0.5">{client.email?.split('@')[0]}</p>
+                    }
                   </div>
                 </Link>
               )
