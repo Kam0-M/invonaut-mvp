@@ -105,7 +105,22 @@ const CSS = `
   .rpt-add-btn:disabled{opacity:.6;cursor:not-allowed}
   .del-btn{padding:5px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#94A3B8;display:flex;align-items:center;transition:color .12s,background .12s}
   .del-btn:hover{color:#EF4444;background:#FEF2F2}
-  @media print{.no-print{display:none!important}body{background:#fff}.rpt-stat,.rpt-section{box-shadow:none;border:1px solid #e2e8f0}}
+  @media print {
+    @page { size: A4 portrait; margin: 20mm 15mm; }
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body, html { background: white !important; }
+    .no-print   { display: none !important; }
+    .print-only { display: flex !important; }
+    .stat-grid  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .cat-cols   { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .rpt-stat   { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; }
+    .rpt-section { page-break-inside: avoid; box-shadow: none !important; }
+    table { page-break-inside: avoid; font-size: 11px !important; }
+    .rpt-table td, .rpt-table th { padding: 9px 14px !important; font-size: 10.5px !important; }
+    .bs-hero { border-radius: 10px !important; }
+    h1 { font-size: 1.4rem !important; }
+    .rpt-section-head { padding: 14px 18px 12px !important; }
+  }
 `
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -384,6 +399,17 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
     <div style={{fontFamily:"'DM Sans',sans-serif",color:'#0A0A0A',maxWidth:1100,margin:'0 auto'}}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
+      {/* Print-only header — hidden on screen */}
+      <div className="print-only" style={{display:'none',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24,paddingBottom:16,borderBottom:'2px solid #0A0A0A'}}>
+        <div>
+          <p style={{fontSize:'1.3rem',fontWeight:800,fontFamily:"'Fraunces',serif",color:'#0A0A0A',letterSpacing:'-.02em'}}>Financial Reports</p>
+          <p style={{fontSize:'.8rem',color:'#64748B',marginTop:4}}>{businessName}</p>
+        </div>
+        <p style={{fontSize:'.75rem',color:'#94A3B8',fontFamily:"'DM Mono',monospace"}}>
+          Generated {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+        </p>
+      </div>
+
       {/* Header */}
       <div style={{marginBottom:32}}>
         <Link href="/dashboard" style={{fontSize:'.75rem',fontWeight:700,color:'#94A3B8',textDecoration:'none',letterSpacing:'.02em'}}>← Dashboard</Link>
@@ -425,7 +451,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
             <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— Profit & Loss Statement</span>
           </div>
           {/* Stat cards */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
+          <div className="stat-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
             {[
               {label:'Total Revenue',  value:fmtC(totalRevenue),  sub:`${filtered.paidInvoices.length} invoices + ${filtered.payments.length} payments`, color:'#0055FF', bg:'rgba(0,85,255,0.05)',   icon:TrendingUp},
               {label:'Total Expenses', value:fmtC(totalExpenses), sub:`${filtered.exps.length} expense entries`,                                          color:'#FF6B35', bg:'rgba(255,107,53,0.05)', icon:TrendingDown},
@@ -475,7 +501,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
             </table>
           </div>
           {/* Category breakdowns */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+          <div className="cat-cols" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
             <div className="rpt-section">
               <div className="rpt-section-head"><p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Revenue breakdown</p><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>By income category</p></div>
               {revByCategory.length===0
@@ -689,16 +715,16 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
             <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— as at {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
           </div>
           {/* Net Equity headline card */}
-          <div style={{background:'linear-gradient(135deg,#002ECC 0%,#0044EE 40%,#0055FF 70%,#003DCC 100%)',borderRadius:16,padding:'28px 32px',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:1,position:'relative',overflow:'hidden'}}>
+          <div className="bs-hero" style={{background:'linear-gradient(135deg,#002ECC 0%,#0044EE 40%,#0055FF 70%,#003DCC 100%)',borderRadius:16,padding:'28px 32px',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:1,position:'relative',overflow:'hidden'}}>
             <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 60% 80% at 110% 50%,rgba(0,196,160,0.2) 0%,transparent 60%)',pointerEvents:'none'}}/>
             {[
-              {label:'Total Assets',      value:fmtC(balanceSheet.totalAssets),      color:'#fff'},
-              {label:'Total Liabilities', value:fmtC(balanceSheet.totalLiabilities), color:'rgba(255,107,53,0.9)'},
-              {label:'Net Equity',        value:fmtC(balanceSheet.netEquity),        color:balanceSheet.netEquity>=0?'#4DF0CB':'rgba(255,100,100,0.9)'},
+              {label:'Total Assets',      value:fmtC(balanceSheet.totalAssets)      },
+              {label:'Total Liabilities', value:fmtC(balanceSheet.totalLiabilities) },
+              {label:'Net Equity',        value:fmtC(balanceSheet.netEquity)        },
             ].map(c=>(
               <div key={c.label} style={{padding:'0 24px',borderRight:c.label!=='Net Equity'?'1px solid rgba(255,255,255,0.1)':'none',position:'relative'}}>
                 <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,0.4)',marginBottom:8}}>{c.label}</p>
-                <p className="f-display" style={{fontSize:'1.55rem',fontWeight:800,letterSpacing:'-.02em',color:c.color}}>{c.value}</p>
+                <p className="f-display" style={{fontSize:'1.55rem',fontWeight:800,letterSpacing:'-.02em',color:'#fff'}}>{c.value}</p>
               </div>
             ))}
           </div>
