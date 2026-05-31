@@ -5,7 +5,7 @@ import Link         from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { User }    from '@supabase/supabase-js'
-import { LogOut, Menu, X, ChevronDown, Settings } from 'lucide-react'
+import { LogOut, Menu, X, ChevronDown, Settings, CreditCard, Users2, HelpCircle, ExternalLink } from 'lucide-react'
 import Image from 'next/image'
 
 interface DashboardHeaderProps {
@@ -83,11 +83,36 @@ export default function DashboardHeader({
         {menuOpen && (
           <>
             <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-20">
+            <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl border border-gray-100 shadow-lg overflow-hidden z-20">
               <div className="px-4 py-3 border-b border-gray-50">
                 <p className="text-xs text-gray-400 font-medium">Signed in as</p>
                 <p className="text-sm font-bold text-gray-900 truncate">{user.email}</p>
               </div>
+              <Link
+                href="/dashboard/billing"
+                onClick={() => setMenuOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <CreditCard className="w-4 h-4 text-gray-400" />
+                Billing
+              </Link>
+              <Link
+                href="/dashboard/affiliate"
+                onClick={() => setMenuOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Users2 className="w-4 h-4 text-gray-400" />
+                <span>Affiliate</span>
+                <span className="ml-auto text-[10px] font-black text-orange-500">30%</span>
+              </Link>
+              <Link
+                href="/help"
+                onClick={() => setMenuOpen(false)}
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-50"
+              >
+                <HelpCircle className="w-4 h-4 text-gray-400" />
+                Help
+              </Link>
               <Link
                 href="/dashboard/settings"
                 onClick={() => setMenuOpen(false)}
@@ -120,14 +145,18 @@ export default function DashboardHeader({
 
       {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="absolute top-14 left-0 right-0 bg-white border-b border-gray-100 shadow-lg z-50 md:hidden px-6 py-4 space-y-3">
-          <p className="text-sm text-gray-500 font-medium">{user.email}</p>
+        <div className="absolute top-14 left-0 right-0 bg-white border-b border-gray-100 shadow-lg z-50 md:hidden px-6 py-4 space-y-2">
+          <p className="text-xs text-gray-400 font-medium pb-1">{user.email}</p>
+          <Link href="/dashboard/billing"   onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><CreditCard className="w-4 h-4 text-gray-400"/>Billing</Link>
+          <Link href="/dashboard/affiliate" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><Users2 className="w-4 h-4 text-gray-400"/>Affiliate<span className="ml-auto text-[10px] font-black text-orange-500">30%</span></Link>
+          <Link href="/help"                onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><HelpCircle className="w-4 h-4 text-gray-400"/>Help</Link>
+          <Link href="/dashboard/settings"  onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><Settings className="w-4 h-4 text-gray-400"/>Settings</Link>
           <button
             suppressHydrationWarning
             onClick={handleLogout}
             className="flex items-center gap-2 w-full px-4 py-2.5 bg-gray-50 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
-            <LogOut className="w-4 h-4" />Sign out
+            <LogOut className="w-4 h-4"/>Sign out
           </button>
         </div>
       )}

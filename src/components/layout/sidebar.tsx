@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react'
 import { cn }          from '@/lib/utils'
 import {
   LayoutDashboard, FileText, ScrollText, Users, ExternalLink,
-  BarChart3, HelpCircle, CreditCard, Sparkles,
+  BarChart3, Sparkles,
   Receipt, Clock, TrendingUp, Banknote,
   ChevronRight, ChevronLeft, PanelLeftClose, PanelLeftOpen,
-  Users2, FileBarChart2,
+  FileBarChart2,
 } from 'lucide-react'
 import TimerSidebarBadge from '@/components/time/timer-sidebar-badge'
 
@@ -28,9 +28,6 @@ const NAV = [
   { name: 'Client Portal', href: '/dashboard/portal',    icon: ExternalLink    },
   { name: 'Analytics',     href: '/dashboard/analytics', icon: BarChart3       },
   { name: 'Reports',       href: '/dashboard/reports',   icon: FileBarChart2   },
-  { name: 'Billing',       href: '/dashboard/billing',   icon: CreditCard      },
-  { name: 'Affiliate',     href: '/dashboard/affiliate', icon: Users2          },
-  { name: 'Help',          href: '/help',                icon: HelpCircle      },
 ]
 
 export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
