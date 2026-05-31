@@ -1,645 +1,535 @@
 'use client'
 // src/components/reports/reports-client.tsx
-// Financial Reports hub. Three tabs: P&L Statement · Period Breakdown · Balance Sheet
-// Design: matches editorial quality of landing/affiliate pages.
-// All filtering and calculation done client-side — data passed from server component.
+// Four tabs: P&L Statement · Period Breakdown · Asset Register · Balance Sheet
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import {
-  TrendingUp, TrendingDown, Lock, Printer,
-  ChevronDown, BarChart2, FileText, Scale,
-  ArrowUpRight, ArrowDownRight, Minus,
-  Info,
+  TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus,
+  FileText, BarChart2, Scale, Building2, Printer, Info,
+  Plus, Trash2, Loader2, ChevronDown, ChevronUp, CheckCircle2, AlertCircle,
 } from 'lucide-react'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
-interface Invoice {
-  id: string
-  status: string
-  displayStatus: string
-  issue_date: string
-  due_date: string
-  total_amount: number
-  revenue_category_id: string | null
+interface Invoice        { id:string; status:string; displayStatus:string; issue_date:string; due_date:string; total_amount:number; revenue_category_id:string|null }
+interface DirectPayment  { id:string; amount:number; payment_date:string; revenue_category_id:string|null; payment_type:string; payment_method:string; description:string }
+interface Expense        { id:string; amount:number; date:string; category:string; description:string; vendor:string }
+interface RevCategory    { id:string; name:string; color:string }
+interface Asset {
+  id:string; user_id?:string; name:string; category:string; description?:string|null
+  purchase_date:string; purchase_cost:number; salvage_value:number; useful_life_years:number
+  depreciation_method:string; status:string; disposed_at?:string|null; disposed_value?:number|null; notes?:string|null
 }
-interface DirectPayment {
-  id: string
-  amount: number
-  payment_date: string
-  revenue_category_id: string | null
-  payment_type: string
-  payment_method: string
-  description: string
-}
-interface Expense {
-  id: string
-  amount: number
-  date: string
-  category: string
-  description: string
-  vendor: string
-}
-interface RevCategory {
-  id: string
-  name: string
-  color: string
-}
+interface Liability { id:string; user_id?:string; name:string; amount:number; liability_type:string; notes?:string|null }
+
 interface Props {
-  businessName: string
-  tier: string
-  invoices: Invoice[]
-  directPayments: DirectPayment[]
-  expenses: Expense[]
-  revCategories: RevCategory[]
+  businessName:string; tier:string
+  invoices:Invoice[]; directPayments:DirectPayment[]; expenses:Expense[]; revCategories:RevCategory[]
+  initialAssets:Asset[]; initialLiabilities:Liability[]
+  latestCashBalance:number|null
 }
 
-// ─── Date range helpers ────────────────────────────────────────────────────────
-function rangeFor(key: string): { start: Date; end: Date; label: string } {
-  const now   = new Date()
-  const y     = now.getFullYear()
-  const m     = now.getMonth()
+// ─── Depreciation ──────────────────────────────────────────────────────────────
+function calcDep(a: Asset) {
+  const cost    = Number(a.purchase_cost  || 0)
+  const salvage = Number(a.salvage_value  || 0)
+  const life    = Number(a.useful_life_years || 5)
+  if (life <= 0) return { annualDep:0, accumulated:0, bookValue:cost }
+  const annualDep    = (cost - salvage) / life
+  const purchaseDate = new Date(a.purchase_date + 'T12:00:00')
+  const years        = (Date.now() - purchaseDate.getTime()) / (1000*60*60*24*365.25)
+  const accumulated  = Math.min(annualDep * Math.max(years, 0), cost - salvage)
+  return { annualDep, accumulated, bookValue: cost - accumulated }
+}
 
-  const ranges: Record<string, { start: Date; end: Date; label: string }> = {
-    this_month:   { start: new Date(y, m, 1),     end: new Date(y, m+1, 0),     label: now.toLocaleString('default',{month:'long',year:'numeric'}) },
-    last_month:   { start: new Date(y, m-1, 1),   end: new Date(y, m, 0),       label: new Date(y,m-1,1).toLocaleString('default',{month:'long',year:'numeric'}) },
-    this_quarter: { start: new Date(y, Math.floor(m/3)*3, 1), end: new Date(y, Math.floor(m/3)*3+3, 0), label: `Q${Math.floor(m/3)+1} ${y}` },
-    last_quarter: { start: new Date(y, Math.floor(m/3)*3-3, 1), end: new Date(y, Math.floor(m/3)*3, 0), label: `Q${Math.floor(m/3)||4} ${Math.floor(m/3)?y:y-1}` },
-    this_year:    { start: new Date(y, 0, 1),      end: new Date(y, 11, 31),     label: `Full Year ${y}` },
-    last_year:    { start: new Date(y-1, 0, 1),    end: new Date(y-1, 11, 31),   label: `Full Year ${y-1}` },
-    all_time:     { start: new Date(2020, 0, 1),   end: new Date(y+1, 0, 1),     label: 'All Time' },
+// ─── Date helpers ──────────────────────────────────────────────────────────────
+function rangeFor(key:string) {
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth()
+  const R: Record<string,{start:Date,end:Date,label:string}> = {
+    this_month:   {start:new Date(y,m,1),        end:new Date(y,m+1,0),          label:now.toLocaleString('default',{month:'long',year:'numeric'})},
+    last_month:   {start:new Date(y,m-1,1),      end:new Date(y,m,0),            label:new Date(y,m-1,1).toLocaleString('default',{month:'long',year:'numeric'})},
+    this_quarter: {start:new Date(y,Math.floor(m/3)*3,1), end:new Date(y,Math.floor(m/3)*3+3,0), label:`Q${Math.floor(m/3)+1} ${y}`},
+    last_quarter: {start:new Date(y,Math.floor(m/3)*3-3,1),end:new Date(y,Math.floor(m/3)*3,0),  label:`Q${Math.floor(m/3)||4} ${Math.floor(m/3)?y:y-1}`},
+    this_year:    {start:new Date(y,0,1),         end:new Date(y,11,31),          label:`Full Year ${y}`},
+    last_year:    {start:new Date(y-1,0,1),       end:new Date(y-1,11,31),        label:`Full Year ${y-1}`},
+    all_time:     {start:new Date(2020,0,1),      end:new Date(y+1,0,1),          label:'All Time'},
   }
-  return ranges[key] || ranges['this_year']
+  return R[key]||R['this_year']
 }
-
-function inRange(dateStr: string, start: Date, end: Date): boolean {
-  const d = new Date(dateStr + 'T12:00:00') // UTC midnight bug prevention
-  return d >= start && d <= end
+function inRange(dateStr:string,start:Date,end:Date) {
+  const d=new Date(dateStr+'T12:00:00'); return d>=start&&d<=end
 }
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
-const fmtCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
-
-const fmtPct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`
-
+const fmtC   = (n:number) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(n)
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-
-const EXPENSE_COLORS: Record<string, string> = {
-  software: '#0066FF', hardware: '#6B7280', travel: '#F59E0B',
-  meals: '#FF6B35', marketing: '#EC4899', office: '#00D4AA',
-  professional: '#6366F1', utilities: '#14B8A6', education: '#8B5CF6',
-  insurance: '#22C55E', taxes: '#EF4444', other: '#9CA3AF',
+const EXP_COLORS: Record<string,string> = {
+  software:'#0066FF',hardware:'#6B7280',travel:'#F59E0B',meals:'#FF6B35',marketing:'#EC4899',
+  office:'#00D4AA',professional:'#6366F1',utilities:'#14B8A6',education:'#8B5CF6',
+  insurance:'#22C55E',taxes:'#EF4444',other:'#9CA3AF',
 }
-function expColor(cat: string) { return EXPENSE_COLORS[cat?.toLowerCase()] || '#94A3B8' }
+const ASSET_CATS = ['equipment','vehicle','computer','furniture','software','property','other']
+const LIAB_TYPES = ['loan','credit_card','accounts_payable','tax_payable','other']
 
-// ─── Shared CSS ───────────────────────────────────────────────────────────────
+// ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=DM+Mono:ital,wght@0,400;0,500&display=swap');
-  .f-display { font-family:'Fraunces',serif; font-optical-sizing:auto; }
-  .f-mono    { font-family:'DM Mono',monospace; }
-
-  .rpt-tab {
-    padding: 9px 20px; border-radius: 9px; font-size: .82rem; font-weight: 700;
-    border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
-    transition: background .15s, color .15s;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .rpt-tab-active  { background: #0A0A0A; color: #fff; }
-  .rpt-tab-inactive { background: transparent; color: #64748B; }
-  .rpt-tab-inactive:hover { background: #F1F5F9; color: #374151; }
-
-  .rpt-range-btn {
-    padding: 7px 14px; border-radius: 7px; font-size: .75rem; font-weight: 700;
-    border: 1px solid #E2E8F0; cursor: pointer; background: #fff; color: #64748B;
-    transition: all .12s; font-family: 'DM Sans', sans-serif; white-space: nowrap;
-  }
-  .rpt-range-btn:hover  { border-color: #0055FF; color: #0055FF; background: rgba(0,85,255,0.03); }
-  .rpt-range-btn-active { border-color: #0055FF !important; color: #0055FF !important; background: rgba(0,85,255,0.06) !important; }
-
-  .rpt-stat {
-    background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; padding: 24px 24px 20px;
-    transition: box-shadow .15s, transform .15s;
-  }
-  .rpt-stat:hover { box-shadow: 0 4px 20px rgba(0,85,255,0.07); transform: translateY(-1px); }
-
-  .rpt-section {
-    background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;
-    overflow: hidden;
-  }
-  .rpt-section-head {
-    padding: 20px 24px 16px; border-bottom: 1px solid #F1F5F9;
-  }
-  .rpt-table { width: 100%; border-collapse: collapse; }
-  .rpt-table th {
-    font-size: .66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
-    color: #94A3B8; padding: 0 24px 12px; text-align: left; border-bottom: 1px solid #E2E8F0;
-  }
-  .rpt-table th:not(:first-child) { text-align: right; }
-  .rpt-table td {
-    font-size: .83rem; color: #374151; padding: 13px 24px;
-    border-bottom: 1px solid #F8FAFC;
-  }
-  .rpt-table td:not(:first-child) { text-align: right; font-family: 'DM Mono', monospace; font-size: .79rem; }
-  .rpt-table tr:last-child td { border-bottom: none; }
-  .rpt-table tbody tr:hover td { background: #F8FAFF; }
-  .rpt-total-row td {
-    font-weight: 800; border-top: 2px solid #E2E8F0 !important;
-    border-bottom: none !important; padding-top: 14px; background: #F8FAFF;
-  }
-
-  .bar-track { background: #F1F5F9; border-radius: 4px; height: 6px; flex: 1; }
-  .bar-fill  { height: 6px; border-radius: 4px; transition: width .4s; }
-
-  .period-bar-wrap { display: flex; flex-direction: column; gap: 3px; align-items: center; flex: 1; }
-  .period-bar      { width: 100%; border-radius: 4px 4px 0 0; transition: height .3s; min-height: 2px; }
-
-  .locked-overlay {
-    background: rgba(248,250,255,0.92); backdrop-filter: blur(6px);
-    border-radius: 16px; border: 1px solid #E2E8F0; padding: 64px 32px;
-    text-align: center;
-  }
-
-  @media print {
-    .no-print { display: none !important; }
-    body { background: white; }
-    .rpt-stat, .rpt-section { box-shadow: none; border: 1px solid #e2e8f0; }
-  }
+  .f-display{font-family:'Fraunces',serif;font-optical-sizing:auto}
+  .f-mono{font-family:'DM Mono',monospace}
+  .rpt-tab{padding:9px 20px;border-radius:9px;font-size:.82rem;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s,color .15s;font-family:'DM Sans',sans-serif}
+  .rpt-tab-active{background:#0A0A0A;color:#fff}
+  .rpt-tab-inactive{background:transparent;color:#64748B}
+  .rpt-tab-inactive:hover{background:#F1F5F9;color:#374151}
+  .rpt-range-btn{padding:7px 14px;border-radius:7px;font-size:.75rem;font-weight:700;border:1px solid #E2E8F0;cursor:pointer;background:#fff;color:#64748B;transition:all .12s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+  .rpt-range-btn:hover{border-color:#0055FF;color:#0055FF;background:rgba(0,85,255,0.03)}
+  .rpt-range-btn-active{border-color:#0055FF!important;color:#0055FF!important;background:rgba(0,85,255,0.06)!important}
+  .rpt-stat{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:24px 24px 20px;transition:box-shadow .15s,transform .15s}
+  .rpt-stat:hover{box-shadow:0 4px 20px rgba(0,85,255,0.07);transform:translateY(-1px)}
+  .rpt-section{background:#fff;border:1px solid #E2E8F0;border-radius:16px;overflow:hidden}
+  .rpt-section-head{padding:20px 24px 16px;border-bottom:1px solid #F1F5F9}
+  .rpt-table{width:100%;border-collapse:collapse}
+  .rpt-table th{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94A3B8;padding:0 24px 12px;text-align:left;border-bottom:1px solid #E2E8F0}
+  .rpt-table th:not(:first-child){text-align:right}
+  .rpt-table td{font-size:.83rem;color:#374151;padding:13px 24px;border-bottom:1px solid #F8FAFC}
+  .rpt-table td:not(:first-child){text-align:right;font-family:'DM Mono',monospace;font-size:.79rem}
+  .rpt-table tr:last-child td{border-bottom:none}
+  .rpt-table tbody tr:hover td{background:#F8FAFF}
+  .rpt-total-row td{font-weight:800;border-top:2px solid #E2E8F0!important;border-bottom:none!important;padding-top:14px;background:#F8FAFF}
+  .bar-track{background:#F1F5F9;border-radius:4px;height:6px;flex:1}
+  .bar-fill{height:6px;border-radius:4px;transition:width .4s}
+  .rpt-input{width:100%;padding:9px 12px;border:1px solid #E2E8F0;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.825rem;color:#0A0A0A;background:#fff;outline:none;transition:border-color .15s}
+  .rpt-input:focus{border-color:#0055FF}
+  .rpt-select{padding:9px 12px;border:1px solid #E2E8F0;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.825rem;color:#0A0A0A;background:#fff;outline:none;cursor:pointer;width:100%}
+  .rpt-select:focus{border-color:#0055FF}
+  .rpt-add-btn{padding:9px 20px;border-radius:9px;background:linear-gradient(135deg,#0044EE,#0066FF);color:#fff;font-weight:700;font-size:.82rem;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif}
+  .rpt-add-btn:disabled{opacity:.6;cursor:not-allowed}
+  .del-btn{padding:5px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#94A3B8;display:flex;align-items:center;transition:color .12s,background .12s}
+  .del-btn:hover{color:#EF4444;background:#FEF2F2}
+  @media print{.no-print{display:none!important}body{background:#fff}.rpt-stat,.rpt-section{box-shadow:none;border:1px solid #e2e8f0}}
 `
 
-// ─── Bar chart for period breakdown ───────────────────────────────────────────
-function PeriodChart({ rows }: { rows: { label: string; revenue: number; expenses: number; profit: number }[] }) {
-  const maxVal = Math.max(...rows.flatMap(r => [r.revenue, r.expenses]), 1)
-  const BAR_H  = 160
-
+// ─── Sub-components ───────────────────────────────────────────────────────────
+function CatRow({name,amount,total,color}:{name:string,amount:number,total:number,color:string}) {
+  const pct=total>0?(amount/total)*100:0
   return (
-    <div style={{ padding: '24px 24px 0' }}>
-      <div style={{ display: 'flex', gap: 4, alignItems: 'flex-end', height: BAR_H + 28 }}>
-        {rows.map((r, i) => (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <div style={{ display: 'flex', gap: 2, alignItems: 'flex-end', width: '100%', height: BAR_H }}>
-              <div
-                style={{
-                  flex: 1, borderRadius: '3px 3px 0 0', background: 'linear-gradient(180deg,#0066FF,#0044CC)',
-                  height: `${Math.round((r.revenue / maxVal) * BAR_H)}px`,
-                  minHeight: r.revenue > 0 ? 3 : 0, transition: 'height .3s',
-                  opacity: 0.85,
-                }}
-                title={`Revenue: ${fmtCurrency(r.revenue)}`}
-              />
-              <div
-                style={{
-                  flex: 1, borderRadius: '3px 3px 0 0', background: 'linear-gradient(180deg,#FF6B35,#E04E20)',
-                  height: `${Math.round((r.expenses / maxVal) * BAR_H)}px`,
-                  minHeight: r.expenses > 0 ? 3 : 0, transition: 'height .3s',
-                  opacity: 0.75,
-                }}
-                title={`Expenses: ${fmtCurrency(r.expenses)}`}
-              />
+    <div style={{padding:'12px 24px',display:'flex',alignItems:'center',gap:14}}>
+      <div style={{width:8,height:8,borderRadius:'50%',background:color,flexShrink:0}}/>
+      <span style={{flex:1,fontSize:'.82rem',color:'#374151',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name}</span>
+      <div className="bar-track" style={{maxWidth:100}}><div className="bar-fill" style={{width:`${pct}%`,background:color}}/></div>
+      <span style={{fontSize:'.78rem',color:'#94A3B8',fontWeight:600,minWidth:36,textAlign:'right'}}>{pct.toFixed(0)}%</span>
+      <span className="f-mono" style={{fontSize:'.78rem',color:'#0A0A0A',fontWeight:700,minWidth:88,textAlign:'right'}}>{fmtC(amount)}</span>
+    </div>
+  )
+}
+
+function PeriodChart({rows}:{rows:{label:string,revenue:number,expenses:number}[]}) {
+  const max=Math.max(...rows.flatMap(r=>[r.revenue,r.expenses]),1), H=160
+  return (
+    <div style={{padding:'24px 24px 0'}}>
+      <div style={{display:'flex',gap:4,alignItems:'flex-end',height:H+28}}>
+        {rows.map((r,i)=>(
+          <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+            <div style={{display:'flex',gap:2,alignItems:'flex-end',width:'100%',height:H}}>
+              <div style={{flex:1,borderRadius:'3px 3px 0 0',background:'linear-gradient(180deg,#0066FF,#0044CC)',height:`${Math.round((r.revenue/max)*H)}px`,minHeight:r.revenue>0?3:0,opacity:.85}} title={`Revenue: ${fmtC(r.revenue)}`}/>
+              <div style={{flex:1,borderRadius:'3px 3px 0 0',background:'linear-gradient(180deg,#FF6B35,#E04E20)',height:`${Math.round((r.expenses/max)*H)}px`,minHeight:r.expenses>0?3:0,opacity:.75}} title={`Expenses: ${fmtC(r.expenses)}`}/>
             </div>
-            <span style={{ fontSize: '.6rem', color: '#94A3B8', fontWeight: 600, letterSpacing: '.02em' }}>
-              {r.label}
-            </span>
+            <span style={{fontSize:'.6rem',color:'#94A3B8',fontWeight:600,letterSpacing:'.02em'}}>{r.label}</span>
           </div>
         ))}
       </div>
-      {/* Legend */}
-      <div style={{ display: 'flex', gap: 20, padding: '16px 0 20px', borderTop: '1px solid #F1F5F9', marginTop: 8 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: '#0066FF', display: 'inline-block' }}/>
-          <span style={{ fontSize: '.72rem', fontWeight: 600, color: '#64748B' }}>Revenue</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, background: '#FF6B35', display: 'inline-block' }}/>
-          <span style={{ fontSize: '.72rem', fontWeight: 600, color: '#64748B' }}>Expenses</span>
-        </div>
+      <div style={{display:'flex',gap:20,padding:'16px 0 20px',borderTop:'1px solid #F1F5F9',marginTop:8}}>
+        {[{c:'#0066FF',l:'Revenue'},{c:'#FF6B35',l:'Expenses'}].map(x=>(
+          <div key={x.l} style={{display:'flex',alignItems:'center',gap:6}}>
+            <span style={{width:10,height:10,borderRadius:2,background:x.c,display:'inline-block'}}/>
+            <span style={{fontSize:'.72rem',fontWeight:600,color:'#64748B'}}>{x.l}</span>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
-// ─── Category bar row ──────────────────────────────────────────────────────────
-function CategoryRow({ name, amount, total, color }: { name: string; amount: number; total: number; color: string }) {
-  const pct = total > 0 ? (amount / total) * 100 : 0
+// ─── Inline form component ────────────────────────────────────────────────────
+function AddAssetForm({onAdd}:{onAdd:(a:Asset)=>void}) {
+  const [open,   setOpen]   = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [err,    setErr]    = useState('')
+  const [f, setF] = useState({name:'',category:'equipment',purchase_date:'',purchase_cost:'',salvage_value:'0',useful_life_years:'5',description:'',notes:''})
+  const set = (k:string,v:string) => setF(p=>({...p,[k]:v}))
+
+  const submit = async () => {
+    if (!f.name||!f.purchase_date||!f.purchase_cost) { setErr('Name, date and cost are required'); return }
+    setSaving(true); setErr('')
+    const res  = await fetch('/api/assets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(f)})
+    const data = await res.json()
+    if (!res.ok) { setErr(data.error||'Failed'); setSaving(false); return }
+    onAdd(data)
+    setF({name:'',category:'equipment',purchase_date:'',purchase_cost:'',salvage_value:'0',useful_life_years:'5',description:'',notes:''})
+    setSaving(false); setOpen(false)
+  }
+
   return (
-    <div style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: 14 }}>
-      <div style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }}/>
-      <span style={{ flex: 1, fontSize: '.82rem', color: '#374151', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {name}
-      </span>
-      <div className="bar-track" style={{ maxWidth: 100 }}>
-        <div className="bar-fill" style={{ width: `${pct}%`, background: color }}/>
-      </div>
-      <span style={{ fontSize: '.78rem', color: '#94A3B8', fontWeight: 600, minWidth: 36, textAlign: 'right' }}>
-        {pct.toFixed(0)}%
-      </span>
-      <span className="f-mono" style={{ fontSize: '.78rem', color: '#0A0A0A', fontWeight: 700, minWidth: 88, textAlign: 'right' }}>
-        {fmtCurrency(amount)}
-      </span>
+    <div style={{borderTop:'1px solid #F1F5F9'}}>
+      <button onClick={()=>setOpen(!open)} style={{width:'100%',padding:'14px 24px',display:'flex',alignItems:'center',gap:8,background:'none',border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontSize:'.82rem',fontWeight:700,color:'#0055FF'}}>
+        {open ? <><ChevronUp size={14}/>Hide form</> : <><Plus size={14}/>Add asset</>}
+      </button>
+      {open && (
+        <div style={{padding:'0 24px 24px',display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:10}}>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Asset name *</label>
+              <input className="rpt-input" value={f.name} onChange={e=>set('name',e.target.value)} placeholder="e.g. MacBook Pro 16"/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Category</label>
+              <select className="rpt-select" value={f.category} onChange={e=>set('category',e.target.value)}>
+                {ASSET_CATS.map(c=><option key={c} value={c} style={{textTransform:'capitalize'}}>{c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+              </select></div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:10}}>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Purchase date *</label>
+              <input className="rpt-input" type="date" value={f.purchase_date} onChange={e=>set('purchase_date',e.target.value)}/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Cost ($) *</label>
+              <input className="rpt-input" type="number" min="0" step="0.01" value={f.purchase_cost} onChange={e=>set('purchase_cost',e.target.value)} placeholder="0.00"/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Salvage value ($)</label>
+              <input className="rpt-input" type="number" min="0" step="0.01" value={f.salvage_value} onChange={e=>set('salvage_value',e.target.value)}/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Useful life (yrs)</label>
+              <input className="rpt-input" type="number" min="1" max="50" value={f.useful_life_years} onChange={e=>set('useful_life_years',e.target.value)}/></div>
+          </div>
+          <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Description (optional)</label>
+            <input className="rpt-input" value={f.description} onChange={e=>set('description',e.target.value)} placeholder="Serial number, model, location…"/></div>
+          {err && <p style={{fontSize:'.78rem',color:'#DC2626',display:'flex',alignItems:'center',gap:6}}><AlertCircle size={13}/>{err}</p>}
+          <div style={{display:'flex',gap:10}}>
+            <button className="rpt-add-btn" onClick={submit} disabled={saving}>
+              {saving?<><Loader2 size={13} className="animate-spin"/>Saving…</>:<><CheckCircle2 size={13}/>Save asset</>}
+            </button>
+            <button onClick={()=>{setOpen(false);setErr('')}} style={{padding:'9px 16px',borderRadius:9,border:'1px solid #E2E8F0',background:'#fff',cursor:'pointer',fontSize:'.82rem',fontWeight:600,color:'#64748B',fontFamily:"'DM Sans',sans-serif"}}>Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function AddLiabilityForm({onAdd}:{onAdd:(l:Liability)=>void}) {
+  const [open,   setOpen]   = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [err,    setErr]    = useState('')
+  const [f, setF] = useState({name:'',amount:'',liability_type:'loan',notes:''})
+  const set = (k:string,v:string) => setF(p=>({...p,[k]:v}))
+
+  const submit = async () => {
+    if (!f.name||!f.amount) { setErr('Name and amount are required'); return }
+    setSaving(true); setErr('')
+    const res  = await fetch('/api/liabilities',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(f)})
+    const data = await res.json()
+    if (!res.ok) { setErr(data.error||'Failed'); setSaving(false); return }
+    onAdd(data)
+    setF({name:'',amount:'',liability_type:'loan',notes:''})
+    setSaving(false); setOpen(false)
+  }
+
+  const TYPE_LABELS: Record<string,string> = {loan:'Loan',credit_card:'Credit Card',accounts_payable:'Accounts Payable',tax_payable:'Tax Payable',other:'Other'}
+
+  return (
+    <div style={{borderTop:'1px solid #F1F5F9'}}>
+      <button onClick={()=>setOpen(!open)} style={{width:'100%',padding:'14px 24px',display:'flex',alignItems:'center',gap:8,background:'none',border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontSize:'.82rem',fontWeight:700,color:'#FF6B35'}}>
+        {open ? <><ChevronUp size={14}/>Hide form</> : <><Plus size={14}/>Add liability</>}
+      </button>
+      {open && (
+        <div style={{padding:'0 24px 24px',display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:10}}>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Name *</label>
+              <input className="rpt-input" value={f.name} onChange={e=>set('name',e.target.value)} placeholder="e.g. Business loan, Amex card"/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Amount owed ($) *</label>
+              <input className="rpt-input" type="number" min="0" step="0.01" value={f.amount} onChange={e=>set('amount',e.target.value)} placeholder="0.00"/></div>
+            <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Type</label>
+              <select className="rpt-select" value={f.liability_type} onChange={e=>set('liability_type',e.target.value)}>
+                {LIAB_TYPES.map(t=><option key={t} value={t}>{TYPE_LABELS[t]}</option>)}
+              </select></div>
+          </div>
+          <div><label style={{fontSize:'.72rem',fontWeight:700,color:'#374151',display:'block',marginBottom:5}}>Notes (optional)</label>
+            <input className="rpt-input" value={f.notes} onChange={e=>set('notes',e.target.value)} placeholder="Interest rate, due date, lender name…"/></div>
+          {err && <p style={{fontSize:'.78rem',color:'#DC2626',display:'flex',alignItems:'center',gap:6}}><AlertCircle size={13}/>{err}</p>}
+          <div style={{display:'flex',gap:10}}>
+            <button className="rpt-add-btn" onClick={submit} disabled={saving} style={{background:'linear-gradient(135deg,#E04E20,#FF6B35)'}}>
+              {saving?<><Loader2 size={13} className="animate-spin"/>Saving…</>:<><CheckCircle2 size={13}/>Save liability</>}
+            </button>
+            <button onClick={()=>{setOpen(false);setErr('')}} style={{padding:'9px 16px',borderRadius:9,border:'1px solid #E2E8F0',background:'#fff',cursor:'pointer',fontSize:'.82rem',fontWeight:600,color:'#64748B',fontFamily:"'DM Sans',sans-serif"}}>Cancel</button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Balance Sheet Section Row ─────────────────────────────────────────────────
+function BSRow({label,amount,indent=false,bold=false,total=false,color}:{label:string,amount:number|null,indent?:boolean,bold?:boolean,total?:boolean,color?:string}) {
+  return (
+    <tr style={total?{background:'#F8FAFF'}:{}}>
+      <td style={{paddingLeft:indent?48:24,fontWeight:bold||total?800:400,fontSize:total?'.88rem':'.83rem',color:total?'#0A0A0A':'#374151',borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none'}}>
+        {label}
+      </td>
+      <td style={{textAlign:'right',paddingRight:24,fontFamily:"'DM Mono',monospace",fontSize:total?'.88rem':'.79rem',fontWeight:bold||total?800:400,color:color||(total?'#0A0A0A':'#374151'),borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none'}}>
+        {amount===null?'—':fmtC(amount)}
+      </td>
+    </tr>
   )
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
-export function ReportsClient({ businessName, tier, invoices, directPayments, expenses, revCategories }: Props) {
-  const [tab,      setTab]      = useState<'pl' | 'period' | 'balance'>('pl')
+export function ReportsClient({businessName,tier,invoices,directPayments,expenses,revCategories,initialAssets,initialLiabilities,latestCashBalance}: Props) {
+  const [tab,      setTab]    = useState<'pl'|'period'|'assets'|'balance'>('pl')
   const [rangeKey, setRangeKey] = useState('this_year')
+  const [assets,     setAssets]     = useState<Asset[]>(initialAssets)
+  const [liabilities,setLiabilities] = useState<Liability[]>(initialLiabilities)
 
   const range = rangeFor(rangeKey)
 
-  // ── Core filtered data ─────────────────────────────────────────────────────
+  // ── Delete handlers ────────────────────────────────────────────────────────
+  const deleteAsset = useCallback(async (id:string) => {
+    await fetch(`/api/assets/${id}`,{method:'DELETE'})
+    setAssets(p=>p.filter(a=>a.id!==id))
+  },[])
+  const deleteLiability = useCallback(async (id:string) => {
+    await fetch(`/api/liabilities/${id}`,{method:'DELETE'})
+    setLiabilities(p=>p.filter(l=>l.id!==id))
+  },[])
+
+  // ── P&L core data ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    const { start, end } = range
-
-    const paidInvoices = invoices.filter(i =>
-      i.displayStatus === 'paid' && inRange(i.issue_date, start, end)
-    )
-    const payments = directPayments.filter(p =>
-      inRange(p.payment_date, start, end)
-    )
-    const exps = expenses.filter(e =>
-      inRange(e.date, start, end)
-    )
-
-    const invoiceRevenue = paidInvoices.reduce((s, i) => s + Number(i.total_amount || 0), 0)
-    const paymentRevenue = payments.reduce((s, p)     => s + Number(p.amount || 0), 0)
+    const {start,end} = range
+    const paidInvoices = invoices.filter(i=>i.displayStatus==='paid'&&inRange(i.issue_date,start,end))
+    const payments     = directPayments.filter(p=>inRange(p.payment_date,start,end))
+    const exps         = expenses.filter(e=>inRange(e.date,start,end))
+    const invoiceRevenue = paidInvoices.reduce((s,i)=>s+Number(i.total_amount||0),0)
+    const paymentRevenue = payments.reduce((s,p)=>s+Number(p.amount||0),0)
     const totalRevenue   = invoiceRevenue + paymentRevenue
-    const totalExpenses  = exps.reduce((s, e)          => s + Number(e.amount || 0), 0)
+    const totalExpenses  = exps.reduce((s,e)=>s+Number(e.amount||0),0)
     const grossProfit    = totalRevenue - totalExpenses
-    const profitMargin   = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
-
-    // Revenue by category
-    const catMap = new Map<string, { name: string; color: string; amount: number }>()
-    const addRev = (amount: number, catId: string | null) => {
-      const cat = revCategories.find(c => c.id === catId)
-      const key = cat?.id || '__uncategorised__'
-      const cur = catMap.get(key) || { name: cat?.name || 'Uncategorised', color: cat?.color || '#94A3B8', amount: 0 }
-      catMap.set(key, { ...cur, amount: cur.amount + amount })
+    const profitMargin   = totalRevenue>0?(grossProfit/totalRevenue)*100:0
+    const catMap = new Map<string,{name:string,color:string,amount:number}>()
+    const addRev = (amount:number,catId:string|null) => {
+      const cat=revCategories.find(c=>c.id===catId); const key=cat?.id||'__unc__'
+      const cur=catMap.get(key)||{name:cat?.name||'Uncategorised',color:cat?.color||'#94A3B8',amount:0}
+      catMap.set(key,{...cur,amount:cur.amount+amount})
     }
-    paidInvoices.forEach(i => addRev(Number(i.total_amount || 0), i.revenue_category_id))
-    payments.forEach(p     => addRev(Number(p.amount || 0),       p.revenue_category_id))
-    const revByCategory = Array.from(catMap.values()).sort((a, b) => b.amount - a.amount)
-
-    // Expense by category
-    const expCatMap = new Map<string, { name: string; color: string; amount: number }>()
-    exps.forEach(e => {
-      const key = e.category || 'other'
-      const cur = expCatMap.get(key) || { name: (e.category || 'Other'), color: expColor(e.category), amount: 0 }
-      expCatMap.set(key, { ...cur, amount: cur.amount + Number(e.amount || 0) })
+    paidInvoices.forEach(i=>addRev(Number(i.total_amount||0),i.revenue_category_id))
+    payments.forEach(p=>addRev(Number(p.amount||0),p.revenue_category_id))
+    const revByCategory = Array.from(catMap.values()).sort((a,b)=>b.amount-a.amount)
+    const expCatMap = new Map<string,{name:string,color:string,amount:number}>()
+    exps.forEach(e=>{
+      const key=e.category||'other'
+      const cur=expCatMap.get(key)||{name:(e.category||'Other'),color:EXP_COLORS[e.category]||'#94A3B8',amount:0}
+      expCatMap.set(key,{...cur,amount:cur.amount+Number(e.amount||0)})
     })
-    const expByCategory = Array.from(expCatMap.values()).sort((a, b) => b.amount - a.amount)
+    const expByCategory=Array.from(expCatMap.values()).sort((a,b)=>b.amount-a.amount)
+    return {paidInvoices,payments,exps,invoiceRevenue,paymentRevenue,totalRevenue,totalExpenses,grossProfit,profitMargin,revByCategory,expByCategory}
+  },[invoices,directPayments,expenses,revCategories,rangeKey])
 
-    return {
-      paidInvoices, payments, exps,
-      invoiceRevenue, paymentRevenue, totalRevenue, totalExpenses, grossProfit, profitMargin,
-      revByCategory, expByCategory,
-    }
-  }, [invoices, directPayments, expenses, revCategories, rangeKey])
-
-  // ── 12-month period data (always last 12 months, not range-sensitive) ───────
-  const periodRows = useMemo(() => {
-    const now = new Date()
-    return Array.from({ length: 12 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1)
-      const y = d.getFullYear(), m = d.getMonth()
-      const start = new Date(y, m, 1), end = new Date(y, m+1, 0)
-
-      const rev = invoices.filter(inv => inv.displayStatus === 'paid' && inRange(inv.issue_date, start, end))
-                          .reduce((s, i) => s + Number(i.total_amount || 0), 0)
-               + directPayments.filter(p => inRange(p.payment_date, start, end))
-                                .reduce((s, p) => s + Number(p.amount || 0), 0)
-      const exp = expenses.filter(e => inRange(e.date, start, end))
-                          .reduce((s, e) => s + Number(e.amount || 0), 0)
-
-      return { label: MONTHS[m], y, m, revenue: rev, expenses: exp, profit: rev - exp }
+  // ── 12-month period rows ───────────────────────────────────────────────────
+  const periodRows = useMemo(()=>{
+    const now=new Date()
+    return Array.from({length:12},(_,i)=>{
+      const d=new Date(now.getFullYear(),now.getMonth()-11+i,1); const y=d.getFullYear(),m=d.getMonth()
+      const start=new Date(y,m,1),end=new Date(y,m+1,0)
+      const rev=invoices.filter(inv=>inv.displayStatus==='paid'&&inRange(inv.issue_date,start,end)).reduce((s,i)=>s+Number(i.total_amount||0),0)
+               +directPayments.filter(p=>inRange(p.payment_date,start,end)).reduce((s,p)=>s+Number(p.amount||0),0)
+      const exp=expenses.filter(e=>inRange(e.date,start,end)).reduce((s,e)=>s+Number(e.amount||0),0)
+      return {label:MONTHS[m],y,m,revenue:rev,expenses:exp,profit:rev-exp}
     })
-  }, [invoices, directPayments, expenses])
+  },[invoices,directPayments,expenses])
 
-  const RANGE_OPTS = [
-    { key: 'this_month',   label: 'This month'   },
-    { key: 'last_month',   label: 'Last month'   },
-    { key: 'this_quarter', label: 'This quarter' },
-    { key: 'last_quarter', label: 'Last quarter' },
-    { key: 'this_year',    label: 'This year'    },
-    { key: 'last_year',    label: 'Last year'    },
-    { key: 'all_time',     label: 'All time'     },
+  // ── Asset register computed values ────────────────────────────────────────
+  const assetSummary = useMemo(()=>{
+    const active=assets.filter(a=>a.status==='active')
+    const totalCost=active.reduce((s,a)=>s+Number(a.purchase_cost||0),0)
+    const totalAccumDep=active.reduce((s,a)=>s+calcDep(a).accumulated,0)
+    const totalNetBV=active.reduce((s,a)=>s+calcDep(a).bookValue,0)
+    return {totalCost,totalAccumDep,totalNetBV,activeCount:active.length}
+  },[assets])
+
+  // ── Balance Sheet computed values ─────────────────────────────────────────
+  const balanceSheet = useMemo(()=>{
+    // Current assets
+    const cashBalance = latestCashBalance!==null ? Number(latestCashBalance) : null
+    const ar = invoices
+      .filter(i=>['sent','overdue'].includes(i.displayStatus))
+      .reduce((s,i)=>s+Number(i.total_amount||0),0)
+    const totalCurrentAssets = (cashBalance??0) + ar
+    // Fixed assets
+    const totalFixedAssets = assetSummary.totalNetBV
+    const totalAssets = totalCurrentAssets + totalFixedAssets
+    // Liabilities
+    const totalLiabilities = liabilities.reduce((s,l)=>s+Number(l.amount||0),0)
+    // Equity
+    const netEquity = totalAssets - totalLiabilities
+    return {cashBalance,ar,totalCurrentAssets,totalFixedAssets,totalAssets,totalLiabilities,netEquity}
+  },[invoices,assetSummary,liabilities,latestCashBalance])
+
+  const RANGE_OPTS=[
+    {key:'this_month',label:'This month'},{key:'last_month',label:'Last month'},
+    {key:'this_quarter',label:'This quarter'},{key:'last_quarter',label:'Last quarter'},
+    {key:'this_year',label:'This year'},{key:'last_year',label:'Last year'},
+    {key:'all_time',label:'All time'},
   ]
 
-  const { totalRevenue, totalExpenses, grossProfit, profitMargin, revByCategory, expByCategory } = filtered
+  const TABS=[
+    {key:'pl',      label:'P&L Statement',   icon:FileText },
+    {key:'period',  label:'Period Breakdown', icon:BarChart2},
+    {key:'assets',  label:'Asset Register',   icon:Building2},
+    {key:'balance', label:'Balance Sheet',    icon:Scale    },
+  ]
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  const {totalRevenue,totalExpenses,grossProfit,profitMargin,revByCategory,expByCategory}=filtered
+
   return (
-    <div style={{ fontFamily: "'DM Sans',sans-serif", color: '#0A0A0A', maxWidth: 1100, margin: '0 auto' }}>
-      <style dangerouslySetInnerHTML={{ __html: CSS }}/>
+    <div style={{fontFamily:"'DM Sans',sans-serif",color:'#0A0A0A',maxWidth:1100,margin:'0 auto'}}>
+      <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
-      {/* ── Page header ───────────────────────────────────────────────────── */}
-      <div style={{ marginBottom: 32 }}>
-        <Link href="/dashboard" style={{ fontSize: '.75rem', fontWeight: 700, color: '#94A3B8', textDecoration: 'none', letterSpacing: '.02em' }}>
-          ← Dashboard
-        </Link>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginTop: 12 }}>
+      {/* Header */}
+      <div style={{marginBottom:32}}>
+        <Link href="/dashboard" style={{fontSize:'.75rem',fontWeight:700,color:'#94A3B8',textDecoration:'none',letterSpacing:'.02em'}}>← Dashboard</Link>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16,marginTop:12}}>
           <div>
-            <h1 className="f-display" style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 800, letterSpacing: '-.022em', lineHeight: 1.08, color: '#0A0A0A', marginBottom: 5 }}>
-              Financial Reports
-            </h1>
-            <p style={{ fontSize: '.875rem', color: '#64748B' }}>{businessName}</p>
+            <h1 className="f-display" style={{fontSize:'clamp(1.6rem,3vw,2.4rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'#0A0A0A',marginBottom:5}}>Financial Reports</h1>
+            <p style={{fontSize:'.875rem',color:'#64748B'}}>{businessName}</p>
           </div>
-          <button
-            onClick={() => window.print()}
-            className="no-print"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '9px 18px', border: '1px solid #E2E8F0', borderRadius: 9, background: '#fff', color: '#374151', fontWeight: 600, fontSize: '.8rem', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>
+          <button onClick={()=>window.print()} className="no-print" style={{display:'inline-flex',alignItems:'center',gap:7,padding:'9px 18px',border:'1px solid #E2E8F0',borderRadius:9,background:'#fff',color:'#374151',fontWeight:600,fontSize:'.8rem',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>
             <Printer size={14}/> Print / Export
           </button>
         </div>
       </div>
 
-      {/* ── Tab bar ───────────────────────────────────────────────────────── */}
-      <div className="no-print" style={{ display: 'flex', gap: 4, padding: '4px', background: '#F8FAFF', borderRadius: 12, width: 'fit-content', marginBottom: 28, border: '1px solid #E2E8F0' }}>
-        {[
-          { key: 'pl',      label: 'P&L Statement',    icon: FileText  },
-          { key: 'period',  label: 'Period Breakdown',  icon: BarChart2 },
-          { key: 'balance', label: 'Balance Sheet',     icon: Scale     },
-        ].map(t => (
-          <button
-            key={t.key}
-            className={`rpt-tab ${tab === t.key ? 'rpt-tab-active' : 'rpt-tab-inactive'}`}
-            onClick={() => setTab(t.key as any)}
-          >
-            <t.icon size={13}/>
-            {t.label}
-            {t.key === 'balance' && <Lock size={11} style={{ opacity: .5 }}/>}
+      {/* Tab bar */}
+      <div className="no-print" style={{display:'flex',gap:4,padding:'4px',background:'#F8FAFF',borderRadius:12,width:'fit-content',marginBottom:28,border:'1px solid #E2E8F0'}}>
+        {TABS.map(t=>(
+          <button key={t.key} className={`rpt-tab ${tab===t.key?'rpt-tab-active':'rpt-tab-inactive'}`} onClick={()=>setTab(t.key as any)}>
+            <t.icon size={13}/>{t.label}
           </button>
         ))}
       </div>
 
-      {/* ── Date range — shown on P&L and Period tabs ─────────────────────── */}
-      {tab !== 'balance' && (
-        <div className="no-print" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 28, alignItems: 'center' }}>
-          <span style={{ fontSize: '.72rem', fontWeight: 700, color: '#94A3B8', letterSpacing: '.06em', textTransform: 'uppercase', marginRight: 4 }}>Period</span>
-          {RANGE_OPTS.map(o => (
-            <button
-              key={o.key}
-              className={`rpt-range-btn ${rangeKey === o.key ? 'rpt-range-btn-active' : ''}`}
-              onClick={() => setRangeKey(o.key)}
-            >
-              {o.label}
-            </button>
+      {/* Date range — P&L and Period only */}
+      {(tab==='pl'||tab==='period') && (
+        <div className="no-print" style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:28,alignItems:'center'}}>
+          <span style={{fontSize:'.72rem',fontWeight:700,color:'#94A3B8',letterSpacing:'.06em',textTransform:'uppercase',marginRight:4}}>Period</span>
+          {RANGE_OPTS.map(o=>(
+            <button key={o.key} className={`rpt-range-btn ${rangeKey===o.key?'rpt-range-btn-active':''}`} onClick={()=>setRangeKey(o.key)}>{o.label}</button>
           ))}
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 1 — P&L Statement                                               */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {tab === 'pl' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-
-          {/* Period label */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="f-display" style={{ fontSize: '1rem', fontWeight: 700, color: '#0A0A0A', letterSpacing: '-.01em' }}>
-              {range.label}
-            </span>
-            <span style={{ fontSize: '.72rem', color: '#94A3B8', fontWeight: 600 }}>— Profit & Loss Statement</span>
+      {/* ══════════════════════ TAB: P&L ══════════════════════ */}
+      {tab==='pl' && (
+        <div style={{display:'flex',flexDirection:'column',gap:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="f-display" style={{fontSize:'1rem',fontWeight:700,color:'#0A0A0A',letterSpacing:'-.01em'}}>{range.label}</span>
+            <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— Profit & Loss Statement</span>
           </div>
-
-          {/* 4 stat cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14 }}>
+          {/* Stat cards */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
             {[
-              {
-                label: 'Total Revenue',
-                value: fmtCurrency(totalRevenue),
-                sub: `${filtered.paidInvoices.length} invoices + ${filtered.payments.length} direct payments`,
-                color: '#0055FF', bg: 'rgba(0,85,255,0.05)',
-                icon: TrendingUp,
-              },
-              {
-                label: 'Total Expenses',
-                value: fmtCurrency(totalExpenses),
-                sub: `${filtered.exps.length} expense entries`,
-                color: '#FF6B35', bg: 'rgba(255,107,53,0.05)',
-                icon: TrendingDown,
-              },
-              {
-                label: 'Gross Profit',
-                value: fmtCurrency(grossProfit),
-                sub: grossProfit >= 0 ? 'Net positive' : 'Net loss',
-                color: grossProfit >= 0 ? '#16A34A' : '#DC2626',
-                bg: grossProfit >= 0 ? 'rgba(22,163,74,0.05)' : 'rgba(220,38,38,0.05)',
-                icon: grossProfit >= 0 ? ArrowUpRight : ArrowDownRight,
-              },
-              {
-                label: 'Profit Margin',
-                value: totalRevenue > 0 ? `${profitMargin.toFixed(1)}%` : '—',
-                sub: profitMargin >= 20 ? 'Healthy margin' : profitMargin >= 0 ? 'Below average' : 'Loss margin',
-                color: profitMargin >= 20 ? '#16A34A' : profitMargin >= 0 ? '#D97706' : '#DC2626',
-                bg: profitMargin >= 20 ? 'rgba(22,163,74,0.05)' : 'rgba(248,250,255,1)',
-                icon: Minus,
-              },
-            ].map(c => (
+              {label:'Total Revenue',  value:fmtC(totalRevenue),  sub:`${filtered.paidInvoices.length} invoices + ${filtered.payments.length} payments`, color:'#0055FF', bg:'rgba(0,85,255,0.05)',   icon:TrendingUp},
+              {label:'Total Expenses', value:fmtC(totalExpenses), sub:`${filtered.exps.length} expense entries`,                                          color:'#FF6B35', bg:'rgba(255,107,53,0.05)', icon:TrendingDown},
+              {label:'Gross Profit',   value:fmtC(grossProfit),   sub:grossProfit>=0?'Net positive':'Net loss',                                            color:grossProfit>=0?'#16A34A':'#DC2626', bg:grossProfit>=0?'rgba(22,163,74,0.05)':'rgba(220,38,38,0.05)', icon:grossProfit>=0?ArrowUpRight:ArrowDownRight},
+              {label:'Profit Margin',  value:totalRevenue>0?`${profitMargin.toFixed(1)}%`:'—', sub:profitMargin>=20?'Healthy margin':profitMargin>=0?'Below average':'Loss margin', color:profitMargin>=20?'#16A34A':profitMargin>=0?'#D97706':'#DC2626', bg:'rgba(248,250,255,1)', icon:Minus},
+            ].map(c=>(
               <div key={c.label} className="rpt-stat">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                  <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#94A3B8' }}>
-                    {c.label}
-                  </p>
-                  <div style={{ width: 28, height: 28, borderRadius: 7, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}}>
+                  <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',color:'#94A3B8'}}>{c.label}</p>
+                  <div style={{width:28,height:28,borderRadius:7,background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                     <c.icon size={14} color={c.color}/>
                   </div>
                 </div>
-                <p className="f-display" style={{ fontSize: '1.65rem', fontWeight: 800, color: c.color, letterSpacing: '-.02em', marginBottom: 5 }}>
-                  {c.value}
-                </p>
-                <p style={{ fontSize: '.72rem', color: '#94A3B8' }}>{c.sub}</p>
+                <p className="f-display" style={{fontSize:'1.65rem',fontWeight:800,color:c.color,letterSpacing:'-.02em',marginBottom:5}}>{c.value}</p>
+                <p style={{fontSize:'.72rem',color:'#94A3B8'}}>{c.sub}</p>
               </div>
             ))}
           </div>
-
-          {/* P&L summary table */}
+          {/* Formal P&L table */}
           <div className="rpt-section">
             <div className="rpt-section-head">
-              <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#94A3B8', marginBottom: 4 }}>Summary</p>
-              <p className="f-display" style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0A0A0A', letterSpacing: '-.02em' }}>Profit & Loss — {range.label}</p>
+              <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Summary</p>
+              <p className="f-display" style={{fontSize:'1.1rem',fontWeight:800,color:'#0A0A0A',letterSpacing:'-.02em'}}>Profit & Loss — {range.label}</p>
             </div>
             <table className="rpt-table">
-              <thead>
-                <tr>
-                  <th style={{ paddingTop: 16 }}>Item</th>
-                  <th style={{ paddingTop: 16 }}>Amount</th>
-                </tr>
-              </thead>
+              <thead><tr><th style={{paddingTop:16}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
               <tbody>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#0A0A0A' }}>Revenue</td>
-                  <td/>
-                </tr>
-                <tr>
-                  <td style={{ paddingLeft: 40, color: '#6B7280' }}>Invoice payments received</td>
-                  <td style={{ color: '#0A0A0A', fontWeight: 600 }}>{fmtCurrency(filtered.invoiceRevenue)}</td>
-                </tr>
-                <tr>
-                  <td style={{ paddingLeft: 40, color: '#6B7280' }}>Direct payments</td>
-                  <td style={{ color: '#0A0A0A', fontWeight: 600 }}>{fmtCurrency(filtered.paymentRevenue)}</td>
-                </tr>
-                <tr style={{ borderTop: '1px solid #E2E8F0' }}>
-                  <td style={{ fontWeight: 800, color: '#0055FF', paddingLeft: 40 }}>Total Revenue</td>
-                  <td style={{ fontWeight: 800, color: '#0055FF' }}>{fmtCurrency(totalRevenue)}</td>
-                </tr>
-                <tr><td style={{ paddingTop: 8, color: '#fff' }}>–</td><td/></tr>
-                <tr>
-                  <td style={{ fontWeight: 700, color: '#0A0A0A' }}>Expenses</td>
-                  <td/>
-                </tr>
-                {expByCategory.length === 0 ? (
-                  <tr>
-                    <td style={{ paddingLeft: 40, color: '#94A3B8', fontStyle: 'italic' }}>No expenses recorded</td>
-                    <td style={{ color: '#94A3B8' }}>{fmtCurrency(0)}</td>
-                  </tr>
-                ) : expByCategory.map(c => (
-                  <tr key={c.name}>
-                    <td style={{ paddingLeft: 40, color: '#6B7280', textTransform: 'capitalize' }}>{c.name}</td>
-                    <td style={{ color: '#FF6B35', fontWeight: 600 }}>({fmtCurrency(c.amount)})</td>
-                  </tr>
-                ))}
-                <tr style={{ borderTop: '1px solid #E2E8F0' }}>
-                  <td style={{ fontWeight: 800, color: '#FF6B35', paddingLeft: 40 }}>Total Expenses</td>
-                  <td style={{ fontWeight: 800, color: '#FF6B35' }}>({fmtCurrency(totalExpenses)})</td>
-                </tr>
-                <tr><td style={{ paddingTop: 4, color: '#fff' }}>–</td><td/></tr>
+                <tr><td style={{fontWeight:700,color:'#0A0A0A'}}>Revenue</td><td/></tr>
+                <tr><td style={{paddingLeft:40,color:'#6B7280'}}>Invoice payments received</td><td style={{color:'#0A0A0A',fontWeight:600}}>{fmtC(filtered.invoiceRevenue)}</td></tr>
+                <tr><td style={{paddingLeft:40,color:'#6B7280'}}>Direct payments</td><td style={{color:'#0A0A0A',fontWeight:600}}>{fmtC(filtered.paymentRevenue)}</td></tr>
+                <tr style={{borderTop:'1px solid #E2E8F0'}}><td style={{fontWeight:800,color:'#0055FF',paddingLeft:40}}>Total Revenue</td><td style={{fontWeight:800,color:'#0055FF'}}>{fmtC(totalRevenue)}</td></tr>
+                <tr><td style={{paddingTop:8,color:'#fff'}}>–</td><td/></tr>
+                <tr><td style={{fontWeight:700,color:'#0A0A0A'}}>Expenses</td><td/></tr>
+                {expByCategory.length===0
+                  ? <tr><td style={{paddingLeft:40,color:'#94A3B8',fontStyle:'italic'}}>No expenses recorded</td><td style={{color:'#94A3B8'}}>{fmtC(0)}</td></tr>
+                  : expByCategory.map(c=><tr key={c.name}><td style={{paddingLeft:40,color:'#6B7280',textTransform:'capitalize'}}>{c.name}</td><td style={{color:'#FF6B35',fontWeight:600}}>({fmtC(c.amount)})</td></tr>)
+                }
+                <tr style={{borderTop:'1px solid #E2E8F0'}}><td style={{fontWeight:800,color:'#FF6B35',paddingLeft:40}}>Total Expenses</td><td style={{fontWeight:800,color:'#FF6B35'}}>({fmtC(totalExpenses)})</td></tr>
+                <tr><td style={{paddingTop:4,color:'#fff'}}>–</td><td/></tr>
               </tbody>
               <tfoot>
                 <tr className="rpt-total-row">
-                  <td style={{ color: grossProfit >= 0 ? '#16A34A' : '#DC2626', fontSize: '.9rem' }}>
-                    NET {grossProfit >= 0 ? 'PROFIT' : 'LOSS'} — {range.label}
-                  </td>
-                  <td style={{ color: grossProfit >= 0 ? '#16A34A' : '#DC2626', fontSize: '.9rem' }}>
-                    {fmtCurrency(Math.abs(grossProfit))}
-                  </td>
+                  <td style={{color:grossProfit>=0?'#16A34A':'#DC2626',fontSize:'.9rem'}}>NET {grossProfit>=0?'PROFIT':'LOSS'} — {range.label}</td>
+                  <td style={{color:grossProfit>=0?'#16A34A':'#DC2626',fontSize:'.9rem'}}>{fmtC(Math.abs(grossProfit))}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
-
-          {/* Revenue + Expense breakdowns side by side */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-
-            {/* Revenue by category */}
+          {/* Category breakdowns */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
             <div className="rpt-section">
-              <div className="rpt-section-head">
-                <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#94A3B8', marginBottom: 4 }}>Revenue breakdown</p>
-                <p style={{ fontWeight: 800, fontSize: '.9rem', color: '#0A0A0A', letterSpacing: '-.01em' }}>By income category</p>
-              </div>
-              {revByCategory.length === 0 ? (
-                <div style={{ padding: '28px 24px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '.825rem', color: '#94A3B8' }}>No revenue in this period</p>
-                </div>
-              ) : (
-                <div style={{ padding: '8px 0' }}>
-                  {revByCategory.map(c => (
-                    <CategoryRow key={c.name} name={c.name} amount={c.amount} total={totalRevenue} color={c.color}/>
-                  ))}
-                  <div style={{ padding: '12px 24px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '.75rem', fontWeight: 700, color: '#374151' }}>Total</span>
-                    <span className="f-mono" style={{ fontSize: '.82rem', fontWeight: 800, color: '#0055FF' }}>{fmtCurrency(totalRevenue)}</span>
+              <div className="rpt-section-head"><p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Revenue breakdown</p><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>By income category</p></div>
+              {revByCategory.length===0
+                ? <div style={{padding:'28px 24px',textAlign:'center'}}><p style={{fontSize:'.825rem',color:'#94A3B8'}}>No revenue in this period</p></div>
+                : <div style={{padding:'8px 0'}}>
+                    {revByCategory.map(c=><CatRow key={c.name} name={c.name} amount={c.amount} total={totalRevenue} color={c.color}/>)}
+                    <div style={{padding:'12px 24px',borderTop:'1px solid #F1F5F9',display:'flex',justifyContent:'space-between'}}><span style={{fontSize:'.75rem',fontWeight:700,color:'#374151'}}>Total</span><span className="f-mono" style={{fontSize:'.82rem',fontWeight:800,color:'#0055FF'}}>{fmtC(totalRevenue)}</span></div>
                   </div>
-                </div>
-              )}
+              }
             </div>
-
-            {/* Expenses by category */}
             <div className="rpt-section">
-              <div className="rpt-section-head">
-                <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#94A3B8', marginBottom: 4 }}>Expense breakdown</p>
-                <p style={{ fontWeight: 800, fontSize: '.9rem', color: '#0A0A0A', letterSpacing: '-.01em' }}>By expense category</p>
-              </div>
-              {expByCategory.length === 0 ? (
-                <div style={{ padding: '28px 24px', textAlign: 'center' }}>
-                  <p style={{ fontSize: '.825rem', color: '#94A3B8' }}>No expenses in this period</p>
-                </div>
-              ) : (
-                <div style={{ padding: '8px 0' }}>
-                  {expByCategory.map(c => (
-                    <CategoryRow key={c.name} name={c.name} amount={c.amount} total={totalExpenses} color={c.color}/>
-                  ))}
-                  <div style={{ padding: '12px 24px', borderTop: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: '.75rem', fontWeight: 700, color: '#374151' }}>Total</span>
-                    <span className="f-mono" style={{ fontSize: '.82rem', fontWeight: 800, color: '#FF6B35' }}>{fmtCurrency(totalExpenses)}</span>
+              <div className="rpt-section-head"><p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Expense breakdown</p><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>By expense category</p></div>
+              {expByCategory.length===0
+                ? <div style={{padding:'28px 24px',textAlign:'center'}}><p style={{fontSize:'.825rem',color:'#94A3B8'}}>No expenses in this period</p></div>
+                : <div style={{padding:'8px 0'}}>
+                    {expByCategory.map(c=><CatRow key={c.name} name={c.name} amount={c.amount} total={totalExpenses} color={c.color}/>)}
+                    <div style={{padding:'12px 24px',borderTop:'1px solid #F1F5F9',display:'flex',justifyContent:'space-between'}}><span style={{fontSize:'.75rem',fontWeight:700,color:'#374151'}}>Total</span><span className="f-mono" style={{fontSize:'.82rem',fontWeight:800,color:'#FF6B35'}}>{fmtC(totalExpenses)}</span></div>
                   </div>
-                </div>
-              )}
+              }
             </div>
-
           </div>
-
-          {/* No-data notice */}
-          {totalRevenue === 0 && totalExpenses === 0 && (
-            <div style={{ background: '#F8FAFF', border: '1px solid rgba(0,85,255,0.1)', borderRadius: 12, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {totalRevenue===0&&totalExpenses===0&&(
+            <div style={{background:'#F8FAFF',border:'1px solid rgba(0,85,255,0.1)',borderRadius:12,padding:'16px 20px',display:'flex',alignItems:'center',gap:10}}>
               <Info size={14} color="#0055FF"/>
-              <p style={{ fontSize: '.82rem', color: '#64748B' }}>
-                No financial data found for <strong>{range.label}</strong>. Try a different period or{' '}
-                <Link href="/dashboard/invoices" style={{ color: '#0055FF', fontWeight: 600, textDecoration: 'none' }}>record some invoices</Link>.
-              </p>
+              <p style={{fontSize:'.82rem',color:'#64748B'}}>No data for <strong>{range.label}</strong>. Try a different period or <Link href="/dashboard/invoices" style={{color:'#0055FF',fontWeight:600,textDecoration:'none'}}>record some invoices</Link>.</p>
             </div>
           )}
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 2 — Period Breakdown                                            */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {tab === 'period' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="f-display" style={{ fontSize: '1rem', fontWeight: 700, color: '#0A0A0A', letterSpacing: '-.01em' }}>
-              Last 12 months
-            </span>
-            <span style={{ fontSize: '.72rem', color: '#94A3B8', fontWeight: 600 }}>— Revenue vs Expenses by month</span>
+      {/* ══════════════════════ TAB: PERIOD ══════════════════════ */}
+      {tab==='period' && (
+        <div style={{display:'flex',flexDirection:'column',gap:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="f-display" style={{fontSize:'1rem',fontWeight:700,color:'#0A0A0A',letterSpacing:'-.01em'}}>Last 12 months</span>
+            <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— Revenue vs Expenses by month</span>
           </div>
-
-          {/* Chart */}
+          <div className="rpt-section"><div className="rpt-section-head"><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>12-month overview</p></div><PeriodChart rows={periodRows}/></div>
           <div className="rpt-section">
-            <div className="rpt-section-head">
-              <p style={{ fontWeight: 800, fontSize: '.9rem', color: '#0A0A0A', letterSpacing: '-.01em' }}>12-month overview</p>
-            </div>
-            <PeriodChart rows={periodRows}/>
-          </div>
-
-          {/* Monthly table */}
-          <div className="rpt-section">
-            <div className="rpt-section-head">
-              <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em', color: '#94A3B8', marginBottom: 4 }}>Month by month</p>
-              <p style={{ fontWeight: 800, fontSize: '.9rem', color: '#0A0A0A', letterSpacing: '-.01em' }}>Period statements</p>
-            </div>
+            <div className="rpt-section-head"><p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Month by month</p><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>Period statements</p></div>
             <table className="rpt-table">
-              <thead>
-                <tr>
-                  <th style={{ paddingTop: 16 }}>Period</th>
-                  <th style={{ paddingTop: 16 }}>Revenue</th>
-                  <th style={{ paddingTop: 16 }}>Expenses</th>
-                  <th style={{ paddingTop: 16 }}>Net Profit</th>
-                  <th style={{ paddingTop: 16 }}>Margin</th>
-                </tr>
-              </thead>
+              <thead><tr><th style={{paddingTop:16}}>Period</th><th style={{paddingTop:16}}>Revenue</th><th style={{paddingTop:16}}>Expenses</th><th style={{paddingTop:16}}>Net Profit</th><th style={{paddingTop:16}}>Margin</th></tr></thead>
               <tbody>
-                {[...periodRows].reverse().map((r, i) => {
-                  const margin = r.revenue > 0 ? (r.profit / r.revenue) * 100 : null
-                  const profitColor = r.profit > 0 ? '#16A34A' : r.profit < 0 ? '#DC2626' : '#94A3B8'
-                  const hasData = r.revenue > 0 || r.expenses > 0
+                {[...periodRows].reverse().map((r,i)=>{
+                  const margin=r.revenue>0?(r.profit/r.revenue)*100:null
+                  const pc=r.profit>0?'#16A34A':r.profit<0?'#DC2626':'#94A3B8'
+                  const hasData=r.revenue>0||r.expenses>0
                   return (
-                    <tr key={i} style={{ opacity: hasData ? 1 : 0.4 }}>
-                      <td style={{ fontWeight: 600, color: '#0A0A0A' }}>
-                        {r.label} {r.y}
-                      </td>
-                      <td style={{ color: '#0055FF', fontWeight: 600 }}>
-                        {r.revenue > 0 ? fmtCurrency(r.revenue) : '—'}
-                      </td>
-                      <td style={{ color: '#FF6B35', fontWeight: 600 }}>
-                        {r.expenses > 0 ? `(${fmtCurrency(r.expenses)})` : '—'}
-                      </td>
-                      <td style={{ color: profitColor, fontWeight: 800 }}>
-                        {hasData ? fmtCurrency(r.profit) : '—'}
-                      </td>
-                      <td style={{ color: profitColor }}>
-                        {margin !== null ? `${margin.toFixed(1)}%` : '—'}
-                      </td>
+                    <tr key={i} style={{opacity:hasData?1:0.4}}>
+                      <td style={{fontWeight:600,color:'#0A0A0A'}}>{r.label} {r.y}</td>
+                      <td style={{color:'#0055FF',fontWeight:600}}>{r.revenue>0?fmtC(r.revenue):'—'}</td>
+                      <td style={{color:'#FF6B35',fontWeight:600}}>{r.expenses>0?`(${fmtC(r.expenses)})`:'—'}</td>
+                      <td style={{color:pc,fontWeight:800}}>{hasData?fmtC(r.profit):'—'}</td>
+                      <td style={{color:pc}}>{margin!==null?`${margin.toFixed(1)}%`:'—'}</td>
                     </tr>
                   )
                 })}
@@ -647,18 +537,10 @@ export function ReportsClient({ businessName, tier, invoices, directPayments, ex
               <tfoot>
                 <tr className="rpt-total-row">
                   <td>12-month total</td>
-                  <td style={{ color: '#0055FF' }}>{fmtCurrency(periodRows.reduce((s,r) => s+r.revenue, 0))}</td>
-                  <td style={{ color: '#FF6B35' }}>({fmtCurrency(periodRows.reduce((s,r) => s+r.expenses, 0))})</td>
-                  <td style={{ color: periodRows.reduce((s,r) => s+r.profit, 0) >= 0 ? '#16A34A' : '#DC2626' }}>
-                    {fmtCurrency(periodRows.reduce((s,r) => s+r.profit, 0))}
-                  </td>
-                  <td>
-                    {(() => {
-                      const rev = periodRows.reduce((s,r) => s+r.revenue, 0)
-                      const pro = periodRows.reduce((s,r) => s+r.profit, 0)
-                      return rev > 0 ? `${((pro/rev)*100).toFixed(1)}%` : '—'
-                    })()}
-                  </td>
+                  <td style={{color:'#0055FF'}}>{fmtC(periodRows.reduce((s,r)=>s+r.revenue,0))}</td>
+                  <td style={{color:'#FF6B35'}}>({fmtC(periodRows.reduce((s,r)=>s+r.expenses,0))})</td>
+                  <td style={{color:periodRows.reduce((s,r)=>s+r.profit,0)>=0?'#16A34A':'#DC2626'}}>{fmtC(periodRows.reduce((s,r)=>s+r.profit,0))}</td>
+                  <td>{(()=>{const rv=periodRows.reduce((s,r)=>s+r.revenue,0),pr=periodRows.reduce((s,r)=>s+r.profit,0);return rv>0?`${((pr/rv)*100).toFixed(1)}%`:'—'})()}</td>
                 </tr>
               </tfoot>
             </table>
@@ -666,38 +548,225 @@ export function ReportsClient({ businessName, tier, invoices, directPayments, ex
         </div>
       )}
 
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 3 — Balance Sheet (placeholder)                                 */}
-      {/* ════════════════════════════════════════════════════════════════════ */}
-      {tab === 'balance' && (
-        <div className="locked-overlay">
-          <div style={{ width: 48, height: 48, borderRadius: 14, background: 'linear-gradient(135deg,#0044EE,#0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-            <Scale size={22} color="#fff"/>
+      {/* ══════════════════════ TAB: ASSET REGISTER ══════════════════════ */}
+      {tab==='assets' && (
+        <div style={{display:'flex',flexDirection:'column',gap:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="f-display" style={{fontSize:'1rem',fontWeight:700,color:'#0A0A0A',letterSpacing:'-.01em'}}>Asset Register</span>
+            <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— Fixed asset summary & depreciation schedule</span>
           </div>
-          <h2 className="f-display" style={{ fontSize: '1.6rem', fontWeight: 800, letterSpacing: '-.02em', color: '#0A0A0A', marginBottom: 12 }}>
-            Balance Sheet
-          </h2>
-          <p style={{ fontSize: '.9rem', color: '#64748B', maxWidth: 420, margin: '0 auto 28px', lineHeight: 1.75 }}>
-            The balance sheet requires an Asset Register to calculate total assets and derive equity.
-            We're building the Asset Register next — once it's live, this will automatically populate
-            with a full assets vs. liabilities vs. equity statement.
-          </p>
-          <div style={{ display: 'inline-grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, background: '#E2E8F0', borderRadius: 12, overflow: 'hidden', maxWidth: 480, width: '100%', margin: '0 auto' }}>
+          {/* Summary cards */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:14}}>
             {[
-              { label: 'Total Assets',      sub: 'Cash + receivables + fixed assets' },
-              { label: 'Total Liabilities', sub: 'Outstanding payables' },
-              { label: 'Net Equity',        sub: 'Assets minus liabilities' },
-            ].map((item, i) => (
-              <div key={i} style={{ padding: '20px 16px', background: '#fff', textAlign: 'left' }}>
-                <p style={{ fontSize: '.68rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.08em', color: '#94A3B8', marginBottom: 8 }}>{item.label}</p>
-                <p style={{ fontSize: '.75rem', color: '#C4CBDA', lineHeight: 1.5 }}>{item.sub}</p>
+              {label:'Total at Cost',              value:fmtC(assetSummary.totalCost),      sub:`${assetSummary.activeCount} active assets`,  color:'#0055FF'},
+              {label:'Accumulated Depreciation',   value:fmtC(assetSummary.totalAccumDep),  sub:'Straight-line to date',                       color:'#FF6B35'},
+              {label:'Net Book Value',              value:fmtC(assetSummary.totalNetBV),     sub:'Current carrying value',                      color:'#16A34A'},
+            ].map(c=>(
+              <div key={c.label} className="rpt-stat">
+                <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',color:'#94A3B8',marginBottom:12}}>{c.label}</p>
+                <p className="f-display" style={{fontSize:'1.55rem',fontWeight:800,color:c.color,letterSpacing:'-.02em',marginBottom:5}}>{c.value}</p>
+                <p style={{fontSize:'.72rem',color:'#94A3B8'}}>{c.sub}</p>
               </div>
             ))}
           </div>
-          <p style={{ fontSize: '.72rem', color: '#C4CBDA', marginTop: 24 }}>Coming in the next build — Asset Register + Balance Sheet</p>
+          {/* Assets table */}
+          <div className="rpt-section">
+            <div className="rpt-section-head" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Fixed assets</p>
+                <p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>{assets.length} assets registered</p>
+              </div>
+            </div>
+            {assets.length===0 ? (
+              <div style={{padding:'40px 24px',textAlign:'center'}}>
+                <p style={{fontSize:'.875rem',color:'#94A3B8',marginBottom:6}}>No assets registered yet.</p>
+                <p style={{fontSize:'.8rem',color:'#C4CBDA'}}>Add your first asset below — computers, equipment, vehicles, furniture, software licences.</p>
+              </div>
+            ) : (
+              <table className="rpt-table">
+                <thead>
+                  <tr>
+                    <th style={{paddingTop:16}}>Asset</th>
+                    <th style={{paddingTop:16}}>Purchased</th>
+                    <th style={{paddingTop:16}}>Cost</th>
+                    <th style={{paddingTop:16}}>Accum. Dep.</th>
+                    <th style={{paddingTop:16}}>Book Value</th>
+                    <th style={{paddingTop:16}}>Annual Dep.</th>
+                    <th style={{paddingTop:16}}/>
+                  </tr>
+                </thead>
+                <tbody>
+                  {assets.map(a=>{
+                    const {annualDep,accumulated,bookValue}=calcDep(a)
+                    const fullyDep=accumulated>=(Number(a.purchase_cost)-Number(a.salvage_value||0))-0.01
+                    return (
+                      <tr key={a.id}>
+                        <td>
+                          <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                            <span style={{fontWeight:700,color:'#0A0A0A',fontFamily:"'DM Sans',sans-serif"}}>{a.name}</span>
+                            <span style={{fontSize:'.72rem',color:'#94A3B8',textTransform:'capitalize'}}>{a.category} · {a.useful_life_years}yr life</span>
+                          </div>
+                        </td>
+                        <td className="f-mono" style={{color:'#6B7280',fontSize:'.77rem'}}>{new Date(a.purchase_date+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</td>
+                        <td style={{fontWeight:600,color:'#0A0A0A'}}>{fmtC(Number(a.purchase_cost))}</td>
+                        <td style={{color:'#FF6B35'}}>({fmtC(accumulated)})</td>
+                        <td style={{fontWeight:800,color:fullyDep?'#94A3B8':'#16A34A'}}>{fmtC(bookValue)}</td>
+                        <td style={{color:'#6B7280'}}>{fmtC(annualDep)}/yr</td>
+                        <td style={{textAlign:'right',paddingRight:16}}>
+                          <button className="del-btn" onClick={()=>deleteAsset(a.id)} title="Remove asset"><Trash2 size={13}/></button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+                <tfoot>
+                  <tr className="rpt-total-row">
+                    <td colSpan={2}>Total</td>
+                    <td style={{color:'#0055FF'}}>{fmtC(assetSummary.totalCost)}</td>
+                    <td style={{color:'#FF6B35'}}>({fmtC(assetSummary.totalAccumDep)})</td>
+                    <td style={{color:'#16A34A'}}>{fmtC(assetSummary.totalNetBV)}</td>
+                    <td colSpan={2}/>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+            <AddAssetForm onAdd={a=>setAssets(p=>[a,...p])}/>
+          </div>
+
+          {/* Liabilities */}
+          <div className="rpt-section">
+            <div className="rpt-section-head" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Liabilities</p>
+                <p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>Outstanding obligations</p>
+              </div>
+              <span className="f-display" style={{fontSize:'1.2rem',fontWeight:800,color:'#FF6B35'}}>
+                {fmtC(liabilities.reduce((s,l)=>s+Number(l.amount||0),0))}
+              </span>
+            </div>
+            {liabilities.length===0 ? (
+              <div style={{padding:'32px 24px',textAlign:'center'}}>
+                <p style={{fontSize:'.875rem',color:'#94A3B8',marginBottom:6}}>No liabilities logged.</p>
+                <p style={{fontSize:'.8rem',color:'#C4CBDA'}}>Add loans, credit card balances, or any outstanding obligations below.</p>
+              </div>
+            ) : (
+              <table className="rpt-table">
+                <thead><tr><th style={{paddingTop:16}}>Name</th><th style={{paddingTop:16}}>Type</th><th style={{paddingTop:16}}>Amount</th><th style={{paddingTop:16}}/></tr></thead>
+                <tbody>
+                  {liabilities.map(l=>(
+                    <tr key={l.id}>
+                      <td>
+                        <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                          <span style={{fontWeight:600,color:'#0A0A0A',fontFamily:"'DM Sans',sans-serif"}}>{l.name}</span>
+                          {l.notes&&<span style={{fontSize:'.72rem',color:'#94A3B8'}}>{l.notes}</span>}
+                        </div>
+                      </td>
+                      <td style={{color:'#6B7280',textAlign:'left',textTransform:'capitalize',fontFamily:"'DM Sans',sans-serif"}}>{l.liability_type.replace('_',' ')}</td>
+                      <td style={{fontWeight:800,color:'#FF6B35'}}>{fmtC(Number(l.amount))}</td>
+                      <td style={{textAlign:'right',paddingRight:16}}><button className="del-btn" onClick={()=>deleteLiability(l.id)} title="Remove"><Trash2 size={13}/></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="rpt-total-row">
+                    <td colSpan={2}>Total liabilities</td>
+                    <td style={{color:'#FF6B35'}}>{fmtC(liabilities.reduce((s,l)=>s+Number(l.amount||0),0))}</td>
+                    <td/>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+            <AddLiabilityForm onAdd={l=>setLiabilities(p=>[l,...p])}/>
+          </div>
         </div>
       )}
 
+      {/* ══════════════════════ TAB: BALANCE SHEET ══════════════════════ */}
+      {tab==='balance' && (
+        <div style={{display:'flex',flexDirection:'column',gap:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span className="f-display" style={{fontSize:'1rem',fontWeight:700,color:'#0A0A0A',letterSpacing:'-.01em'}}>Balance Sheet</span>
+            <span style={{fontSize:'.72rem',color:'#94A3B8',fontWeight:600}}>— as at {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}</span>
+          </div>
+          {/* Net Equity headline card */}
+          <div style={{background:'linear-gradient(135deg,#002ECC 0%,#0044EE 40%,#0055FF 70%,#003DCC 100%)',borderRadius:16,padding:'28px 32px',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:1,position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 60% 80% at 110% 50%,rgba(0,196,160,0.2) 0%,transparent 60%)',pointerEvents:'none'}}/>
+            {[
+              {label:'Total Assets',      value:fmtC(balanceSheet.totalAssets),      color:'#fff'},
+              {label:'Total Liabilities', value:fmtC(balanceSheet.totalLiabilities), color:'rgba(255,107,53,0.9)'},
+              {label:'Net Equity',        value:fmtC(balanceSheet.netEquity),        color:balanceSheet.netEquity>=0?'#4DF0CB':'rgba(255,100,100,0.9)'},
+            ].map(c=>(
+              <div key={c.label} style={{padding:'0 24px',borderRight:c.label!=='Net Equity'?'1px solid rgba(255,255,255,0.1)':'none',position:'relative'}}>
+                <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'rgba(255,255,255,0.4)',marginBottom:8}}>{c.label}</p>
+                <p className="f-display" style={{fontSize:'1.55rem',fontWeight:800,letterSpacing:'-.02em',color:c.color}}>{c.value}</p>
+              </div>
+            ))}
+          </div>
+          {/* Formal balance sheet table */}
+          <div className="rpt-section">
+            <div className="rpt-section-head">
+              <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Statement of Financial Position</p>
+              <p className="f-display" style={{fontSize:'1.1rem',fontWeight:800,color:'#0A0A0A',letterSpacing:'-.02em'}}>Balance Sheet — {new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})}</p>
+            </div>
+            <table className="rpt-table">
+              <thead><tr><th style={{paddingTop:16}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
+              <tbody>
+                {/* ASSETS section */}
+                <tr><td style={{fontWeight:800,color:'#0A0A0A',paddingTop:16}}>ASSETS</td><td/></tr>
+                <tr><td style={{paddingLeft:32,fontWeight:700,color:'#374151',paddingTop:12}}>Current Assets</td><td/></tr>
+                <BSRow label="Cash on hand" amount={balanceSheet.cashBalance} indent color="#0055FF"/>
+                <BSRow label="Accounts receivable (unpaid invoices)" amount={balanceSheet.ar} indent color="#0055FF"/>
+                <BSRow label="Total Current Assets" amount={balanceSheet.totalCurrentAssets} bold color="#0055FF"/>
+                <tr><td style={{paddingLeft:32,fontWeight:700,color:'#374151',paddingTop:12,borderTop:'1px solid #F1F5F9'}}>Fixed Assets</td><td/></tr>
+                <BSRow label="Assets at cost" amount={assetSummary.totalCost} indent/>
+                <BSRow label="Less: accumulated depreciation" amount={-assetSummary.totalAccumDep} indent color="#FF6B35"/>
+                <BSRow label="Net book value of fixed assets" amount={assetSummary.totalNetBV} bold color="#16A34A"/>
+              </tbody>
+              <tfoot>
+                <tr className="rpt-total-row">
+                  <td style={{fontSize:'.88rem'}}>TOTAL ASSETS</td>
+                  <td style={{color:'#0055FF',fontSize:'.88rem'}}>{fmtC(balanceSheet.totalAssets)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div className="rpt-section">
+            <table className="rpt-table">
+              <thead><tr><th style={{paddingTop:16}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
+              <tbody>
+                <tr><td style={{fontWeight:800,color:'#0A0A0A',paddingTop:16}}>LIABILITIES</td><td/></tr>
+                {liabilities.length===0
+                  ? <BSRow label="No liabilities recorded" amount={0} indent/>
+                  : liabilities.map(l=><BSRow key={l.id} label={l.name} amount={Number(l.amount)} indent color="#FF6B35"/>)
+                }
+                <BSRow label="Total Liabilities" amount={balanceSheet.totalLiabilities} bold color="#FF6B35"/>
+                <tr><td style={{paddingTop:4,color:'#fff'}}>–</td><td/></tr>
+                <tr><td style={{fontWeight:800,color:'#0A0A0A',paddingTop:12}}>EQUITY</td><td/></tr>
+                <BSRow label="Net equity (assets minus liabilities)" amount={balanceSheet.netEquity} indent color={balanceSheet.netEquity>=0?'#16A34A':'#DC2626'}/>
+              </tbody>
+              <tfoot>
+                <tr className="rpt-total-row">
+                  <td style={{fontSize:'.88rem'}}>TOTAL LIABILITIES + EQUITY</td>
+                  <td style={{color:balanceSheet.netEquity>=0?'#16A34A':'#DC2626',fontSize:'.88rem'}}>{fmtC(balanceSheet.totalLiabilities+balanceSheet.netEquity)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          {/* Note: cash */}
+          {balanceSheet.cashBalance===null && (
+            <div style={{background:'#FFF8F5',border:'1px solid rgba(255,107,53,0.15)',borderRadius:12,padding:'14px 18px',display:'flex',alignItems:'center',gap:10}}>
+              <Info size={14} color="#FF6B35"/>
+              <p style={{fontSize:'.8rem',color:'#64748B'}}>No cash snapshot on record. <Link href="/dashboard/cash" style={{color:'#0055FF',fontWeight:600,textDecoration:'none'}}>Add a cash balance</Link> on the Cash Flow page to populate the current assets section.</p>
+            </div>
+          )}
+          {assets.length===0 && (
+            <div style={{background:'#F8FAFF',border:'1px solid rgba(0,85,255,0.1)',borderRadius:12,padding:'14px 18px',display:'flex',alignItems:'center',gap:10}}>
+              <Info size={14} color="#0055FF"/>
+              <p style={{fontSize:'.8rem',color:'#64748B'}}>Fixed assets section is empty. <button onClick={()=>setTab('assets')} style={{color:'#0055FF',fontWeight:600,background:'none',border:'none',cursor:'pointer',padding:0,fontSize:'.8rem',fontFamily:"'DM Sans',sans-serif"}}>Go to Asset Register →</button></p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
