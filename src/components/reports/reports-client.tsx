@@ -108,19 +108,44 @@ const CSS = `
   @media print {
     @page { size: A4 portrait; margin: 20mm 15mm; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body, html { background: white !important; }
+
+    /* ── Hide all dashboard chrome ── */
+    header, nav, aside, .sidebar { display: none !important; }
+
+    /* ── Break out of dashboard layout constraints ── */
+    html, body    { overflow: visible !important; height: auto !important; background: white !important; }
+    main          { overflow: visible !important; height: auto !important; background: white !important; }
+    div[class*="h-screen"]  { height: auto !important; overflow: visible !important; }
+    div[class*="overflow-hidden"] { overflow: visible !important; }
+    div[class*="overflow-y"]      { overflow: visible !important; }
+    div[class*="flex-1"]          { height: auto !important; }
+
+    /* ── Remove all scrollbars ── */
+    *                    { scrollbar-width: none !important; }
+    *::-webkit-scrollbar { display: none !important; }
+
     .no-print   { display: none !important; }
     .print-only { display: flex !important; }
-    .stat-grid  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .cat-cols   { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    /* Individual stat cards avoid breaking, but sections flow freely across pages */
+
+    /* ── Grid adjustments ── */
+    .stat-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+    .cat-cols  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+
+    /* ── Cards: stat cards avoid breaking; sections flow freely across pages ── */
     .rpt-stat    { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; overflow: visible !important; }
-    .rpt-section { box-shadow: none !important; overflow: visible !important; page-break-before: auto; }
-    /* Add breathing room between sections on print */
+    .rpt-section { box-shadow: none !important; overflow: visible !important; }
     .rpt-section + .rpt-section { margin-top: 16px; }
+
+    /* ── Tables flow across pages ── */
     table { font-size: 11px !important; }
-    .rpt-table td, .rpt-table th { padding: 8px 14px !important; font-size: 10.5px !important; }
-    .bs-hero { border-radius: 10px !important; }
+    .rpt-table td, .rpt-table th { padding: 8px 12px !important; font-size: 10.5px !important; }
+
+    /* ── Balance sheet headline card — more padding, smaller font to prevent squish ── */
+    .bs-hero                { border-radius: 10px !important; padding: 16px 24px !important; overflow: visible !important; }
+    .bs-hero > div          { padding: 0 16px !important; }
+    .bs-hero .f-display     { font-size: 1.1rem !important; letter-spacing: -.01em !important; line-height: 1.2 !important; }
+    .bs-hero p:first-child  { font-size: .6rem !important; margin-bottom: 6px !important; }
+
     h1 { font-size: 1.4rem !important; }
     .rpt-section-head { padding: 14px 18px 12px !important; }
   }
@@ -413,8 +438,8 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
         </p>
       </div>
 
-      {/* Header */}
-      <div style={{marginBottom:32}}>
+      {/* Header — screen only, replaced by print-only header above */}
+      <div className="no-print" style={{marginBottom:32}}>
         <Link href="/dashboard" style={{fontSize:'.75rem',fontWeight:700,color:'#94A3B8',textDecoration:'none',letterSpacing:'.02em'}}>← Dashboard</Link>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:16,marginTop:12}}>
           <div>
