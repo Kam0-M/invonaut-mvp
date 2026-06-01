@@ -24,7 +24,7 @@ export default async function ReportsPage() {
     supabase.from('user_profiles').select('business_name, full_name, subscription_tier').eq('id', user.id).single(),
     supabase.from('invoices').select('id, status, issue_date, due_date, total_amount, revenue_category_id').eq('user_id', user.id),
     supabase.from('direct_payments').select('id, amount, payment_date, revenue_category_id, payment_type, payment_method, description').eq('user_id', user.id),
-    supabase.from('expenses').select('id, amount, date, category, description, vendor').eq('user_id', user.id),
+    supabase.from('expenses').select('id, amount, date, category, description, vendor, is_cogs').eq('user_id', user.id),
     supabase.from('revenue_categories').select('id, name, color').eq('user_id', user.id),
     supabase.from('assets').select('*').eq('user_id', user.id).order('purchase_date', { ascending: false }),
     supabase.from('liabilities').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
