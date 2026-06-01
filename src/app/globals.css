@@ -1,9 +1,10 @@
+/* Fraunces — brand headlines: greeting, AI numbers, sidebar wordmark, report headers */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Fraunces — used for brand headlines: greeting, AI numbers, sidebar wordmark, report headers */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..800&display=swap');
 .f-display { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
 
 /* Invonaut is a light-only app — dark mode is intentionally disabled.
