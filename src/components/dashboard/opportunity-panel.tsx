@@ -39,7 +39,7 @@ export default function OpportunityPanel({ unbilledHours, unbilledValue, activeC
       <div className="p-5">
         <div className="grid grid-cols-2 gap-3">
           {/* Unbilled hours */}
-          <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+          <div className="p-4 rounded-xl bg-blue-50 border border-blue-100 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <Clock className="w-4 h-4 text-blue-600" />
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-full">Potential</span>
@@ -50,13 +50,13 @@ export default function OpportunityPanel({ unbilledHours, unbilledValue, activeC
               <p className="text-xs text-gray-500 mt-0.5">≈ <span className="font-bold text-blue-600">{fmt(unbilledValue)}</span></p>
             )}
             <Link href="/dashboard/time"
-              className="block mt-3 text-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98]">
+              className="mt-auto pt-3 block text-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98]">
               Create Invoice
             </Link>
           </div>
 
           {/* Contract value */}
-          <div className="p-4 rounded-xl bg-teal-50 border border-teal-100">
+          <div className="p-4 rounded-xl bg-teal-50 border border-teal-100 flex flex-col">
             <div className="flex items-center justify-between mb-2">
               <FileSignature className="w-4 h-4 text-teal-600" />
               <span className="text-[10px] font-bold px-1.5 py-0.5 bg-teal-100 text-teal-700 rounded-full">Active</span>
@@ -67,7 +67,7 @@ export default function OpportunityPanel({ unbilledHours, unbilledValue, activeC
               <span className="font-bold text-teal-600">{activeContracts}</span> active
             </p>
             <Link href="/dashboard/contracts"
-              className="block mt-3 text-center px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98]">
+              className="mt-auto pt-3 block text-center px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-lg transition-all active:scale-[0.98]">
               View Contracts
             </Link>
           </div>

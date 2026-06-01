@@ -267,7 +267,7 @@ export default async function DashboardPage() {
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[.12em] mb-2">
               {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-            <h1 className="text-[1.65rem] font-black text-gray-900 tracking-tight leading-tight mb-1">
+            <h1 className="f-display text-[1.65rem] font-black text-gray-900 tracking-tight leading-tight mb-1">
               {timeGreeting}, {firstName}.
             </h1>
             <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-lg">{motivational}</p>
@@ -350,16 +350,13 @@ export default async function DashboardPage() {
         <ActivityFeedLive items={recentActivity} viewAll="/dashboard/invoices" />
 
         {/* Recent invoices */}
-        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-5">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-            <div className="flex items-center gap-2">
-              <FileText className="w-3.5 h-3.5 text-gray-400" />
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Invoices</p>
-            </div>
-            <Link href="/dashboard/invoices" className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors">View all →</Link>
+        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-5 flex flex-col">
+          <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-50">
+            <FileText className="w-3.5 h-3.5 text-gray-400" />
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Recent Invoices</p>
           </div>
           {invoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center px-5">
+            <div className="flex flex-col items-center justify-center py-12 text-center px-5 flex-1">
               <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center mb-3">
                 <FileText className="w-5 h-5 text-gray-300" />
               </div>
@@ -377,50 +374,53 @@ export default async function DashboardPage() {
               )}
             </div>
           ) : (
-            <div>
-              {invoices.slice(0, 8).map((inv: any) => {
-                const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }> = {
-                  paid:    { dot: 'bg-teal-500',   pill: 'bg-teal-50 text-teal-700',   label: 'Paid'    },
-                  sent:    { dot: 'bg-blue-500',   pill: 'bg-blue-50 text-blue-700',   label: 'Sent'    },
-                  overdue: { dot: 'bg-red-500',    pill: 'bg-red-50 text-red-700',     label: 'Overdue' },
-                  draft:   { dot: 'bg-gray-300',   pill: 'bg-gray-50 text-gray-500',   label: 'Draft'   },
-                }
-                const sc = STATUS_CONFIG[inv.displayStatus] ?? STATUS_CONFIG.draft
-                const showDue = (inv.displayStatus === 'sent' || inv.displayStatus === 'overdue') && inv.due_date
-                return (
-                  <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
-                    className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-gray-50/80 transition-colors group border-b border-gray-50 last:border-0">
-                    {/* Status dot */}
-                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.dot}`} />
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-black text-gray-900 font-mono tracking-tight">{inv.invoice_number}</span>
-                        <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide ${sc.pill}`}>
-                          {sc.label}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-400 font-medium truncate">
-                        {inv.clients?.name ?? '—'}
-                        {showDue && (
-                          <span className={`ml-2 ${inv.displayStatus === 'overdue' ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
-                            · Due {new Date(inv.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            <>
+              <div className="flex-1">
+                {invoices.slice(0, 12).map((inv: any) => {
+                  const STATUS_CONFIG: Record<string, { dot: string; pill: string; label: string }> = {
+                    paid:    { dot: 'bg-teal-500',   pill: 'bg-teal-50 text-teal-700',   label: 'Paid'    },
+                    sent:    { dot: 'bg-blue-500',   pill: 'bg-blue-50 text-blue-700',   label: 'Sent'    },
+                    overdue: { dot: 'bg-red-500',    pill: 'bg-red-50 text-red-700',     label: 'Overdue' },
+                    draft:   { dot: 'bg-gray-300',   pill: 'bg-gray-50 text-gray-500',   label: 'Draft'   },
+                  }
+                  const sc = STATUS_CONFIG[inv.displayStatus] ?? STATUS_CONFIG.draft
+                  const showDue = (inv.displayStatus === 'sent' || inv.displayStatus === 'overdue') && inv.due_date
+                  return (
+                    <Link key={inv.id} href={`/dashboard/invoices/${inv.id}`}
+                      className="flex items-center gap-3.5 px-5 py-3 hover:bg-gray-50/80 transition-colors group border-b border-gray-50 last:border-0">
+                      <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sc.dot}`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-xs font-black text-gray-900 font-mono tracking-tight">{inv.invoice_number}</span>
+                          <span className={`text-[9.5px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide ${sc.pill}`}>
+                            {sc.label}
                           </span>
-                        )}
-                      </p>
-                    </div>
-                    {/* Amount */}
-                    <span className={`text-sm font-black font-mono flex-shrink-0 transition-colors ${
-                      inv.displayStatus === 'overdue' ? 'text-red-600' :
-                      inv.displayStatus === 'paid'    ? 'text-teal-600 group-hover:text-teal-700' :
-                      'text-gray-900 group-hover:text-blue-600'
-                    }`}>
-                      {fmt(inv.total_amount)}
-                    </span>
-                  </Link>
-                )
-              })}
-            </div>
+                        </div>
+                        <p className="text-xs text-gray-400 font-medium truncate">
+                          {inv.clients?.name ?? '—'}
+                          {showDue && (
+                            <span className={`ml-2 ${inv.displayStatus === 'overdue' ? 'text-red-500 font-bold' : 'text-gray-400'}`}>
+                              · Due {new Date(inv.due_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <span className={`text-sm font-black font-mono flex-shrink-0 transition-colors ${
+                        inv.displayStatus === 'overdue' ? 'text-red-600' :
+                        inv.displayStatus === 'paid'    ? 'text-teal-600 group-hover:text-teal-700' :
+                        'text-gray-900 group-hover:text-blue-600'
+                      }`}>
+                        {fmt(inv.total_amount)}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+              <Link href="/dashboard/invoices"
+                className="flex items-center justify-center gap-1.5 px-5 py-3.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:bg-blue-50/40 transition-colors border-t border-gray-50">
+                View all invoices →
+              </Link>
+            </>
           )}
         </div>
       </div>

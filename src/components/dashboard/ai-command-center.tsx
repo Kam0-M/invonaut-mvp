@@ -225,7 +225,7 @@ export default function AICommandCenter({
           ].map(stat => (
             <div key={stat.label} className="text-center">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{stat.label}</p>
-              <p className={`text-lg font-black inv-breath ${stat.color}`}>{stat.value}</p>
+              <p className={`text-lg f-display font-black inv-breath ${stat.color}`}>{stat.value}</p>
             </div>
           ))}
         </div>
