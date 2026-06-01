@@ -228,11 +228,10 @@ export default function AICommandCenter({
               <p
                 className={`inv-breath ${stat.color}`}
                 style={{
-                  fontFamily: "'Fraunces', Georgia, serif",
-                  fontOpticalSizing: 'auto' as any,
-                  fontSize: '1.65rem',
-                  fontWeight: 800,
-                  letterSpacing: '-.02em',
+                  fontFamily: '"JetBrains Mono", ui-monospace, monospace',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  letterSpacing: '-.03em',
                   lineHeight: 1.1,
                 }}
               >
