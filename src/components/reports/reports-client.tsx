@@ -113,10 +113,13 @@ const CSS = `
     .print-only { display: flex !important; }
     .stat-grid  { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
     .cat-cols   { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
-    .rpt-stat   { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; overflow: visible !important; }
-    .rpt-section { page-break-inside: avoid; box-shadow: none !important; overflow: visible !important; }
-    table { page-break-inside: avoid; font-size: 11px !important; }
-    .rpt-table td, .rpt-table th { padding: 9px 14px !important; font-size: 10.5px !important; }
+    /* Individual stat cards avoid breaking, but sections flow freely across pages */
+    .rpt-stat    { page-break-inside: avoid; box-shadow: none !important; padding: 16px !important; overflow: visible !important; }
+    .rpt-section { box-shadow: none !important; overflow: visible !important; page-break-before: auto; }
+    /* Add breathing room between sections on print */
+    .rpt-section + .rpt-section { margin-top: 16px; }
+    table { font-size: 11px !important; }
+    .rpt-table td, .rpt-table th { padding: 8px 14px !important; font-size: 10.5px !important; }
     .bs-hero { border-radius: 10px !important; }
     h1 { font-size: 1.4rem !important; }
     .rpt-section-head { padding: 14px 18px 12px !important; }
@@ -418,9 +421,12 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
             <h1 className="f-display" style={{fontSize:'clamp(1.6rem,3vw,2.4rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'#0A0A0A',marginBottom:5}}>Financial Reports</h1>
             <p style={{fontSize:'.875rem',color:'#64748B'}}>{businessName}</p>
           </div>
-          <button onClick={()=>window.print()} className="no-print" style={{display:'inline-flex',alignItems:'center',gap:7,padding:'9px 18px',border:'1px solid #E2E8F0',borderRadius:9,background:'#fff',color:'#374151',fontWeight:600,fontSize:'.8rem',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>
-            <Printer size={14}/> Print / Export
-          </button>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <p style={{fontSize:'.7rem',color:'#94A3B8',fontStyle:'italic'}}>Prints across multiple pages</p>
+            <button onClick={()=>window.print()} className="no-print" style={{display:'inline-flex',alignItems:'center',gap:7,padding:'9px 18px',border:'1px solid #E2E8F0',borderRadius:9,background:'#fff',color:'#374151',fontWeight:600,fontSize:'.8rem',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>
+              <Printer size={14}/> Print / Export
+            </button>
+          </div>
         </div>
       </div>
 

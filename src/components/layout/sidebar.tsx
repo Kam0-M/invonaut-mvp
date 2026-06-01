@@ -73,7 +73,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
           <span className="text-white font-black text-xs">IN</span>
         </Link>
         {isExpanded && (
-          <span className="text-white font-black text-sm tracking-tight truncate">Invonaut</span>
+          <span className="f-display text-white font-black text-sm tracking-tight truncate">Invonaut</span>
         )}
       </div>
 

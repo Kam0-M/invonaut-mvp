@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import Link         from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -38,18 +39,37 @@ export default function DashboardHeader({
     professional: { label: 'Professional', cls: 'bg-blue-50 text-blue-700'        },
     business:     { label: 'Business',     cls: 'bg-teal-500 text-white'          },
   }
+  const pathname  = usePathname()
+
+  const PAGE_NAMES: Record<string, string> = {
+    '/dashboard':                    'Dashboard',
+    '/dashboard/invoices':           'Invoices',
+    '/dashboard/payments':           'Payments',
+    '/dashboard/clients':            'Clients',
+    '/dashboard/contracts':          'Contracts',
+    '/dashboard/expenses':           'Expenses',
+    '/dashboard/time':               'Time Tracking',
+    '/dashboard/cash':               'Cash Flow',
+    '/dashboard/portal':             'Client Portal',
+    '/dashboard/analytics':          'Analytics',
+    '/dashboard/reports':            'Reports',
+    '/dashboard/billing':            'Billing',
+    '/dashboard/affiliate':          'Affiliate',
+    '/dashboard/settings':           'Settings',
+  }
+  const pageName = PAGE_NAMES[pathname] ?? PAGE_NAMES[Object.keys(PAGE_NAMES).find(k => pathname.startsWith(k + '/')) ?? ''] ?? 'Invonaut'
   const badge = tierBadge[subscriptionTier] ?? tierBadge.starter
 
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center px-6 gap-4 flex-shrink-0 z-30">
 
-      {/* Left — wordmark (desktop only, sidebar shows icon) */}
-      <Link href="/dashboard" className="hidden md:block text-lg font-black text-gray-900 tracking-tight mr-2">
-        Invonaut
+      {/* Left — current page name (desktop only, sidebar shows logo/brand) */}
+      <Link href="/dashboard" className="hidden md:block text-base font-black text-gray-900 tracking-tight mr-2">
+        {pageName}
       </Link>
-      {/* Mobile logo */}
-      <Link href="/dashboard" className="md:hidden text-lg font-black text-gray-900 tracking-tight">
-        Invonaut
+      {/* Mobile — current page name */}
+      <Link href="/dashboard" className="md:hidden text-base font-black text-gray-900 tracking-tight">
+        {pageName}
       </Link>
 
       {/* Tier badge */}
