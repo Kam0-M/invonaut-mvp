@@ -267,7 +267,7 @@ export default async function DashboardPage() {
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[.12em] mb-2">
               {now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
             </p>
-            <h1 className="f-display text-[1.65rem] font-black text-gray-900 tracking-tight leading-tight mb-1">
+            <h1 className="f-display text-[2rem] font-extrabold text-gray-900 leading-tight mb-1" style={{letterSpacing:'-.025em',fontWeight:800}}>
               {timeGreeting}, {firstName}.
             </h1>
             <p className="text-sm text-gray-500 font-medium leading-relaxed max-w-lg">{motivational}</p>
