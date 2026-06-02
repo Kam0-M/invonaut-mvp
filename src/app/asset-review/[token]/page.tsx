@@ -81,7 +81,9 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
       })
       const json = await res.json()
       if (!res.ok) { setError(json.error || 'Something went wrong'); setSubmitting(false); return }
-      setResult(action)
+      // Use the action echoed back from the API as the source of truth
+      setResult((json.action as 'approved' | 'rejected') || action)
+      setSubmitting(false)
     } catch { setError('Network error. Please try again.'); setSubmitting(false) }
   }
 
@@ -130,9 +132,11 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
             {approved ? 'Asset approved!' : 'Asset rejected'}
           </h2>
           <p style={{ fontSize: '.9rem', color: '#64748B', lineHeight: 1.65, marginBottom: 8 }}>
-            {approved
-              ? `You've approved <strong>${asset.name}</strong>. It's now active in the asset register and contributing to the depreciation schedule.`
-              : `You've rejected <strong>${asset.name}</strong>. The submitter has been notified and can make edits before resubmitting.`}
+            {approved ? (
+              <>You&apos;ve approved <strong style={{ color: '#0A0A0A' }}>{asset.name}</strong>. It&apos;s now active in the asset register and contributing to the depreciation schedule.</>
+            ) : (
+              <>You&apos;ve rejected <strong style={{ color: '#0A0A0A' }}>{asset.name}</strong>. The submitter has been notified and can make edits before resubmitting.</>
+            )}
           </p>
           <div style={{ marginTop: 28, padding: '16px 20px', background: approved ? 'rgba(16,185,129,0.06)' : 'rgba(220,38,38,0.05)', borderRadius: 12, border: `1px solid ${approved ? 'rgba(16,185,129,0.15)' : 'rgba(220,38,38,0.12)'}` }}>
             <p style={{ fontSize: '.78rem', color: approved ? '#059669' : '#DC2626', fontWeight: 600 }}>
@@ -180,7 +184,7 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
               <p style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.45)', marginBottom: 6 }}>Asset Name</p>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fff', letterSpacing: '-.02em', lineHeight: 1.2 }}>{asset.name}</h2>
             </div>
-            <span className="tag tag-pending"><Clock size={10} />Pending</span>
+            <span style={{ display:'inline-flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, fontSize:'.68rem', fontWeight:700, letterSpacing:'.05em', textTransform:'uppercase', background:'rgba(255,255,255,0.18)', color:'#fff', border:'1px solid rgba(255,255,255,0.35)', backdropFilter:'blur(4px)' }}><Clock size={10}/>Pending</span>
           </div>
         </div>
 

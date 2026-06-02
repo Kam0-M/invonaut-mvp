@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   // Mark token as used
   await admin.from('asset_review_tokens').update({ used_at: now }).eq('id', tokenRow.id)
 
-  return NextResponse.json({ ok: true, action, asset_id: tokenRow.asset_id })
+  return NextResponse.json({ ok: true, action: newStatus, asset_id: tokenRow.asset_id })
 }
 
 export async function GET(req: Request) {
