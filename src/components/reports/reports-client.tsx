@@ -943,8 +943,8 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
               return (
                 <div key={m.label} className="rpt-section" style={{padding:'18px 20px'}}>
                   <p style={{fontSize:'.72rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.08em',color:'#94A3B8',marginBottom:14}}>{m.label}</p>
-                  {[{val:m.a,label:compData.labelA,color:m.colorA},{val:m.b,label:compData.labelB,color:m.colorB}].map(bar=>(
-                    <div key={bar.label} style={{marginBottom:10}}>
+                  {[{val:m.a,label:compData.labelA,color:m.colorA},{val:m.b,label:compData.labelB,color:m.colorB}].map((bar,barIdx)=>(
+                    <div key={barIdx} style={{marginBottom:10}}>
                       <div style={{display:'flex',justifyContent:'space-between',marginBottom:5}}>
                         <span style={{fontSize:'.75rem',color:'#64748B',fontWeight:600}}>{bar.label}</span>
                         <span className="f-mono" style={{fontSize:'.75rem',fontWeight:700,color:'#0A0A0A'}}>{fmtC(bar.val)}</span>

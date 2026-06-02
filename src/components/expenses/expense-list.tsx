@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { FileImage, Trash2, Loader2, ExternalLink, Receipt } from 'lucide-react'
-import { useState } from 'react'
+import { FileImage, Trash2, Loader2, ExternalLink, Receipt, Tag } from 'lucide-react'
+import { useState, useTransition } from 'react'
 import { toast } from 'sonner'
 import { getCategoryLabel } from '@/lib/ai/expense-categorization'
 
@@ -16,6 +16,7 @@ type Expense = {
   category: string
   receipt_url: string | null
   notes: string | null
+  is_cogs: boolean
   clients: { id: string; name: string } | null
 }
 
@@ -28,20 +29,72 @@ const formatCurrency = (n: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
 
 const categoryColors: Record<string, { pill: string; dot: string }> = {
-  software:     { pill: 'bg-blue-50 text-blue-700 border-blue-200',     dot: 'bg-blue-500'   },
-  hardware:     { pill: 'bg-gray-50 text-gray-700 border-gray-200',     dot: 'bg-gray-400'   },
-  travel:       { pill: 'bg-amber-50 text-amber-700 border-amber-200',  dot: 'bg-amber-500'  },
-  meals:        { pill: 'bg-orange-50 text-orange-700 border-orange-200',dot: 'bg-orange-500' },
-  marketing:    { pill: 'bg-pink-50 text-pink-700 border-pink-200',     dot: 'bg-pink-500'   },
-  office:       { pill: 'bg-cyan-50 text-cyan-700 border-cyan-200',     dot: 'bg-cyan-500'   },
-  professional: { pill: 'bg-violet-50 text-violet-700 border-violet-200',dot:'bg-violet-500' },
-  utilities:    { pill: 'bg-teal-50 text-teal-700 border-teal-200',     dot: 'bg-teal-500'   },
-  education:    { pill: 'bg-indigo-50 text-indigo-700 border-indigo-200',dot:'bg-indigo-500' },
-  insurance:    { pill: 'bg-green-50 text-green-700 border-green-200',  dot: 'bg-green-500'  },
-  taxes:        { pill: 'bg-red-50 text-red-700 border-red-200',        dot: 'bg-red-500'    },
-  other:        { pill: 'bg-gray-50 text-gray-600 border-gray-200',     dot: 'bg-gray-400'   },
+  software:     { pill: 'bg-blue-50 text-blue-700 border-blue-200',      dot: 'bg-blue-500'    },
+  hardware:     { pill: 'bg-gray-50 text-gray-700 border-gray-200',      dot: 'bg-gray-400'    },
+  travel:       { pill: 'bg-amber-50 text-amber-700 border-amber-200',   dot: 'bg-amber-500'   },
+  meals:        { pill: 'bg-orange-50 text-orange-700 border-orange-200',dot: 'bg-orange-500'  },
+  marketing:    { pill: 'bg-pink-50 text-pink-700 border-pink-200',      dot: 'bg-pink-500'    },
+  office:       { pill: 'bg-cyan-50 text-cyan-700 border-cyan-200',      dot: 'bg-cyan-500'    },
+  professional: { pill: 'bg-violet-50 text-violet-700 border-violet-200',dot: 'bg-violet-500'  },
+  utilities:    { pill: 'bg-teal-50 text-teal-700 border-teal-200',      dot: 'bg-teal-500'    },
+  education:    { pill: 'bg-indigo-50 text-indigo-700 border-indigo-200',dot: 'bg-indigo-500'  },
+  insurance:    { pill: 'bg-green-50 text-green-700 border-green-200',   dot: 'bg-green-500'   },
+  taxes:        { pill: 'bg-red-50 text-red-700 border-red-200',         dot: 'bg-red-500'     },
+  other:        { pill: 'bg-gray-50 text-gray-600 border-gray-200',      dot: 'bg-gray-400'    },
 }
 
+// ── Inline COGS toggle ────────────────────────────────────────────────────────
+function CogsToggle({ expenseId, initialValue }: { expenseId: string; initialValue: boolean }) {
+  const [isCogs, setIsCogs] = useState(initialValue)
+  const [isPending, startTransition] = useTransition()
+
+  const toggle = () => {
+    const next = !isCogs
+    setIsCogs(next) // optimistic
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/expenses/${expenseId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ is_cogs: next }),
+        })
+        if (!res.ok) {
+          setIsCogs(!next) // revert
+          toast.error('Could not update expense.')
+        } else {
+          toast.success(next ? 'Marked as COGS' : 'Marked as operating expense')
+        }
+      } catch {
+        setIsCogs(!next)
+        toast.error('Could not update expense.')
+      }
+    })
+  }
+
+  return (
+    <button
+      onClick={toggle}
+      disabled={isPending}
+      title={isCogs ? 'COGS — click to mark as operating expense' : 'Mark as cost of goods sold (COGS)'}
+      className="flex-shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold transition-all border"
+      style={{
+        background:   isCogs ? 'rgba(0,85,255,0.06)' : 'transparent',
+        borderColor:  isCogs ? 'rgba(0,85,255,0.2)'  : '#E5E7EB',
+        color:        isCogs ? '#0055FF'              : '#9CA3AF',
+        opacity:      isPending ? 0.6 : 1,
+        cursor:       isPending ? 'not-allowed' : 'pointer',
+      }}
+    >
+      <Tag
+        size={9}
+        style={{ color: isCogs ? '#0055FF' : '#D1D5DB', transition: 'color .15s' }}
+      />
+      COGS
+    </button>
+  )
+}
+
+// ── Delete button ─────────────────────────────────────────────────────────────
 function DeleteButton({ expenseId }: { expenseId: string }) {
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState(false)
@@ -50,10 +103,8 @@ function DeleteButton({ expenseId }: { expenseId: string }) {
     if (!window.confirm('Delete this expense?')) return
     setIsDeleting(true)
     try {
-      const { createClient } = await import('@/lib/supabase/client')
-      const supabase = createClient()
-      const { error } = await supabase.from('expenses').delete().eq('id', expenseId)
-      if (error) { toast.error('Could not delete expense.'); return }
+      const res = await fetch(`/api/expenses/${expenseId}`, { method: 'DELETE' })
+      if (!res.ok) { toast.error('Could not delete expense.'); return }
       toast.success('Expense deleted.')
       router.refresh()
     } catch {
@@ -77,6 +128,7 @@ function DeleteButton({ expenseId }: { expenseId: string }) {
   )
 }
 
+// ── Main list ─────────────────────────────────────────────────────────────────
 export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps) {
   if (expenses.length === 0) {
     return (
@@ -101,20 +153,60 @@ export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps)
     )
   }
 
+  const cogsTotal  = expenses.filter(e => e.is_cogs).reduce((s, e) => s + Number(e.amount || 0), 0)
+  const opexTotal  = expenses.filter(e => !e.is_cogs).reduce((s, e) => s + Number(e.amount || 0), 0)
+  const cogsCount  = expenses.filter(e => e.is_cogs).length
+
   return (
     <div className="space-y-2">
       {/* Summary bar */}
-      <div className="flex items-center justify-between px-1 mb-1">
+      <div className="flex items-center justify-between px-1 mb-1 flex-wrap gap-2">
         <p className="text-sm text-gray-500 font-medium">
           <span className="text-gray-900 font-bold">{expenses.length}</span> expense{expenses.length !== 1 ? 's' : ''}
         </p>
-        <p className="text-sm font-black text-gray-900">{formatCurrency(totalAmount)}</p>
+        <div className="flex items-center gap-4">
+          {cogsCount > 0 && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border"
+                  style={{ background: 'rgba(0,85,255,0.06)', borderColor: 'rgba(0,85,255,0.2)', color: '#0055FF' }}
+                >
+                  <Tag size={8} /> COGS
+                </span>
+                <span className="text-sm font-black text-gray-900">{formatCurrency(cogsTotal)}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">OpEx</span>
+                <span className="text-sm font-black text-gray-900">{formatCurrency(opexTotal)}</span>
+              </div>
+            </>
+          )}
+          <p className="text-sm font-black text-gray-900">{formatCurrency(totalAmount)}</p>
+        </div>
       </div>
 
+      {/* COGS explanation banner — shown only when nothing is tagged yet */}
+      {cogsCount === 0 && expenses.length > 0 && (
+        <div
+          className="flex items-start gap-3 px-4 py-3 rounded-xl border text-xs font-medium text-gray-500"
+          style={{ background: 'rgba(0,85,255,0.03)', borderColor: 'rgba(0,85,255,0.1)' }}
+        >
+          <Tag size={13} style={{ color: '#0055FF', flexShrink: 0, marginTop: 1 }} />
+          <span>
+            <strong className="text-gray-700">Tag expenses as COGS</strong> to split Cost of Goods from Operating Expenses in your{' '}
+            <Link href="/dashboard/reports" className="text-blue-600 font-bold hover:underline">
+              P&L and EBITDA waterfall
+            </Link>.
+            Click the <strong className="text-gray-700">COGS</strong> button on any row below.
+          </span>
+        </div>
+      )}
+
       {expenses.map((expense, idx) => {
-        const client   = Array.isArray(expense.clients) ? expense.clients[0] : expense.clients
-        const catCfg   = categoryColors[expense.category] ?? categoryColors.other
-        const dateStr  = new Date(expense.date + 'T12:00:00').toLocaleDateString('en-US', {
+        const client  = Array.isArray(expense.clients) ? expense.clients[0] : expense.clients
+        const catCfg  = categoryColors[expense.category] ?? categoryColors.other
+        const dateStr = new Date(expense.date + 'T12:00:00').toLocaleDateString('en-US', {
           month: 'short', day: 'numeric', year: 'numeric',
         })
 
@@ -142,11 +234,7 @@ export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps)
                         <FileImage className="w-5 h-5 text-red-400" />
                       </div>
                     ) : (
-                      <img
-                        src={expense.receipt_url}
-                        alt="Receipt"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={expense.receipt_url} alt="Receipt" className="w-full h-full object-cover" />
                     )}
                   </a>
                 ) : (
@@ -187,6 +275,9 @@ export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps)
                   )}
                 </div>
               </div>
+
+              {/* COGS toggle */}
+              <CogsToggle expenseId={expense.id} initialValue={expense.is_cogs ?? false} />
 
               {/* Amount */}
               <span className="text-base font-black text-gray-900 group-hover:text-orange-600 transition-colors flex-shrink-0">

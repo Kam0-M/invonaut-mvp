@@ -66,7 +66,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
   // Build query
   let query = supabase
     .from('expenses')
-    .select('id, description, amount, date, vendor, category, receipt_url, notes, clients(id, name)')
+    .select('id, description, amount, date, vendor, category, receipt_url, notes, is_cogs, clients(id, name)')
     .eq('user_id', user.id)
     .order('date', { ascending: false })
 
