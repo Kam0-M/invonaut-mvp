@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { description, amount, date, vendor, category, clientId, receiptUrl, notes } = body
+    const { description, amount, date, vendor, category, clientId, receiptUrl, notes, is_cogs } = body
 
     if (!description?.trim()) {
       return NextResponse.json({ success: false, error: 'Description is required.' }, { status: 400 })
@@ -46,6 +46,7 @@ export async function POST(request: NextRequest) {
         category,
         receipt_url: receiptUrl || null,
         notes:       notes?.trim() || null,
+        is_cogs:     is_cogs === true,
         updated_at:  new Date().toISOString(),
       })
       .select('id')

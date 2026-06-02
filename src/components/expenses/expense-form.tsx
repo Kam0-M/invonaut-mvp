@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Sparkles } from 'lucide-react'
+import { Loader2, Sparkles, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 import { EXPENSE_CATEGORIES } from '@/lib/ai/expense-categorization'
 import ReceiptUploader from '@/components/expenses/receipt-uploader'
@@ -28,6 +28,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
 
   const [isSaving, setIsSaving] = useState(false)
   const [isCategorizing, setIsCategorizing] = useState(false)
+  const [isCogs, setIsCogs] = useState(false)
 
   const handleAISuggest = async () => {
     if (!description.trim()) { toast.error('Enter a description first.'); return }
@@ -72,6 +73,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
           clientId: clientId || null,
           receiptUrl: receiptUrl || null,
           notes: notes.trim() || null,
+          is_cogs: isCogs,
         }),
       })
       const data = await res.json()
@@ -220,6 +222,41 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
 
       {/* Receipt upload */}
       <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6">
+
+        {/* COGS toggle */}
+        <div
+          className="flex items-start gap-4 p-4 rounded-xl border mb-5 cursor-pointer select-none transition-all"
+          style={{
+            background:   isCogs ? 'rgba(0,85,255,0.04)' : '#FAFAFA',
+            borderColor:  isCogs ? 'rgba(0,85,255,0.2)'  : '#E5E7EB',
+          }}
+          onClick={() => setIsCogs(v => !v)}
+        >
+          {/* Custom toggle */}
+          <div
+            className="flex-shrink-0 mt-0.5 w-10 h-6 rounded-full flex items-center transition-all duration-200 p-0.5"
+            style={{ background: isCogs ? '#0055FF' : '#CBD5E1' }}
+          >
+            <div
+              className="w-5 h-5 rounded-full bg-white shadow transition-transform duration-200"
+              style={{ transform: isCogs ? 'translateX(16px)' : 'translateX(0)' }}
+            />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <Tag size={13} style={{ color: isCogs ? '#0055FF' : '#9CA3AF' }} />
+              <p className="text-sm font-bold" style={{ color: isCogs ? '#0055FF' : '#374151' }}>
+                Cost of Goods Sold (COGS)
+              </p>
+            </div>
+            <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+              Toggle on if this expense is a <strong className="text-gray-500">direct cost</strong> of delivering your service — e.g. subcontractor fees, raw materials, production costs. This populates the COGS line in your{' '}
+              <span className="text-blue-600 font-semibold">P&L and EBITDA waterfall</span>.
+              Leave off for operating expenses (software, marketing, rent, etc.).
+            </p>
+          </div>
+        </div>
+
         <ReceiptUploader
           onUploaded={url => setReceiptUrl(url)}
           currentUrl={receiptUrl || null}
