@@ -18,11 +18,12 @@ import OpportunityPanel            from '@/components/dashboard/opportunity-pane
 import ActivityFeedLive, { ActivityItem } from '@/components/dashboard/activity-feed-live'
 import IntelligenceFeed            from '@/components/intelligence/intelligence-feed'
 import WelcomeModal               from '@/components/dashboard/welcome-modal'
+import { useCurrency } from '@/lib/context/currency-context'
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 export default async function DashboardPage() {

@@ -16,26 +16,26 @@
 //   28% is conservative but reasonable for a solo freelancer earning $50–150K.
 
 import { PiggyBank, AlertCircle } from 'lucide-react'
+import { useCurrency } from '@/lib/context/currency-context'
 
 interface TaxReserveEstimateProps {
   netProfit:    number   // totalRevenue - totalExpenses, all time
   totalRevenue: number   // for context display
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const formatCompact = (n: number): string => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-  }).format(n)
+  return fmt(n)
 }
 
 const TAX_RATE = 0.28
 
-export default function TaxReserveEstimate({ netProfit, totalRevenue }: TaxReserveEstimateProps) {
+export default function TaxReserveEstimate({
+  const { format: fmt } = useCurrency() netProfit, totalRevenue }: TaxReserveEstimateProps) {
   const taxableProfit = Math.max(0, netProfit)
   const reserveAmount = Math.round(taxableProfit * TAX_RATE)
   const hasData       = totalRevenue > 0
@@ -67,7 +67,7 @@ export default function TaxReserveEstimate({ netProfit, totalRevenue }: TaxReser
             <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Estimated Reserve</p>
             <p
               className="text-3xl font-black text-amber-900 tracking-tight truncate min-w-0"
-              title={formatCurrency(reserveAmount)}
+              title={fmt(reserveAmount)}
             >
               {formatCompact(reserveAmount)}
             </p>
@@ -80,19 +80,19 @@ export default function TaxReserveEstimate({ netProfit, totalRevenue }: TaxReser
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 font-medium">SE tax (~15.3%)</span>
-              <span className="font-bold text-gray-700" title={formatCurrency(taxableProfit * 0.153)}>
+              <span className="font-bold text-gray-700" title={fmt(taxableProfit * 0.153)}>
                 {formatCompact(taxableProfit * 0.153)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 font-medium">Federal income (~12.7%)</span>
-              <span className="font-bold text-gray-700" title={formatCurrency(taxableProfit * 0.127)}>
+              <span className="font-bold text-gray-700" title={fmt(taxableProfit * 0.127)}>
                 {formatCompact(taxableProfit * 0.127)}
               </span>
             </div>
             <div className="flex justify-between text-sm pt-2 border-t border-gray-100">
               <span className="font-bold text-gray-700">Total estimate</span>
-              <span className="font-black text-amber-800" title={formatCurrency(reserveAmount)}>
+              <span className="font-black text-amber-800" title={fmt(reserveAmount)}>
                 {formatCompact(reserveAmount)}
               </span>
             </div>

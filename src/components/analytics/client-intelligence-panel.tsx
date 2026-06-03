@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/analytics/client-intelligence-panel.tsx
 //
 // WHY THIS IS A CLIENT COMPONENT:
@@ -78,12 +80,12 @@ const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
 const fmt = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  fmt(n)
 
 const fmtCompact = (n: number): string => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
@@ -113,6 +115,7 @@ const RateTooltip = ({ active, payload, label }: any) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClientIntelligencePanel({
+  const { format: fmt } = useCurrency()
   allClientStats, sortedClients, sortBy, limit, viewMode, orientation,
 }: Props) {
   const router       = useRouter()

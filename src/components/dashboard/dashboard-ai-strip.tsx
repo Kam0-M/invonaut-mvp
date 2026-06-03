@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/dashboard/dashboard-ai-strip.tsx
 //
 // Contextual AI insight bar on the dashboard.
@@ -29,10 +31,11 @@ type Insight = {
 function fmt(n: number) {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 export default function DashboardAiStrip({
+  const { format: fmt } = useCurrency()
   overdueCount,
   pendingPayments,
   expiringSoonCount,

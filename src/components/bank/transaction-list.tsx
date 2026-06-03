@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -204,7 +206,8 @@ function ReconcilePanel({
   )
 }
 
-export default function TransactionList({ transactions, unmatchedInvoices, isPro }: Props) {
+export default function TransactionList({
+  const { format: fmt } = useCurrency() transactions, unmatchedInvoices, isPro }: Props) {
   const [filter, setFilter] = useState<'all' | 'inflow' | 'outflow' | 'unmatched'>('all')
 
   const filtered = transactions.filter(tx => {

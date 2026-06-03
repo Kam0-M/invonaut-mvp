@@ -6,11 +6,12 @@ import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
+import { useCurrency } from '@/lib/context/currency-context'
 
 function formatCompact(n: number): string {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 export default async function PaymentsPage() {

@@ -4,6 +4,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import Link from 'next/link'
+import { useCurrency } from '@/lib/context/currency-context'
 import {
   TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus,
   FileText, BarChart2, Scale, Building2, Printer, Info, GitCompare,
@@ -65,7 +66,6 @@ function inRange(dateStr:string,start:Date,end:Date) {
 }
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
-const fmtC   = (n:number) => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2}).format(n)
 const fmtPct = (n:number) => `${n>=0?'+':''}${n.toFixed(1)}%`
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const EXP_COLORS: Record<string,string> = {
@@ -160,6 +160,7 @@ const CSS = `
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function CatRow({name,amount,total,color}:{name:string,amount:number,total:number,color:string}) {
+  const { format: fmtC } = useCurrency()
   const pct=total>0?(amount/total)*100:0
   return (
     <div style={{padding:'12px 24px',display:'flex',alignItems:'center',gap:14}}>
@@ -451,6 +452,7 @@ function AddLiabilityForm({onAdd}:{onAdd:(l:Liability)=>void}) {
 
 // ─── Balance Sheet Section Row ─────────────────────────────────────────────────
 function BSRow({label,amount,indent=false,bold=false,total=false,color}:{label:string,amount:number|null,indent?:boolean,bold?:boolean,total?:boolean,color?:string}) {
+  const { format: fmtC } = useCurrency()
   return (
     <tr style={total?{background:'#F8FAFF'}:{}}>
       <td style={{paddingLeft:indent?48:24,fontWeight:bold||total?800:400,fontSize:total?'.88rem':'.83rem',color:total?'#0A0A0A':'#374151',borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none'}}>
@@ -465,6 +467,7 @@ function BSRow({label,amount,indent=false,bold=false,total=false,color}:{label:s
 
 // ─── Delta badge ───────────────────────────────────────────────────────────────
 function Delta({a,b,inverted=false}:{a:number,b:number,inverted?:boolean}) {
+  const { format: fmtC } = useCurrency()
   if (b===0) return <span style={{fontSize:'.72rem',color:'#94A3B8'}}>—</span>
   const diff   = a - b
   const pct    = (diff / Math.abs(b)) * 100
@@ -495,6 +498,7 @@ function compCalc(invoices:Invoice[], directPayments:DirectPayment[], expenses:E
 
 // ─── Waterfall bar ─────────────────────────────────────────────────────────────
 function WaterfallRow({label,value,max,color,indent=false,isTotal=false,note}:{label:string,value:number,max:number,color:string,indent?:boolean,isTotal?:boolean,note?:string}) {
+  const { format: fmtC } = useCurrency()
   const pct = max>0?(Math.abs(value)/max)*100:0
   return (
     <div style={{display:'grid',gridTemplateColumns:'190px 1fr 130px',alignItems:'center',gap:14,padding:`${isTotal?'14px':'9px'} 0`,borderTop:isTotal?'2px solid #E2E8F0':'none'}}>
@@ -516,6 +520,7 @@ function WaterfallRow({label,value,max,color,indent=false,isTotal=false,note}:{l
 
 // ─── Main component ────────────────────────────────────────────────────────────
 export function ReportsClient({businessName,tier,invoices,directPayments,expenses,revCategories,initialAssets,initialLiabilities,latestCashBalance}: Props) {
+  const { format: fmtC } = useCurrency()
   const [tab,       setTab]     = useState<'pl'|'period'|'comparison'|'assets'|'balance'>('pl')
   const [rangeKey,  setRangeKey]= useState('this_year')
   const [assets,     setAssets]     = useState<Asset[]>(initialAssets)

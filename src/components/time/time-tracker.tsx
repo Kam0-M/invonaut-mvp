@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/time/time-tracker.tsx
 // The live timer widget displayed at the top of /dashboard/time.
 // 
@@ -16,7 +18,7 @@ import { useRouter } from 'next/navigation'
 import { Play, Square, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTimer } from '@/hooks/use-timer'
-import { formatDurationClock, calcBillableAmount, formatCurrency } from '@/lib/utils/time-formatting'
+import { formatDurationClock, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
 
 type Client = {
   id: string
@@ -29,7 +31,8 @@ interface TimeTrackerProps {
   clients: Client[]
 }
 
-export default function TimeTracker({ clients }: TimeTrackerProps) {
+export default function TimeTracker({
+  const { format: fmt } = useCurrency() clients }: TimeTrackerProps) {
   const router = useRouter()
   const timer  = useTimer()
 
@@ -126,7 +129,7 @@ export default function TimeTracker({ clients }: TimeTrackerProps) {
             </div>
             {liveAmount !== null && (
               <div className="text-sm font-bold text-blue-500 mt-0.5">
-                {formatCurrency(liveAmount)} @ ${hourlyRate}/hr
+                {fmt(liveAmount)} @ ${hourlyRate}/hr
               </div>
             )}
           </div>

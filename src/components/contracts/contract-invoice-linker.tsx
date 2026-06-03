@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -25,8 +27,8 @@ interface ContractInvoiceLinkerProps {
   availableInvoices: Invoice[]
 }
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+const fmt = (amount: number) =>
+  fmt(amount)
 
 const linkTypeLabels: Record<string, string> = {
   initial_payment: 'Initial payment',
@@ -36,6 +38,7 @@ const linkTypeLabels: Record<string, string> = {
 }
 
 export default function ContractInvoiceLinker({
+  const { format: fmt } = useCurrency()
   contractId,
   linkedInvoices,
   availableInvoices,
@@ -115,7 +118,7 @@ export default function ContractInvoiceLinker({
               <option value="">Select an invoice...</option>
               {unlinkedInvoices.map(inv => (
                 <option key={inv.id} value={inv.id}>
-                  {inv.invoice_number} · {formatCurrency(Number(inv.total_amount))} · {inv.status}
+                  {inv.invoice_number} · {fmt(Number(inv.total_amount))} · {inv.status}
                 </option>
               ))}
             </select>
@@ -174,7 +177,7 @@ export default function ContractInvoiceLinker({
                     </span>
                   </div>
                   <span className="text-sm text-gray-500">
-                    {formatCurrency(Number(inv.total_amount))}
+                    {fmt(Number(inv.total_amount))}
                   </span>
                 </Link>
                 <button

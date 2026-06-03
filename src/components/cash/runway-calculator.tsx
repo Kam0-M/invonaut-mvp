@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/cash/runway-calculator.tsx
 //
 // WHAT IT DOES:
@@ -36,9 +38,7 @@ interface RunwayCalculatorProps {
 function formatCompact(n: number): string {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-  }).format(n)
+  return fmt(n)
 }
 
 function formatRunway(months: number): string {
@@ -62,6 +62,7 @@ function runwayBg(months: number): string {
 }
 
 export default function RunwayCalculator({
+  const { format: fmt } = useCurrency()
   avgMonthlyExpenses,
   overdueTotal,
   initialBalance,

@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/payments/direct-payment-list.tsx
 // Filter controls + payment rows. Receives pre-fetched data from server page.
 
@@ -41,13 +43,14 @@ function formatDate(iso: string) {
   })
 }
 
-function formatCurrency(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+function fmt(n: number) {
+  return fmt(n)
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export default function DirectPaymentList({ payments }: Props) {
+export default function DirectPaymentList({
+  const { format: fmt } = useCurrency() payments }: Props) {
   const [filterType,   setFilterType]   = useState<string>('all')
   const [filterMethod, setFilterMethod] = useState<string>('all')
   const [filterCat,    setFilterCat]    = useState<string>('all')
@@ -232,7 +235,7 @@ export default function DirectPaymentList({ payments }: Props) {
                   {/* Amount */}
                   <div className="flex-shrink-0 text-right min-w-[80px]">
                     <span className="text-base font-black text-gray-900 group-hover:text-teal-600 transition-colors">
-                      {formatCurrency(Number(payment.amount))}
+                      {fmt(Number(payment.amount))}
                     </span>
                   </div>
 

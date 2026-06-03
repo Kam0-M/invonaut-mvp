@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -24,7 +26,7 @@ interface Props {
 }
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  return fmt(n)
 }
 
 function fmtHours(secs: number) {
@@ -32,7 +34,8 @@ function fmtHours(secs: number) {
   return h < 1 ? `${Math.round(h * 60)}m` : `${h.toFixed(1)}h`
 }
 
-export default function SmartInvoiceDrafts({ groups }: Props) {
+export default function SmartInvoiceDrafts({
+  const { format: fmt } = useCurrency() groups }: Props) {
   const router = useRouter()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [creating, setCreating] = useState<string | null>(null)

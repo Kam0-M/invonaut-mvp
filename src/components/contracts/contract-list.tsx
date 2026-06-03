@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/contracts/contract-list.tsx
 // Client component — handles search + template_type filter for the contracts list
 
@@ -43,7 +45,7 @@ const statusCfg: Record<string, { pill: string; dot: string; label: string }> = 
 function fmt(n: number) {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 function avatarColor(name: string) {
@@ -59,7 +61,8 @@ function avatarColor(name: string) {
   return palette[Math.abs(hash) % palette.length]
 }
 
-export default function ContractList({ contracts }: Props) {
+export default function ContractList({
+  const { format: fmt } = useCurrency() contracts }: Props) {
   const [search,     setSearch]     = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
 

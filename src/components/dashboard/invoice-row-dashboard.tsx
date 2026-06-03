@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useRouter } from 'next/navigation'
 import { isOverdue } from '@/lib/utils/invoice-status'
 
@@ -12,7 +14,8 @@ type InvoiceRowDashboardProps = {
   status: string
 }
 
-export function InvoiceRowDashboard({ 
+export function InvoiceRowDashboard({
+  const { format: fmt } = useCurrency() 
   id, 
   invoiceNumber, 
   clientName, 
@@ -22,8 +25,8 @@ export function InvoiceRowDashboard({
 }: InvoiceRowDashboardProps) {
   const router = useRouter()
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+  const fmt = (amount: number) =>
+    fmt(amount)
 
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', {
@@ -68,7 +71,7 @@ export function InvoiceRowDashboard({
         {formatDate(dueDate)}
       </td>
       <td className="px-4 py-4 text-sm font-black text-gray-900">
-        {formatCurrency(totalAmount)}
+        {fmt(totalAmount)}
       </td>
       <td className="px-4 py-4">
         <span

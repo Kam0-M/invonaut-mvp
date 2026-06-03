@@ -7,14 +7,15 @@ import {
 } from 'lucide-react'
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
+import { useCurrency } from '@/lib/context/currency-context'
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n/1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n/1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(n)
+  return fmt(n)
 }
 const fmtFull = (n: number) =>
-  new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n)
+  fmt(n)
 const fmtDate = (s: string) =>
   new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
 

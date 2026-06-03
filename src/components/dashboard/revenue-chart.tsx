@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell,
@@ -13,13 +15,8 @@ type RevenueChartProps = {
   }>
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value)
+const fmt = (value: number) =>
+  fmt(value)
 
 const formatYAxis = (value: number) => {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
@@ -41,7 +38,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {label}
         </p>
         <p style={{ fontWeight: 900, color: '#1D4ED8', fontSize: '20px', margin: 0 }}>
-          {formatCurrency(payload[0].value)}
+          {fmt(payload[0].value)}
         </p>
       </div>
     )
@@ -49,7 +46,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-export function RevenueChart({ data }: RevenueChartProps) {
+export function RevenueChart({
+  const { format: fmt } = useCurrency() data }: RevenueChartProps) {
   const hasAnyRevenue = data.some(d => d.revenue > 0)
 
   return (

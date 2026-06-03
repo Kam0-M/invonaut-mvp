@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 
 type ChartEntry = {
@@ -8,8 +10,8 @@ type ChartEntry = {
   color: string
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
@@ -25,7 +27,7 @@ const CustomTooltip = ({ active, payload }: any) => {
           {payload[0].name}
         </p>
         <p style={{ fontWeight: 900, color: '#111827', fontSize: '18px', margin: 0 }}>
-          {formatCurrency(payload[0].value)}
+          {fmt(payload[0].value)}
         </p>
       </div>
     )
@@ -33,7 +35,8 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null
 }
 
-export function ExpenseBreakdownChart({ data }: { data: ChartEntry[] }) {
+export function ExpenseBreakdownChart({
+  const { format: fmt } = useCurrency() data }: { data: ChartEntry[] }) {
   return (
     <div style={{ width: '100%', height: '280px' }}>
       <ResponsiveContainer width="100%" height="100%">

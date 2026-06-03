@@ -10,8 +10,16 @@ function createAdminClient() {
   )
 }
 
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
+const CURRENCY_LOCALE: Record<string,string> = {
+  USD:'en-US',GBP:'en-GB',EUR:'de-DE',CAD:'en-CA',AUD:'en-AU',NZD:'en-NZ',
+  SGD:'en-SG',CHF:'de-CH',ZAR:'en-ZA',NGN:'en-NG',KES:'sw-KE',INR:'en-IN',
+  JPY:'ja-JP',BRL:'pt-BR',MXN:'es-MX',
+}
+function makePortalFormatter(currency='USD') {
+  const locale = CURRENCY_LOCALE[currency] ?? 'en-US'
+  return (amount: number) =>
+    new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: 2 }).format(amount)
+}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('en-US', {
@@ -138,7 +146,7 @@ export default async function PortalPage({
   // 2. Fetch owner branding
   const { data: ownerProfile } = await supabase
     .from('user_profiles')
-    .select('business_name, full_name, logo_url, brand_color, secondary_brand_color, subscription_tier')
+    .select('business_name, full_name, logo_url, brand_color, secondary_brand_color, subscription_tier, currency, currency_symbol')
     .eq('id', portalRow.user_id)
     .single()
 
@@ -148,6 +156,8 @@ export default async function PortalPage({
     ownerProfile?.subscription_tier === 'business'
 
   const brandColor = isWhiteLabel ? (ownerProfile?.brand_color || '#0066FF') : '#0066FF'
+  const ownerCurrency = (ownerProfile as any)?.currency || 'USD'
+  const formatCurrency = makePortalFormatter(ownerCurrency)
   const logoUrl = isWhiteLabel ? (ownerProfile?.logo_url || null) : null
   const businessName =
     ownerProfile?.business_name || ownerProfile?.full_name || 'Invonaut'

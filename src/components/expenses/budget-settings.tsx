@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, Loader2, ShieldAlert } from 'lucide-react'
@@ -18,10 +20,11 @@ interface BudgetSettingsProps {
   isBusiness: boolean
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
-export default function BudgetSettings({ budgets: initialBudgets, isBusiness }: BudgetSettingsProps) {
+export default function BudgetSettings({
+  const { format: fmt } = useCurrency() budgets: initialBudgets, isBusiness }: BudgetSettingsProps) {
   const router = useRouter()
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets)
   const [showForm, setShowForm] = useState(false)
@@ -186,7 +189,7 @@ export default function BudgetSettings({ budgets: initialBudgets, isBusiness }: 
             <div key={budget.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
               <div>
                 <p className="text-sm font-bold text-gray-900">{getCategoryLabel(budget.category)}</p>
-                <p className="text-xs text-gray-400 font-medium">{formatCurrency(budget.monthly_limit)} / month</p>
+                <p className="text-xs text-gray-400 font-medium">{fmt(budget.monthly_limit)} / month</p>
               </div>
               <button
                 onClick={() => handleDelete(budget.id)}

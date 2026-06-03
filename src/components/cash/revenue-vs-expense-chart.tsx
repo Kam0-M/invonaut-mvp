@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/cash/revenue-vs-expense-chart.tsx
 //
 // WHAT IT DOES:
@@ -21,11 +23,8 @@ export type RevExpPoint = {
   profit:   number   // revenue - expenses (for tooltip)
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD',
-    minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const formatYAxis = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -45,13 +44,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     }}>
       <p style={{ fontWeight: 700, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>{label}</p>
       <p style={{ fontSize: 13, margin: '2px 0', color: '#0066FF', fontWeight: 700 }}>
-        Revenue: {formatCurrency(rev)}
+        Revenue: {fmt(rev)}
       </p>
       <p style={{ fontSize: 13, margin: '2px 0', color: '#F97316', fontWeight: 700 }}>
-        Expenses: {formatCurrency(exp)}
+        Expenses: {fmt(exp)}
       </p>
       <p style={{ fontSize: 13, margin: '6px 0 0', borderTop: '1px solid #F3F4F6', paddingTop: 6, fontWeight: 900, color: prof >= 0 ? '#1D4ED8' : '#DC2626' }}>
-        {prof >= 0 ? 'Profit' : 'Loss'}: {prof < 0 ? '−' : ''}{formatCurrency(Math.abs(prof))}
+        {prof >= 0 ? 'Profit' : 'Loss'}: {prof < 0 ? '−' : ''}{fmt(Math.abs(prof))}
       </p>
     </div>
   )
@@ -70,7 +69,8 @@ const CustomLegend = () => (
   </div>
 )
 
-export function RevenueVsExpenseChart({ data }: { data: RevExpPoint[] }) {
+export function RevenueVsExpenseChart({
+  const { format: fmt } = useCurrency() data }: { data: RevExpPoint[] }) {
   const hasData = data.some(d => d.revenue > 0 || d.expenses > 0)
 
   return (

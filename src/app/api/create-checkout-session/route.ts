@@ -27,9 +27,20 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier')
+      .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, currency')
       .eq('id', user.id)
       .single()
+
+    // Stripe-supported currencies for subscription billing
+    // Stripe automatically presents checkout in the user's currency when supported
+    // All payments settle to the account's default currency (USD) via automatic conversion
+    const STRIPE_SUPPORTED_CURRENCIES = [
+      'usd','gbp','eur','cad','aud','nzd','sgd','chf',
+      'inr','jpy','brl','mxn','zar',
+      // Note: NGN and KES require Stripe Treasury or local acquiring — default to USD
+    ]
+    const userCurrency = (profile as any)?.currency?.toLowerCase() || 'usd'
+    const stripeCurrency = STRIPE_SUPPORTED_CURRENCIES.includes(userCurrency) ? userCurrency : 'usd'
 
     const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
     const hasActiveSubscription = !!profile?.stripe_subscription_id && 
@@ -83,6 +94,7 @@ export async function POST(request: Request) {
       customer_email: !profile?.stripe_customer_id ? user.email : undefined,
       mode: 'subscription',
       payment_method_types: ['card'],
+      currency: stripeCurrency !== 'usd' ? stripeCurrency : undefined,
       line_items: [
         {
           price: priceId,

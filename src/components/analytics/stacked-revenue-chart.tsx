@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/analytics/stacked-revenue-chart.tsx
 //
 // Stacked bar chart: Invoice Income (blue) + Direct Payments (#00D4AA teal)
@@ -20,11 +22,8 @@ export type StackedRevPoint = {
   profit:     number
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD',
-    minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const formatYAxis = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -49,28 +48,28 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       </p>
       {invRev > 0 && (
         <p style={{ fontSize: 13, margin: '2px 0', color: '#2563EB', fontWeight: 700 }}>
-          Invoices: {formatCurrency(invRev)}
+          Invoices: {fmt(invRev)}
         </p>
       )}
       {dirRev > 0 && (
         <p style={{ fontSize: 13, margin: '2px 0', color: '#0D9488', fontWeight: 700 }}>
-          Direct: {formatCurrency(dirRev)}
+          Direct: {fmt(dirRev)}
         </p>
       )}
       {total > 0 && (invRev > 0 || dirRev > 0) && (
         <p style={{ fontSize: 13, margin: '2px 0 6px', color: '#059669', fontWeight: 900 }}>
-          Total Income: {formatCurrency(total)}
+          Total Income: {fmt(total)}
         </p>
       )}
       <p style={{ fontSize: 13, margin: '2px 0', color: '#F97316', fontWeight: 700 }}>
-        Expenses: {formatCurrency(exp)}
+        Expenses: {fmt(exp)}
       </p>
       <p style={{
         fontSize: 13, margin: '6px 0 0', borderTop: '1px solid #F3F4F6',
         paddingTop: 6, fontWeight: 900,
         color: profit >= 0 ? '#1D4ED8' : '#DC2626',
       }}>
-        {profit >= 0 ? 'Profit' : 'Loss'}: {profit < 0 ? '−' : ''}{formatCurrency(Math.abs(profit))}
+        {profit >= 0 ? 'Profit' : 'Loss'}: {profit < 0 ? '−' : ''}{fmt(Math.abs(profit))}
       </p>
     </div>
   )
@@ -91,7 +90,8 @@ const CustomLegend = () => (
   </div>
 )
 
-export function StackedRevenueChart({ data }: { data: StackedRevPoint[] }) {
+export function StackedRevenueChart({
+  const { format: fmt } = useCurrency() data }: { data: StackedRevPoint[] }) {
   const hasData = data.some(d => d.invoiceRev > 0 || d.directRev > 0 || d.expenses > 0)
 
   return (

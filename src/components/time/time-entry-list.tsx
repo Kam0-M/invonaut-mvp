@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/time/time-entry-list.tsx
 // Displays all time entries in a filterable, paginated list.
 //
@@ -13,7 +15,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Clock, DollarSign, CheckCircle2, CircleDashed } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatDuration, calcBillableAmount, formatCurrency } from '@/lib/utils/time-formatting'
+import { formatDuration, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
 
 type Client = { id: string; name: string; company: string | null }
 
@@ -36,7 +38,8 @@ interface TimeEntryListProps {
 
 type FilterTab = 'all' | 'unbilled' | 'billed'
 
-export default function TimeEntryList({ entries }: TimeEntryListProps) {
+export default function TimeEntryList({
+  const { format: fmt } = useCurrency() entries }: TimeEntryListProps) {
   const router            = useRouter()
   const [filter, setFilter] = useState<FilterTab>('all')
   const [deleting, setDeleting] = useState<string | null>(null)
@@ -150,7 +153,7 @@ export default function TimeEntryList({ entries }: TimeEntryListProps) {
                     {amount !== null && (
                       <span className="text-xs font-bold text-green-700 flex items-center gap-1">
                         <DollarSign className="w-3 h-3" />
-                        {formatCurrency(amount)}
+                        {fmt(amount)}
                       </span>
                     )}
                   </div>

@@ -13,11 +13,12 @@ import { PaymentPrediction }    from '@/components/invoices/payment-prediction'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { NotFound }             from '@/components/ui/not-found'
 import InvoiceContractLinker    from '@/components/contracts/invoice-contract-linker'
+import { useCurrency } from '@/lib/context/currency-context'
 
 type PageProps = { params: Promise<{ id: string }> }
 
 const fmtFull = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  fmt(n)
 
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
