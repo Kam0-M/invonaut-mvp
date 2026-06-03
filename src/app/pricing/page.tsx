@@ -33,7 +33,7 @@ export default async function PricingPage({
   }
 
   const { billing: billingParam } = await searchParams
-  const initialBilling = billingParam === 'annual' ? 'annual' : 'monthly'
+  const initialBilling = billingParam === 'monthly' ? 'monthly' : 'annual'
 
   const starterPriceId             = process.env.STRIPE_PRICE_ID_STARTER || ''
   const professionalPriceId        = process.env.STRIPE_PRICE_ID_PROFESSIONAL || ''

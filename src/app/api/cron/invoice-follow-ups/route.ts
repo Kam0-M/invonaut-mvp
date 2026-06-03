@@ -48,10 +48,18 @@ function buildFollowUpEmailHTML(opts: {
   totalAmount:   number
   daysOverdue:   number
   businessName:  string
+  portalUrl:     string | null
 }): string {
   const formattedDate = new Date(opts.dueDate + 'T12:00:00').toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric',
   })
+  const payNowBtn = opts.portalUrl ? `
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${opts.portalUrl}" style="display:inline-block;background:linear-gradient(135deg,#0044EE,#0066FF);color:#fff;font-weight:700;font-size:15px;padding:14px 36px;border-radius:10px;text-decoration:none;letter-spacing:-.01em;">
+        View &amp; Pay Invoice →
+      </a>
+      <p style="margin:10px 0 0;font-size:11px;color:#9CA3AF;">Secure link · No login required</p>
+    </div>` : ''
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -71,7 +79,8 @@ function buildFollowUpEmailHTML(opts: {
       <p style="margin:0 0 8px;font-size:13px;color:#9CA3AF;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Amount Due</p>
       <p style="margin:0;font-size:32px;font-weight:900;color:#DC2626;">${formatCurrency(opts.totalAmount)}</p>
     </div>
-    <p style="margin:0 0 20px;font-size:15px;">Please arrange payment at your earliest convenience. If you have any questions or have already sent payment, please disregard this message.</p>
+    ${payNowBtn}
+    <p style="margin:0 0 20px;font-size:15px;">If you have already sent payment, please disregard this message. If you have any questions, reply to this email.</p>
     <p style="margin:20px 0 0;font-size:14px;color:#6B7280;">Thank you,<br><strong>${opts.businessName}</strong></p>
   </div>
   <p style="text-align:center;font-size:11px;color:#9CA3AF;margin-top:16px;">Sent via Invonaut · Automated follow-up</p>
@@ -168,6 +177,16 @@ export async function GET(request: NextRequest) {
         const businessName = profile?.business_name || 'Your service provider'
         const toEmail      = client.email
 
+        // Look up client portal slug for Pay Now link
+        const { data: portalSettings } = await supabase
+          .from('portal_settings')
+          .select('slug')
+          .eq('user_id', profile.id)
+          .single()
+        const portalUrl = portalSettings?.slug
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/portal/${portalSettings.slug}`
+          : null
+
         // Resend free tier: only sends to verified owner email
         const emailTo = toEmail === OWNER_EMAIL ? toEmail : OWNER_EMAIL
 
@@ -182,6 +201,7 @@ export async function GET(request: NextRequest) {
             totalAmount:   Number(inv.total_amount),
             daysOverdue,
             businessName,
+            portalUrl,
           }),
           text:    buildFollowUpEmailText({
             invoiceNumber: inv.invoice_number,

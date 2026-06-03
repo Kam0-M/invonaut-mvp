@@ -77,7 +77,7 @@ const plans = [
 ]
 
 export default function LandingPricingSection() {
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly')
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
 
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif" }}>

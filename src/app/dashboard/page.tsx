@@ -17,6 +17,7 @@ import RiskAttentionPanel          from '@/components/dashboard/risk-attention-p
 import OpportunityPanel            from '@/components/dashboard/opportunity-panel'
 import ActivityFeedLive, { ActivityItem } from '@/components/dashboard/activity-feed-live'
 import IntelligenceFeed            from '@/components/intelligence/intelligence-feed'
+import WelcomeModal               from '@/components/dashboard/welcome-modal'
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -250,6 +251,11 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-6">
       <DashboardAutoRefresh />
+
+      {/* Welcome modal — shown once to new users with no clients and no invoices */}
+      {!hasClients && invoices.length === 0 && (
+        <WelcomeModal businessName={(profile as any)?.business_name || (profile as any)?.full_name || null} />
+      )}
 
       {/* Onboarding */}
       {hasActiveSubscription && (

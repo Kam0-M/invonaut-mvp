@@ -29,7 +29,7 @@ export default function PricingClientWrapper({
   starterAnnualPriceId,
   professionalAnnualPriceId,
   businessAnnualPriceId,
-  initialBilling = 'monthly',
+  initialBilling = 'annual',
 }: PricingClientWrapperProps) {
   const [billing, setBilling] = useState<'monthly' | 'annual'>(initialBilling)
 
