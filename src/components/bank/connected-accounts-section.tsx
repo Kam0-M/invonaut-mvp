@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -44,7 +46,8 @@ function timeAgo(iso: string | null) {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
-export default function ConnectedAccountsSection({ accounts: initialAccounts, subscriptionTier, transactionCount }: Props) {
+export default function ConnectedAccountsSection({
+  const { format: fmt } = useCurrency() accounts: initialAccounts, subscriptionTier, transactionCount }: Props) {
   const router = useRouter()
 
   // Local state mirrors the accounts list so sync/disconnect update instantly

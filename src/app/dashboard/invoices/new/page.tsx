@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { pushHrefThenRefreshServer } from '@/lib/router-refresh'
@@ -37,6 +39,7 @@ const ACCEPTED_ATTACHMENT_TYPES = [
 const ACCEPTED_ATTACHMENT_EXT = '.pdf,.docx,.xlsx,.png,.jpg,.jpeg'
 
 export default function NewInvoicePage() {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
   const searchParams = useSearchParams()
   const preSelectedClientId = searchParams.get('clientId')
@@ -85,13 +88,8 @@ export default function NewInvoicePage() {
   const selectedClient = clients.find(c => c.id === clientId)
   const shouldShowDropdown = clientSearchQuery.trim().length > 0 && filteredClients.length > 0
 
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount)
+  const fmt = (amount: number): string => {
+    return fmt(amount)
   }
 
   useEffect(() => {
@@ -611,7 +609,7 @@ export default function NewInvoicePage() {
                     </div>
                     <div className="col-span-3 md:col-span-2">
                       <label className="block text-xs font-bold uppercase tracking-wide text-gray-600 mb-2">Total</label>
-                      <Input type="text" value={formatCurrency(item.total)} readOnly className="h-10 text-sm bg-gray-100 font-bold border border-gray-200" />
+                      <Input type="text" value={fmt(item.total)} readOnly className="h-10 text-sm bg-gray-100 font-bold border border-gray-200" />
                     </div>
                     <div className="col-span-1">
                       {lineItems.length > 1 && (
@@ -745,15 +743,15 @@ export default function NewInvoicePage() {
             <div className="space-y-4">
               <div className="flex justify-between text-base">
                 <span className="font-bold text-gray-700">Subtotal:</span>
-                <span className="font-bold text-gray-900">{formatCurrency(subtotal)}</span>
+                <span className="font-bold text-gray-900">{fmt(subtotal)}</span>
               </div>
               <div className="flex justify-between text-base">
                 <span className="font-bold text-gray-700">Tax ({taxRate}%):</span>
-                <span className="font-bold text-gray-900">{formatCurrency(taxAmount)}</span>
+                <span className="font-bold text-gray-900">{fmt(taxAmount)}</span>
               </div>
               <div className="flex justify-between text-xl pt-4 border-t border-blue-200">
                 <span className="font-black text-gray-900 tracking-tight">Total:</span>
-                <span className="font-black text-blue-600 tracking-tight">{formatCurrency(totalAmount)}</span>
+                <span className="font-black text-blue-600 tracking-tight">{fmt(totalAmount)}</span>
               </div>
             </div>
           </div>

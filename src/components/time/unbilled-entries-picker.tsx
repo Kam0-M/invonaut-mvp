@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/time/unbilled-entries-picker.tsx
 //
 // WHAT IT DOES:
@@ -22,7 +24,7 @@ import {
   formatDuration,
   toDecimalHours,
   calcBillableAmount,
-  formatCurrency,
+  fmt,
 } from '@/lib/utils/time-formatting'
 
 type UnbilledEntry = {
@@ -50,6 +52,7 @@ interface UnbilledEntriesPickerProps {
 }
 
 export default function UnbilledEntriesPicker({
+  const { format: fmt } = useCurrency()
   clientId,
   onAdd,
   onClose,
@@ -236,7 +239,7 @@ export default function UnbilledEntriesPicker({
                     {/* Amount */}
                     {amount !== null && (
                       <span className="text-sm font-black text-gray-900 flex-shrink-0 ml-2">
-                        {formatCurrency(amount)}
+                        {fmt(amount)}
                       </span>
                     )}
                   </button>
@@ -254,7 +257,7 @@ export default function UnbilledEntriesPicker({
                 {selected.size} {selected.size === 1 ? 'entry' : 'entries'} selected
               </p>
               {selectedTotal > 0 && (
-                <p className="text-sm font-bold text-green-700">{formatCurrency(selectedTotal)} total</p>
+                <p className="text-sm font-bold text-green-700">{fmt(selectedTotal)} total</p>
               )}
             </div>
             <div className="flex gap-3">

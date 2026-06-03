@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/app/dashboard/affiliate/page.tsx
 // Design: matches the editorial quality of the landing page and /affiliate public page.
 // Fraunces headlines, blue gradient accents, clean layout — not the generic dashboard style.
@@ -127,7 +129,7 @@ const CSS = `
 `
 
 function fmt(n: number) {
-  return new Intl.NumberFormat('en-US', { style:'currency', currency:'USD', minimumFractionDigits:2 }).format(n)
+  return fmt(n)
 }
 function fmtDate(s: string | null) {
   if (!s) return '—'
@@ -540,6 +542,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function AffiliateDashboardPage() {
+  const { format: fmt } = useCurrency()
   const [data,    setData]    = useState<AffiliateStats | null>(null)
   const [loading, setLoading] = useState(true)
 

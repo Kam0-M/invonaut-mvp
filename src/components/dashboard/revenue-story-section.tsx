@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/dashboard/revenue-story-section.tsx
 //
 // FIX: twitching was caused by calling setAnimated() on every rAF tick,
@@ -24,7 +26,7 @@ interface Props {
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
+  return fmt(n)
 }
 
 function getSituationalTitle(
@@ -95,7 +97,8 @@ function getSituationalTitle(
   }
 }
 
-export default function RevenueStorySection({ data, currentMonth, previousMonth }: Props) {
+export default function RevenueStorySection({
+  const { format: fmt } = useCurrency() data, currentMonth, previousMonth }: Props) {
 
   const trendPct     = previousMonth > 0
     ? Math.round(((currentMonth - previousMonth) / previousMonth) * 100)

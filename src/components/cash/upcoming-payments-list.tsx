@@ -13,6 +13,7 @@
 
 import Link from 'next/link'
 import { AlertCircle, Clock, CheckCircle2 } from 'lucide-react'
+import { useCurrency } from '@/lib/context/currency-context'
 
 type Invoice = {
   id:             string
@@ -26,18 +27,17 @@ interface UpcomingPaymentsListProps {
   invoices: Invoice[]
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const formatCompact = (n: number): string => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-  }).format(n)
+  return fmt(n)
 }
 
-export default function UpcomingPaymentsList({ invoices }: UpcomingPaymentsListProps) {
+export default function UpcomingPaymentsList({
+  const { format: fmt } = useCurrency() invoices }: UpcomingPaymentsListProps) {
   const now = new Date()
   now.setHours(0, 0, 0, 0)
 
@@ -115,7 +115,7 @@ export default function UpcomingPaymentsList({ invoices }: UpcomingPaymentsListP
               className={`text-sm font-black flex-shrink-0 ml-2 group-hover:text-blue-600 transition-colors ${
                 isOverdue ? 'text-red-700' : 'text-gray-900'
               }`}
-              title={formatCurrency(inv.total_amount)}
+              title={fmt(inv.total_amount)}
             >
               {formatCompact(inv.total_amount)}
             </span>

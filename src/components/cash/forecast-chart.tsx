@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/components/cash/forecast-chart.tsx
 //
 // WHAT IT DOES:
@@ -27,11 +29,8 @@ export type ForecastPoint = {
   outflows:         number   // average weekly expenses
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD',
-    minimumFractionDigits: 0, maximumFractionDigits: 0,
-  }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const formatYAxis = (n: number) => {
   if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -50,16 +49,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     }}>
       <p style={{ fontWeight: 700, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 8px' }}>{label}</p>
       <p style={{ fontWeight: 900, fontSize: 18, margin: '0 0 6px', color: isNegative ? '#DC2626' : '#1D4ED8' }}>
-        {isNegative ? '−' : ''}{formatCurrency(Math.abs(d.projectedBalance))}
+        {isNegative ? '−' : ''}{fmt(Math.abs(d.projectedBalance))}
       </p>
       {d.inflows > 0 && (
         <p style={{ fontSize: 12, color: '#059669', margin: '2px 0', fontWeight: 600 }}>
-          + {formatCurrency(d.inflows)} expected in
+          + {fmt(d.inflows)} expected in
         </p>
       )}
       {d.outflows > 0 && (
         <p style={{ fontSize: 12, color: '#DC2626', margin: '2px 0', fontWeight: 600 }}>
-          − {formatCurrency(d.outflows)} expenses
+          − {fmt(d.outflows)} expenses
         </p>
       )}
       {isNegative && (
@@ -69,7 +68,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   )
 }
 
-export function ForecastChart({ data }: { data: ForecastPoint[] }) {
+export function ForecastChart({
+  const { format: fmt } = useCurrency() data }: { data: ForecastPoint[] }) {
   if (!data.length) return null
 
   const hasNegative = data.some(d => d.projectedBalance < 0)

@@ -1,4 +1,6 @@
 'use client'
+
+import { useCurrency } from '@/lib/context/currency-context'
 // src/app/dashboard/time/new/page.tsx
 //
 // WHAT THIS PAGE DOES:
@@ -28,7 +30,7 @@ import {
   calcDurationSeconds,
   formatDuration,
   calcBillableAmount,
-  formatCurrency,
+  fmt,
 } from '@/lib/utils/time-formatting'
 
 type Client = {
@@ -39,6 +41,7 @@ type Client = {
 }
 
 export default function NewTimePage() {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
 
   const [isLoading, setIsLoading]   = useState(true)
@@ -274,7 +277,7 @@ export default function NewTimePage() {
           <div className="flex items-center gap-2 px-4 py-3 bg-green-50 rounded-xl border border-green-200">
             <DollarSign className="w-4 h-4 text-green-600 flex-shrink-0" />
             <p className="text-sm font-bold text-green-800">
-              Billable amount: {formatCurrency(billableAmount)}
+              Billable amount: {fmt(billableAmount)}
             </p>
           </div>
         )}

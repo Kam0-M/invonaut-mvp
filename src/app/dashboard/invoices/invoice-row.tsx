@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import { useRouter } from 'next/navigation'
 
 type InvoiceRowProps = {
@@ -14,14 +16,12 @@ type InvoiceRowProps = {
   }
 }
 
-export function InvoiceRow({ invoice }: InvoiceRowProps) {
+export function InvoiceRow({
+  const { format: fmt } = useCurrency() invoice }: InvoiceRowProps) {
   const router = useRouter()
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(amount)
+  const fmt = (amount: number) => {
+    return fmt(amount)
   }
 
   const formatDate = (dateString: string) => {
@@ -65,7 +65,7 @@ export function InvoiceRow({ invoice }: InvoiceRowProps) {
         {formatDate(invoice.due_date)}
       </td>
       <td className="px-6 py-4 text-sm font-black text-gray-900">
-        {formatCurrency(invoice.total_amount)}
+        {fmt(invoice.total_amount)}
       </td>
       <td className="px-6 py-4">
         <span

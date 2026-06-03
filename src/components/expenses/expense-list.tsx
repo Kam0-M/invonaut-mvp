@@ -1,5 +1,7 @@
 'use client'
 
+import { useCurrency } from '@/lib/context/currency-context'
+
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FileImage, Trash2, Loader2, ExternalLink, Receipt, Tag } from 'lucide-react'
@@ -25,8 +27,8 @@ interface ExpenseListProps {
   totalAmount: number
 }
 
-const formatCurrency = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+const fmt = (n: number) =>
+  fmt(n)
 
 const categoryColors: Record<string, { pill: string; dot: string }> = {
   software:     { pill: 'bg-blue-50 text-blue-700 border-blue-200',      dot: 'bg-blue-500'    },
@@ -129,7 +131,8 @@ function DeleteButton({ expenseId }: { expenseId: string }) {
 }
 
 // ── Main list ─────────────────────────────────────────────────────────────────
-export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps) {
+export default function ExpenseList({
+  const { format: fmt } = useCurrency() expenses, totalAmount }: ExpenseListProps) {
   if (expenses.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -174,15 +177,15 @@ export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps)
                 >
                   <Tag size={8} /> COGS
                 </span>
-                <span className="text-sm font-black text-gray-900">{formatCurrency(cogsTotal)}</span>
+                <span className="text-sm font-black text-gray-900">{fmt(cogsTotal)}</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">OpEx</span>
-                <span className="text-sm font-black text-gray-900">{formatCurrency(opexTotal)}</span>
+                <span className="text-sm font-black text-gray-900">{fmt(opexTotal)}</span>
               </div>
             </>
           )}
-          <p className="text-sm font-black text-gray-900">{formatCurrency(totalAmount)}</p>
+          <p className="text-sm font-black text-gray-900">{fmt(totalAmount)}</p>
         </div>
       </div>
 
@@ -281,7 +284,7 @@ export default function ExpenseList({ expenses, totalAmount }: ExpenseListProps)
 
               {/* Amount */}
               <span className="text-base font-black text-gray-900 group-hover:text-orange-600 transition-colors flex-shrink-0">
-                {formatCurrency(Number(expense.amount))}
+                {fmt(Number(expense.amount))}
               </span>
 
               {/* Delete */}

@@ -8,16 +8,15 @@
 //   - Pure display — no client-side state needed
 
 import { Clock, DollarSign, TrendingUp, Users } from 'lucide-react'
-import { formatDuration, toDecimalHours, calcBillableAmount, formatCurrency } from '@/lib/utils/time-formatting'
+import { formatDuration, toDecimalHours, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
+import { useCurrency } from '@/lib/context/currency-context'
 
 // Compact formatter — abbreviates large values so they never overflow their card.
 // Mirrors formatCurrencyCompact in dashboard/page.tsx.
 function formatCompact(amount: number): string {
   if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
   if (amount >= 10_000)    return `$${(amount / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency', currency: 'USD', maximumFractionDigits: 0,
-  }).format(amount)
+  return fmt(amount)
 }
 
 type Client = { id: string; name: string; company: string | null }
@@ -49,7 +48,8 @@ function getWeekBounds(): { start: Date; end: Date } {
   return { start, end }
 }
 
-export default function WeeklySummary({ entries }: WeeklySummaryProps) {
+export default function WeeklySummary({
+  const { format: fmt } = useCurrency() entries }: WeeklySummaryProps) {
   const { start: weekStart, end: weekEnd } = getWeekBounds()
 
   const weekEntries = entries.filter(e => {
@@ -103,7 +103,7 @@ export default function WeeklySummary({ entries }: WeeklySummaryProps) {
     {
       label: 'Unbilled Value',
       value: formatCompact(unbilledValue),
-      full:  formatCurrency(unbilledValue),
+      full:  fmt(unbilledValue),
       sub:   'Ready to invoice',
       icon:  DollarSign,
       color: 'bg-green-50 text-green-600',
@@ -155,7 +155,7 @@ export default function WeeklySummary({ entries }: WeeklySummaryProps) {
                   {c.unbilledValue > 0 && (
                     <span
                       className="text-xs font-bold text-green-700 bg-green-100 px-2 py-0.5 rounded-full"
-                      title={formatCurrency(c.unbilledValue)}
+                      title={fmt(c.unbilledValue)}
                     >
                       {formatCompact(c.unbilledValue)}
                     </span>
