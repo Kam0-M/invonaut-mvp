@@ -19,7 +19,7 @@ export default async function SettingsPage() {
 
   const { data: profile, error: profileError } = await supabase
     .from('user_profiles')
-    .select('logo_url, brand_color, secondary_brand_color, subscription_tier, full_name, email, business_name, address, stripe_subscription_id, stripe_customer_id, subscription_status')
+    .select('logo_url, brand_color, secondary_brand_color, subscription_tier, full_name, email, business_name, address, stripe_subscription_id, stripe_customer_id, subscription_status, currency, currency_symbol, tax_label, tax_number, country')
     .eq('id', user.id)
     .single()
 
@@ -71,6 +71,11 @@ export default async function SettingsPage() {
           business_name: profile?.business_name || null,
           address: profile?.address || null
         }}
+        currency={profile?.currency || 'USD'}
+        currencySymbol={profile?.currency_symbol || '$'}
+        taxLabel={profile?.tax_label || 'Tax'}
+        taxNumber={profile?.tax_number || null}
+        country={profile?.country || 'US'}
       />
 
       {/* Revenue Categories */}
