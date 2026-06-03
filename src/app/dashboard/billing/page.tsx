@@ -58,7 +58,7 @@ export default async function BillingPage({
   const plans = [
     {
       id: 'starter', name: 'Starter',
-      monthlyPrice: 19, annualMonthlyPrice: 16, annualTotalPrice: 190,
+      monthlyPrice: 29, annualMonthlyPrice: 24, annualTotalPrice: 290,
       color: 'orange',
       tagline: 'Everything you need to get started',
       features: [
@@ -79,7 +79,7 @@ export default async function BillingPage({
     },
     {
       id: 'professional', name: 'Professional',
-      monthlyPrice: 49, annualMonthlyPrice: 41, annualTotalPrice: 490,
+      monthlyPrice: 59, annualMonthlyPrice: 49, annualTotalPrice: 590,
       color: 'blue',
       tagline: 'For growing businesses that need more',
       features: [
@@ -99,7 +99,7 @@ export default async function BillingPage({
     },
     {
       id: 'business', name: 'Business',
-      monthlyPrice: 99, annualMonthlyPrice: 83, annualTotalPrice: 990,
+      monthlyPrice: 109, annualMonthlyPrice: 91, annualTotalPrice: 1090,
       color: 'teal',
       tagline: 'Full autonomy for serious operations',
       features: [
