@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/cash/tax-reserve-estimate.tsx
 // Pure server component — receives pre-computed numbers as props.
 //

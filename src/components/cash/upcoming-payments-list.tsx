@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/cash/upcoming-payments-list.tsx
 // Pure server component — receives data as props from the cash page.
 //

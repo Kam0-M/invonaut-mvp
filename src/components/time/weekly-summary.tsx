@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/time/weekly-summary.tsx
 // Server component — receives entries as a prop from the page.
 //
