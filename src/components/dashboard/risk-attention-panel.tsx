@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/dashboard/risk-attention-panel.tsx
 // Risk & Attention — groups urgent items by severity
 

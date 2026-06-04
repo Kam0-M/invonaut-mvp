@@ -1,3 +1,5 @@
+'use client'
+
 // src/components/dashboard/opportunity-panel.tsx
 // Growth Opportunities — unbilled time + active contract value
 
