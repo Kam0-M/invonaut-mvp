@@ -128,9 +128,6 @@ const CSS = `
   .payout-select:focus { border-color:#0055FF; }
 `
 
-function fmt(n: number) {
-  return fmt(n)
-}
 function fmtDate(s: string | null) {
   if (!s) return '—'
   return new Date(s).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })

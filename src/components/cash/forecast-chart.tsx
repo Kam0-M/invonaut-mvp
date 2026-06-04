@@ -69,7 +69,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function ForecastChart({
-  const { format: fmt } = useCurrency() data }: { data: ForecastPoint[] }) {
+  data }: { data: ForecastPoint[] }) {
+  const { format: fmt } = useCurrency()
   if (!data.length) return null
 
   const hasNegative = data.some(d => d.projectedBalance < 0)

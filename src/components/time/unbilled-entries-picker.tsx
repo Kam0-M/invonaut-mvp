@@ -52,11 +52,11 @@ interface UnbilledEntriesPickerProps {
 }
 
 export default function UnbilledEntriesPicker({
-  const { format: fmt } = useCurrency()
   clientId,
   onAdd,
   onClose,
 }: UnbilledEntriesPickerProps) {
+  const { format: fmt } = useCurrency()
   const [entries, setEntries] = useState<UnbilledEntry[]>([])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [loading, setLoading]   = useState(true)

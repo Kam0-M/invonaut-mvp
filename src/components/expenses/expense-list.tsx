@@ -132,7 +132,8 @@ function DeleteButton({ expenseId }: { expenseId: string }) {
 
 // ── Main list ─────────────────────────────────────────────────────────────────
 export default function ExpenseList({
-  const { format: fmt } = useCurrency() expenses, totalAmount }: ExpenseListProps) {
+  expenses, totalAmount }: ExpenseListProps) {
+  const { format: fmt } = useCurrency()
   if (expenses.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

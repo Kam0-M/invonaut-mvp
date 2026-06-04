@@ -44,13 +44,11 @@ function avatarColor(name: string) {
   return palette[Math.abs(hash) % palette.length]
 }
 
-function fmt(n: number) {
-  return fmt(n)
-}
-function formatCompact(n: number) {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+function makeCompact(fmt: (n: number) => string) {
+  return M`)
+    if (n >= 10_000)  return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000).toFixed(0)}K`)
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+  }
 }
 function formatDate(s: string) {
   return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -103,7 +101,9 @@ function RiskPill({ score, status }: { score?: number | null; status: string }) 
 }
 
 export function InvoiceList({
-  const { format: fmt } = useCurrency() invoices, hasActiveSubscription }: InvoiceListProps) {
+  invoices, hasActiveSubscription }: InvoiceListProps) {
+  const { format: fmt } = useCurrency()
+  const formatCompact = makeCompact(fmt)
   const [filters, setFilters] = useState({ status: 'all', search: '' })
 
   const filteredInvoices = useMemo(() => {

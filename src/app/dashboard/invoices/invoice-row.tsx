@@ -17,13 +17,11 @@ type InvoiceRowProps = {
 }
 
 export function InvoiceRow({
-  const { format: fmt } = useCurrency() invoice }: InvoiceRowProps) {
+  invoice }: InvoiceRowProps) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
 
-  const fmt = (amount: number) => {
-    return fmt(amount)
-  }
-
+  
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',

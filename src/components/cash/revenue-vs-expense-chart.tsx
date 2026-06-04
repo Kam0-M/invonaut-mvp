@@ -70,7 +70,8 @@ const CustomLegend = () => (
 )
 
 export function RevenueVsExpenseChart({
-  const { format: fmt } = useCurrency() data }: { data: RevExpPoint[] }) {
+  data }: { data: RevExpPoint[] }) {
+  const { format: fmt } = useCurrency()
   const hasData = data.some(d => d.revenue > 0 || d.expenses > 0)
 
   return (

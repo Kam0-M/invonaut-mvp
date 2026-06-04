@@ -91,7 +91,8 @@ const CustomLegend = () => (
 )
 
 export function StackedRevenueChart({
-  const { format: fmt } = useCurrency() data }: { data: StackedRevPoint[] }) {
+  data }: { data: StackedRevPoint[] }) {
+  const { format: fmt } = useCurrency()
   const hasData = data.some(d => d.invoiceRev > 0 || d.directRev > 0 || d.expenses > 0)
 
   return (

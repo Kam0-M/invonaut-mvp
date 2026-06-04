@@ -39,7 +39,8 @@ interface TimeEntryListProps {
 type FilterTab = 'all' | 'unbilled' | 'billed'
 
 export default function TimeEntryList({
-  const { format: fmt } = useCurrency() entries }: TimeEntryListProps) {
+  entries }: TimeEntryListProps) {
+  const { format: fmt } = useCurrency()
   const router            = useRouter()
   const [filter, setFilter] = useState<FilterTab>('all')
   const [deleting, setDeleting] = useState<string | null>(null)

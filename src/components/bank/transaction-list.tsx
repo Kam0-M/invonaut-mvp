@@ -207,7 +207,8 @@ function ReconcilePanel({
 }
 
 export default function TransactionList({
-  const { format: fmt } = useCurrency() transactions, unmatchedInvoices, isPro }: Props) {
+  transactions, unmatchedInvoices, isPro }: Props) {
+  const { format: fmt } = useCurrency()
   const [filter, setFilter] = useState<'all' | 'inflow' | 'outflow' | 'unmatched'>('all')
 
   const filtered = transactions.filter(tx => {

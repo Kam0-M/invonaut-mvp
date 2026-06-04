@@ -47,7 +47,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 export function RevenueChart({
-  const { format: fmt } = useCurrency() data }: RevenueChartProps) {
+  data }: RevenueChartProps) {
+  const { format: fmt } = useCurrency()
   const hasAnyRevenue = data.some(d => d.revenue > 0)
 
   return (

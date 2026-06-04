@@ -15,7 +15,6 @@ type InvoiceRowDashboardProps = {
 }
 
 export function InvoiceRowDashboard({
-  const { format: fmt } = useCurrency() 
   id, 
   invoiceNumber, 
   clientName, 
@@ -23,6 +22,7 @@ export function InvoiceRowDashboard({
   totalAmount, 
   status 
 }: InvoiceRowDashboardProps) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
 
   const fmt = (amount: number) =>

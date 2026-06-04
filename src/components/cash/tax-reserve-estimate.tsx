@@ -23,19 +23,16 @@ interface TaxReserveEstimateProps {
   totalRevenue: number   // for context display
 }
 
-const fmt = (n: number) =>
-  fmt(n)
-
-const formatCompact = (n: number): string => {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+M`
   if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 const TAX_RATE = 0.28
 
 export default function TaxReserveEstimate({
-  const { format: fmt } = useCurrency() netProfit, totalRevenue }: TaxReserveEstimateProps) {
+  netProfit, totalRevenue }: TaxReserveEstimateProps) {
+  const { format: fmt } = useCurrency()
   const taxableProfit = Math.max(0, netProfit)
   const reserveAmount = Math.round(taxableProfit * TAX_RATE)
   const hasData       = totalRevenue > 0

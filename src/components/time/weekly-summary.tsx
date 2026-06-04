@@ -49,7 +49,8 @@ function getWeekBounds(): { start: Date; end: Date } {
 }
 
 export default function WeeklySummary({
-  const { format: fmt } = useCurrency() entries }: WeeklySummaryProps) {
+  entries }: WeeklySummaryProps) {
+  const { format: fmt } = useCurrency()
   const { start: weekStart, end: weekEnd } = getWeekBounds()
 
   const weekEntries = entries.filter(e => {

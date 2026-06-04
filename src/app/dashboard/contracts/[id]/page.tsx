@@ -7,7 +7,7 @@ import ContractActions        from '@/components/contracts/contract-actions'
 import ContractInvoiceLinker  from '@/components/contracts/contract-invoice-linker'
 import DismissRemindersButton from '@/components/contracts/dismiss-reminders-button'
 import ContractReview         from '@/components/contracts/contract-review'
-import { useCurrency } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 type LinkedInvoice = {
   invoice_id: string; link_type: string
@@ -15,8 +15,7 @@ type LinkedInvoice = {
 }
 type ClauseBlock = { title: string; content: string; category: string }
 
-const fmtFull = (n: number) =>
-  fmt(n)
+const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 const fmtShort = (s: string) =>

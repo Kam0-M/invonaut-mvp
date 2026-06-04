@@ -19,17 +19,16 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
 import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
 import BackToTop from '@/components/ui/back-to-top'
-import { useCurrency } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
-const fmtFull = (n: number) =>
-  fmt(n)
+const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 
 const fmt = (n: number): string => {
   if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
   if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)        return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 const yFmt = (v: number) => {
@@ -127,6 +126,7 @@ export default async function AnalyticsPage({
     .select('stripe_subscription_id, subscription_status, subscription_tier')
     .eq('id', user.id).single()
 
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 

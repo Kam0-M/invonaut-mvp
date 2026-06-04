@@ -38,11 +38,11 @@ const linkTypeLabels: Record<string, string> = {
 }
 
 export default function ContractInvoiceLinker({
-  const { format: fmt } = useCurrency()
   contractId,
   linkedInvoices,
   availableInvoices,
 }: ContractInvoiceLinkerProps) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
   const [showPicker, setShowPicker] = useState(false)
   const [selectedInvoiceId, setSelectedInvoiceId] = useState('')

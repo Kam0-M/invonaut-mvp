@@ -27,17 +27,14 @@ interface UpcomingPaymentsListProps {
   invoices: Invoice[]
 }
 
-const fmt = (n: number) =>
-  fmt(n)
-
-const formatCompact = (n: number): string => {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
+M`
   if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 export default function UpcomingPaymentsList({
-  const { format: fmt } = useCurrency() invoices }: UpcomingPaymentsListProps) {
+  invoices }: UpcomingPaymentsListProps) {
+  const { format: fmt } = useCurrency()
   const now = new Date()
   now.setHours(0, 0, 0, 0)
 

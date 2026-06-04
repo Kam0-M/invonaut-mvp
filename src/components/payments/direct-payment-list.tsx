@@ -43,14 +43,11 @@ function formatDate(iso: string) {
   })
 }
 
-function fmt(n: number) {
-  return fmt(n)
-}
-
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function DirectPaymentList({
-  const { format: fmt } = useCurrency() payments }: Props) {
+  payments }: Props) {
+  const { format: fmt } = useCurrency()
   const [filterType,   setFilterType]   = useState<string>('all')
   const [filterMethod, setFilterMethod] = useState<string>('all')
   const [filterCat,    setFilterCat]    = useState<string>('all')

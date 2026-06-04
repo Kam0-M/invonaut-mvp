@@ -25,17 +25,14 @@ interface Props {
   groups: UnbilledGroup[]
 }
 
-function fmt(n: number) {
-  return fmt(n)
-}
-
 function fmtHours(secs: number) {
   const h = secs / 3600
   return h < 1 ? `${Math.round(h * 60)}m` : `${h.toFixed(1)}h`
 }
 
 export default function SmartInvoiceDrafts({
-  const { format: fmt } = useCurrency() groups }: Props) {
+  groups }: Props) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [creating, setCreating] = useState<string | null>(null)
