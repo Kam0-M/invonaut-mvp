@@ -26,7 +26,7 @@ interface Props {
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 function getSituationalTitle(
@@ -98,7 +98,8 @@ function getSituationalTitle(
 }
 
 export default function RevenueStorySection({
-  const { format: fmt } = useCurrency() data, currentMonth, previousMonth }: Props) {
+  data, currentMonth, previousMonth }: Props) {
+  const { format: fmt } = useCurrency()
 
   const trendPct     = previousMonth > 0
     ? Math.round(((currentMonth - previousMonth) / previousMonth) * 100)

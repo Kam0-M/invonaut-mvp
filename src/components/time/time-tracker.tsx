@@ -32,7 +32,8 @@ interface TimeTrackerProps {
 }
 
 export default function TimeTracker({
-  const { format: fmt } = useCurrency() clients }: TimeTrackerProps) {
+  clients }: TimeTrackerProps) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
   const timer  = useTimer()
 

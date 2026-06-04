@@ -6,7 +6,6 @@ import CoreTabBar from '@/components/layout/core-tab-bar'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractList from '@/components/contracts/contract-list'
 import BackToTop from '@/components/ui/back-to-top'
-import { useCurrency } from '@/lib/context/currency-context'
 
 const fmt = (n: number) =>
   fmt(n)
@@ -14,7 +13,7 @@ const fmt = (n: number) =>
 function formatCompact(n: number): string {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 const formatDate = (dateStr: string) =>

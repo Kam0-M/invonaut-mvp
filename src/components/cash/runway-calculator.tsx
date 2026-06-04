@@ -35,10 +35,11 @@ interface RunwayCalculatorProps {
   initialBalance:     number | null
 }
 
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+function makeCompact(fmt: (n: number) => string) {
+  return M`)
+    if (n >= 10_000)    return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000).toFixed(0)}K`)
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+  }
 }
 
 function formatRunway(months: number): string {
@@ -62,11 +63,12 @@ function runwayBg(months: number): string {
 }
 
 export default function RunwayCalculator({
-  const { format: fmt } = useCurrency()
   avgMonthlyExpenses,
   overdueTotal,
   initialBalance,
 }: RunwayCalculatorProps) {
+  const { format: fmt } = useCurrency()
+  const formatCompact = makeCompact(fmt)
   const [balance,   setBalance]   = useState(initialBalance !== null ? String(initialBalance) : '')
   const [isSaving,  setIsSaving]  = useState(false)
   const [saved,     setSaved]     = useState(initialBalance !== null)

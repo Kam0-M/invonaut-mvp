@@ -7,15 +7,14 @@ import {
 } from 'lucide-react'
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import { useCurrency } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n/1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n/1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
-const fmtFull = (n: number) =>
-  fmt(n)
+const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 const fmtDate = (s: string) =>
   new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
 
@@ -51,6 +50,7 @@ export default async function ClientDetailPage({
 
   const {data:client,error} = await supabase.from('clients')
     .select('*').eq('id',id).eq('user_id',user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')
   if (error||!client) redirect('/dashboard/clients')
 
   const {data:invoicesRaw} = await supabase.from('invoices')

@@ -78,7 +78,7 @@ export function useCurrency() {
 }
 
 // ─── Standalone factory (for server components + email templates) ─────────────
-export function makeCurrencyFormatter(currency = 'USD', symbol = '$') {
+export function makeCurrencyFormatter(currency = 'USD', _symbol = '$') {
   const locale = CURRENCY_LOCALE[currency] ?? 'en-US'
   return (n: number) => new Intl.NumberFormat(locale, {
     style: 'currency', currency,

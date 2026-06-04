@@ -40,14 +40,14 @@ type Insight = {
 const fmt = (n: number) => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 export default function AICommandCenter({
-  const { format: fmt } = useCurrency()
   totalRevenue, pendingPayments, paidThisMonth, overdueCount,
   profitMargin, expiringSoon, unbilledValue, hasActiveSubscription,
 }: Props) {
+  const { format: fmt } = useCurrency()
   const [active,     setActive]     = useState(0)
   const [key,        setKey]        = useState(0)
   const [paused,     setPaused]     = useState(false)

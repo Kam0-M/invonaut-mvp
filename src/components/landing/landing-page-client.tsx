@@ -357,9 +357,6 @@ function ProductDemo() {
   )
 }
 
-
-
-
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PAINS = [
   { n:'01', head:'Your invoices are being paid whenever your clients feel like it.',

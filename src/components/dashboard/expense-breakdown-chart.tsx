@@ -36,7 +36,8 @@ const CustomTooltip = ({ active, payload }: any) => {
 }
 
 export function ExpenseBreakdownChart({
-  const { format: fmt } = useCurrency() data }: { data: ChartEntry[] }) {
+  data }: { data: ChartEntry[] }) {
+  const { format: fmt } = useCurrency()
   return (
     <div style={{ width: '100%', height: '280px' }}>
       <ResponsiveContainer width="100%" height="100%">

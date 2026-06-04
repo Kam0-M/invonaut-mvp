@@ -24,7 +24,8 @@ const fmt = (n: number) =>
   fmt(n)
 
 export default function BudgetSettings({
-  const { format: fmt } = useCurrency() budgets: initialBudgets, isBusiness }: BudgetSettingsProps) {
+  budgets: initialBudgets, isBusiness }: BudgetSettingsProps) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
   const [budgets, setBudgets] = useState<Budget[]>(initialBudgets)
   const [showForm, setShowForm] = useState(false)

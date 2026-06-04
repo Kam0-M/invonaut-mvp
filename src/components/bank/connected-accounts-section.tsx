@@ -47,7 +47,8 @@ function timeAgo(iso: string | null) {
 }
 
 export default function ConnectedAccountsSection({
-  const { format: fmt } = useCurrency() accounts: initialAccounts, subscriptionTier, transactionCount }: Props) {
+  accounts: initialAccounts, subscriptionTier, transactionCount }: Props) {
+  const { format: fmt } = useCurrency()
   const router = useRouter()
 
   // Local state mirrors the accounts list so sync/disconnect update instantly

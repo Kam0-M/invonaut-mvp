@@ -85,7 +85,7 @@ const fmt = (n: number) =>
 const fmtCompact = (n: number): string => {
   if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
   if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return fmt(n)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
@@ -115,9 +115,9 @@ const RateTooltip = ({ active, payload, label }: any) => {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ClientIntelligencePanel({
-  const { format: fmt } = useCurrency()
   allClientStats, sortedClients, sortBy, limit, viewMode, orientation,
 }: Props) {
+  const { format: fmt } = useCurrency()
   const router       = useRouter()
   const pathname     = usePathname()
   const searchParams = useSearchParams()
