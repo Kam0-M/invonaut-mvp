@@ -22,13 +22,8 @@ import BackToTop from '@/components/ui/back-to-top'
 import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 
 const fmt = (n: number): string => {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
-  if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)        return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 const yFmt = (v: number) => {
@@ -428,7 +423,7 @@ export default async function AnalyticsPage({
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-400 transition-colors" />
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(totalRevenue)}>{fmt(totalRevenue)}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(totalRevenue)}>{fmt(totalRevenue)}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
               {revenueGrowth !== null && (
                 <p className={`text-xs font-bold mt-1 ${revenueGrowth >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
@@ -446,7 +441,7 @@ export default async function AnalyticsPage({
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors" />
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(totalExpenses)}>{fmt(totalExpenses)}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(totalExpenses)}>{fmt(totalExpenses)}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</p>
               {totalRevenue > 0 && (
                 <p className="text-xs font-bold mt-1 text-orange-500">
@@ -465,7 +460,7 @@ export default async function AnalyticsPage({
                   {isProfitable ? 'Profit' : 'Loss'}
                 </span>
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net {isProfitable ? 'Profit' : 'Loss'}</p>
               {profitMargin !== null && (
                 <p className={`text-xs font-bold mt-1 ${isProfitable ? 'text-teal-600' : 'text-red-500'}`}>
@@ -541,7 +536,7 @@ export default async function AnalyticsPage({
                     </div>
                     <p className={`text-xl font-black ${item.color}`}>{item.count}</p>
                     {item.value !== null && item.value > 0 && (
-                      <p className="text-xs text-gray-400 font-medium mt-0.5" title={fmtFull(item.value)}>{fmt(item.value)}</p>
+                      <p className="text-xs text-gray-400 font-medium mt-0.5" title={fmt(item.value)}>{fmt(item.value)}</p>
                     )}
                   </Link>
                 ))}
@@ -582,7 +577,7 @@ export default async function AnalyticsPage({
                   ].map(s => (
                     <div key={s.label} className={`rounded-xl p-4 border ${s.cls}`}>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{s.label}</p>
-                      <p className="text-xl font-black text-gray-900" title={fmtFull(s.value)}>{fmt(s.value)}</p>
+                      <p className="text-xl font-black text-gray-900" title={fmt(s.value)}>{fmt(s.value)}</p>
                       <p className="text-xs font-bold mt-1" style={{ color: s.color }}>{s.pct}% of total</p>
                     </div>
                   ))}
@@ -627,7 +622,7 @@ export default async function AnalyticsPage({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
-                              <span className="text-sm font-black text-gray-900 flex-shrink-0" title={fmtFull(cat.total)}>{fmt(cat.total)}</span>
+                              <span className="text-sm font-black text-gray-900 flex-shrink-0" title={fmt(cat.total)}>{fmt(cat.total)}</span>
                             </div>
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                               <div className="h-full rounded-full" style={{ width: `${totalRevenue > 0 ? (cat.total/totalRevenue)*100 : 0}%`, backgroundColor: cat.color }} />
@@ -665,7 +660,7 @@ export default async function AnalyticsPage({
                               style={{ width: `${totalRevenue > 0 ? (m.total/totalRevenue)*100 : 0}%` }} />
                           </div>
                         </div>
-                        <span className="text-sm font-black text-gray-900 flex-shrink-0 w-16 text-right" title={fmtFull(m.total)}>{fmt(m.total)}</span>
+                        <span className="text-sm font-black text-gray-900 flex-shrink-0 w-16 text-right" title={fmt(m.total)}>{fmt(m.total)}</span>
                         <span className="text-xs font-bold text-gray-400 flex-shrink-0 w-9 text-right">
                           {totalRevenue > 0 ? Math.round((m.total/totalRevenue)*100) : 0}%
                         </span>
@@ -717,7 +712,7 @@ export default async function AnalyticsPage({
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
-                            <span className="text-sm font-black text-gray-900 flex-shrink-0" title={fmtFull(cat.value)}>{fmt(cat.value)}</span>
+                            <span className="text-sm font-black text-gray-900 flex-shrink-0" title={fmt(cat.value)}>{fmt(cat.value)}</span>
                           </div>
                           <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${totalExpenses > 0 ? (cat.value/totalExpenses)*100 : 0}%`, backgroundColor: cat.color }} />

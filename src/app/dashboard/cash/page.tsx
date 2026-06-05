@@ -22,13 +22,7 @@ import CoreTabBar                  from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import MarkCashFlowVisited from '@/components/cash/mark-cash-flow-visited'
 
-const fmt = (n: number): string => {
-  if (n >= 1_000_000_000) return `$${(n / 1_000_000_000).toFixed(1)}B`
-  if (n >= 999_500)       return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)        return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
-}
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 export default async function CashPage() {
   const supabase = await createClient()
@@ -37,7 +31,7 @@ export default async function CashPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
@@ -46,6 +40,8 @@ export default async function CashPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier    = profile?.subscription_tier ?? 'starter'
+  const fmt     = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const fmtFull = fmt
   const isPro   = tier === 'professional' || tier === 'business'
 
   // ── Bank connections (all paid tiers) ────────────────────────────────────

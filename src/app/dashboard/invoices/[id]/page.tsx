@@ -13,10 +13,9 @@ import { PaymentPrediction }    from '@/components/invoices/payment-prediction'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { NotFound }             from '@/components/ui/not-found'
 import InvoiceContractLinker    from '@/components/contracts/invoice-contract-linker'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 type PageProps = { params: Promise<{ id: string }> }
-
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -44,6 +43,7 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       clients!inner(name, email, company, address)
     `)
     .eq('id', id).eq('user_id', user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
 
   if (error || !raw) {
     return (
@@ -237,8 +237,8 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
                   <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="py-3 font-medium text-gray-900">{item.description}</td>
                     <td className="py-3 text-right font-bold text-gray-600">{item.quantity}</td>
-                    <td className="py-3 text-right font-bold text-gray-600">{fmtFull(item.unit_price)}</td>
-                    <td className="py-3 text-right font-black text-gray-900">{fmtFull(item.total)}</td>
+                    <td className="py-3 text-right font-bold text-gray-600">{fmt(item.unit_price)}</td>
+                    <td className="py-3 text-right font-black text-gray-900">{fmt(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -251,18 +251,18 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           <div className="w-full max-w-xs space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-500 font-medium">Subtotal</span>
-              <span className="font-bold text-gray-900">{fmtFull(invoice.subtotal)}</span>
+              <span className="font-bold text-gray-900">{fmt(invoice.subtotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500 font-medium">Tax</span>
-              <span className="font-bold text-gray-900">{fmtFull(invoice.tax_amount)}</span>
+              <span className="font-bold text-gray-900">{fmt(invoice.tax_amount)}</span>
             </div>
             <div className="flex justify-between pt-3 border-t border-gray-100 mt-2">
               <span className="font-black text-gray-900 flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4" />Total
               </span>
               <span className={`text-xl font-black ${isPaid ? 'text-teal-600' : 'text-blue-600'}`}>
-                {fmtFull(invoice.total_amount)}
+                {fmt(invoice.total_amount)}
               </span>
             </div>
           </div>

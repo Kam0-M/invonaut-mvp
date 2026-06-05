@@ -8,6 +8,7 @@ import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 import BackToTop from '@/components/ui/back-to-top'
 import SubscriptionTracker from '@/components/intelligence/subscription-tracker'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -18,8 +19,6 @@ const fmt = (n: number) =>
 
 // Compact formatter for summary cards — prevents overflow on large values
 M`
-  if (n >= 10_000)    return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 export default async function ExpensesPage({ searchParams }: PageProps) {
@@ -37,6 +36,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier       = profile?.subscription_tier ?? 'starter'
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
   const isBusiness = tier === 'business'
   const isPro      = tier === 'professional' || tier === 'business'
 

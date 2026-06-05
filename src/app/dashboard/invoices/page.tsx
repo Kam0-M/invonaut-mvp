@@ -8,12 +8,9 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import SmartInvoiceDrafts from '@/components/intelligence/smart-invoice-drafts'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
-function formatCompact(n: number): string {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
-}
+// fmt injected per-request below
 
 export default async function InvoicesPage() {
   const supabase = await createClient()
@@ -22,7 +19,7 @@ export default async function InvoicesPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
@@ -30,6 +27,14 @@ export default async function InvoicesPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier  = profile?.subscription_tier ?? 'starter'
+  const _fmtBase    = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const formatCompact = (n: number): string => {
+    const abs = Math.abs(n), sign = n < 0 ? '-' : ''
+    if (abs >= 999_500) return sign + _fmtBase(abs).replace(/[\d,]+(\.\d+)?/, `${(abs / 1_000_000).toFixed(1)}M`)
+    if (abs >= 9_950)   return sign + _fmtBase(abs).replace(/[\d,]+(\.\d+)?/, `${(abs / 1_000).toFixed(0)}K`)
+    return _fmtBase(n)
+  }
+  const fmt = _fmtBase
   const isPro = tier === 'professional' || tier === 'business'
 
   // Fetch unbilled time entries for Smart Drafts (Pro+)

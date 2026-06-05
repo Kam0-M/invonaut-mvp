@@ -7,12 +7,6 @@ import { TrendingUp, Clock, FileSignature } from 'lucide-react'
 import Link from 'next/link'
 import { useCurrency } from '@/lib/context/currency-context'
 
-const fmt = (n: number) => {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
-}
-
 interface Props {
   unbilledHours:     number
   unbilledValue:     number
