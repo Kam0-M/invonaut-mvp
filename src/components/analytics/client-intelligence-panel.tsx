@@ -82,10 +82,7 @@ const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
 const fmt = (n: number) =>
   fmt(n)
 
-const fmtCompact = (n: number): string => {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+M`
 }
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
@@ -320,7 +317,7 @@ export default function ClientIntelligencePanel({
                 case 'rate':     return rate !== null ? `${rate}% paid` : '—'
                 case 'invoices': return `${client.totalInvoices} invoice${client.totalInvoices !== 1 ? 's' : ''}`
                 case 'overdue':  return client.overdueCount > 0 ? `${client.overdueCount} overdue` : 'None overdue'
-                default:         return client.totalRevenue > 0 ? fmtCompact(client.totalRevenue) : 'No revenue'
+                default:         return client.totalRevenue > 0 ? fmt(client.totalRevenue) : 'No revenue'
               }
             })()
 
@@ -349,7 +346,7 @@ export default function ClientIntelligencePanel({
                     )}
                     {sortBy !== 'revenue' && client.totalRevenue > 0 && (
                       <span className="text-xs text-gray-400 font-bold" title={fmt(client.totalRevenue)}>
-                        {fmtCompact(client.totalRevenue)}
+                        {fmt(client.totalRevenue)}
                       </span>
                     )}
                     <span
@@ -401,7 +398,7 @@ export default function ClientIntelligencePanel({
                     {c.company && <p className="text-xs text-gray-400 truncate max-w-[140px]">{c.company}</p>}
                   </td>
                   <td className="px-3 py-3.5 text-right font-black text-gray-900 tabular-nums" title={fmt(c.totalRevenue)}>
-                    {fmtCompact(c.totalRevenue)}
+                    {fmt(c.totalRevenue)}
                   </td>
                   <td className="px-3 py-3.5 text-center font-bold text-gray-600 tabular-nums">{c.totalInvoices}</td>
                   <td className="px-3 py-3.5 text-center font-bold text-green-700 tabular-nums">{c.paidCount}</td>

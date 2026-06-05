@@ -7,6 +7,7 @@ type EmailTemplateData = {
   logo_url: string | null
   brand_color: string | null
   secondary_brand_color: string | null
+  currency?: string
 }
 
 // ⬅️ CONTRAST HELPER: Determine if we should use light or dark text on a given background color
@@ -44,7 +45,7 @@ export function generateInvoiceEmailHTML(data: EmailTemplateData): string {
   
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: data.currency || 'USD'
   }).format(data.total_amount)
 
   return `
@@ -169,7 +170,7 @@ export function generateInvoiceEmailText(data: EmailTemplateData): string {
   
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: data.currency || 'USD'
   }).format(data.total_amount)
 
   return `

@@ -10,11 +10,7 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 const fmt = (n: number) => {
-  if (n >= 999_500) return `$${(n/1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n/1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 const fmtDate = (s: string) =>
   new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
 
@@ -369,7 +365,7 @@ export default async function ClientDetailPage({
               <div className="flex justify-end pt-2">
                 <div className="text-right">
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Total</p>
-                  <p className="text-lg font-black text-gray-900">{fmtFull(directTotal)}</p>
+                  <p className="text-lg font-black text-gray-900">{fmt(directTotal)}</p>
                 </div>
               </div>
             </div>

@@ -10,7 +10,6 @@ import DeletePaymentButton  from '@/components/payments/delete-payment-button'
 import EditPaymentForm      from '@/components/payments/edit-payment-form'
 import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 
@@ -38,6 +37,7 @@ export default async function PaymentDetailPage({
   const { data: profile } = await supabase
     .from('user_profiles').select('stripe_subscription_id, subscription_status')
     .eq('id', user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
@@ -113,7 +113,7 @@ export default async function PaymentDetailPage({
               <Banknote className={`w-7 h-7 ${payment.payment_type==='prepay' ? 'text-blue-600' : 'text-teal-600'}`} />
             </div>
             <div>
-              <p className="text-3xl font-black text-gray-900">{fmtFull(Number(payment.amount))}</p>
+              <p className="text-3xl font-black text-gray-900">{fmt(Number(payment.amount))}</p>
               <div className="flex items-center gap-2 mt-1">
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
                   payment.payment_type === 'prepay' ? 'bg-blue-100 text-blue-700' : 'bg-teal-100 text-teal-700'

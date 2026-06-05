@@ -15,7 +15,6 @@ type LinkedInvoice = {
 }
 type ClauseBlock = { title: string; content: string; category: string }
 
-const fmtFull = (n: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
 const fmtShort = (s: string) =>
@@ -35,6 +34,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
   const { data: profile } = await supabase
     .from('user_profiles').select('subscription_tier').eq('id', user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
   const subscriptionTier = profile?.subscription_tier ?? 'starter'
   const isPro = subscriptionTier === 'professional' || subscriptionTier === 'business'
 
@@ -174,7 +174,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
                 </div>
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Value</p>
-                  <p className="text-sm font-black text-gray-900">{fmtFull(Number(contract.total_value))}</p>
+                  <p className="text-sm font-black text-gray-900">{fmt(Number(contract.total_value))}</p>
                 </div>
               </div>
             )}

@@ -36,9 +36,10 @@ interface RunwayCalculatorProps {
 }
 
 function makeCompact(fmt: (n: number) => string) {
-  return M`)
-    if (n >= 10_000)    return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000).toFixed(0)}K`)
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
+  return function formatCompact(n: number): string {
+    if (n >= 999_500) return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000_000).toFixed(1)}M`)
+    if (n >= 9_950)   return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000).toFixed(0)}K`)
+    return fmt(n)
   }
 }
 

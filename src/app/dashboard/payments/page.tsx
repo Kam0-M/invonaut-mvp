@@ -6,11 +6,9 @@ import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
+import { makeCurrencyFormatter } from '@/lib/context/currency-context'
 
 function formatCompact(n: number): string {
-  if (n >= 999_500) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 export default async function PaymentsPage() {
@@ -20,7 +18,7 @@ export default async function PaymentsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
@@ -30,6 +28,7 @@ export default async function PaymentsPage() {
   if (!hasActiveSubscription) return <SubscriptionRequired />
 
   const tier = profile?.subscription_tier ?? 'starter'
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
 
   // Check monthly direct payment count for Starter (25/month limit)
   let monthlyPaymentCount = 0

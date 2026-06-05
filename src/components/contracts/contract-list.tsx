@@ -43,8 +43,6 @@ const statusCfg: Record<string, { pill: string; dot: string; label: string }> = 
 }
 
 M`
-  if (n >= 10_000)  return `$${(n / 1_000).toFixed(0)}K`
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(n)
 }
 
 function avatarColor(name: string) {
