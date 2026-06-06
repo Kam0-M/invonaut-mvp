@@ -8,10 +8,18 @@ export const metadata: Metadata = {
   description: 'From contract to cash, automated. Contracts, invoices, time tracking, expenses, and cash flow — all in one platform.',
   keywords: 'invoicing, freelance, AI, payment tracking, invoice management',
   authors: [{ name: 'Invonaut' }],
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/naut-icon.svg',
+    shortcut: '/favicon.svg',
+  },
   openGraph: {
     title: 'Invonaut - From Contract to Cash',
     description: 'From contract to cash. Automated.',
     type: 'website',
+    images: [{ url: '/naut-icon.svg', width: 1024, height: 1024, alt: 'Invonaut' }],
   },
 }
 
@@ -22,7 +30,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-
       <body className="font-sans antialiased">
         <ClarityProvider />
         {children}

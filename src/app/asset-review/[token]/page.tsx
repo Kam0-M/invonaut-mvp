@@ -159,8 +159,8 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg,#0044EE,#0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Building2 size={17} color="#fff" />
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg,#0044EE,#0066FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6, overflow: 'hidden' }}>
+            <img src="/naut-white.svg" alt="Invonaut" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
             <p style={{ fontSize: '.65rem', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#94A3B8' }}>Invonaut · Asset Review</p>
