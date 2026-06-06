@@ -22,7 +22,7 @@ import CoreTabBar                  from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import MarkCashFlowVisited from '@/components/cash/mark-cash-flow-visited'
 
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 export default async function CashPage() {
   const supabase = await createClient()

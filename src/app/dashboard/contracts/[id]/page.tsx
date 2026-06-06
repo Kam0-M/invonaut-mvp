@@ -7,7 +7,7 @@ import ContractActions        from '@/components/contracts/contract-actions'
 import ContractInvoiceLinker  from '@/components/contracts/contract-invoice-linker'
 import DismissRemindersButton from '@/components/contracts/dismiss-reminders-button'
 import ContractReview         from '@/components/contracts/contract-review'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 type LinkedInvoice = {
   invoice_id: string; link_type: string
@@ -33,8 +33,8 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('user_profiles').select('subscription_tier').eq('id', user.id).single()
-  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
+    .from('user_profiles').select('subscription_tier, currency, currency_symbol').eq('id', user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
   const subscriptionTier = profile?.subscription_tier ?? 'starter'
   const isPro = subscriptionTier === 'professional' || subscriptionTier === 'business'
 

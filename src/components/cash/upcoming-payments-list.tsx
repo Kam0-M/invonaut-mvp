@@ -29,8 +29,6 @@ interface UpcomingPaymentsListProps {
   invoices: Invoice[]
 }
 
-M`
-}
 
 export default function UpcomingPaymentsList({
   invoices }: UpcomingPaymentsListProps) {

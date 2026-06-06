@@ -29,8 +29,7 @@ import {
   toLocalDateTimeInput,
   calcDurationSeconds,
   formatDuration,
-  calcBillableAmount,
-  fmt,
+  calcBillableAmount
 } from '@/lib/utils/time-formatting'
 
 type Client = {

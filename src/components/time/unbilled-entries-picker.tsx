@@ -23,8 +23,7 @@ import { Clock, Check, X, Loader2, AlertCircle } from 'lucide-react'
 import {
   formatDuration,
   toDecimalHours,
-  calcBillableAmount,
-  fmt,
+  calcBillableAmount
 } from '@/lib/utils/time-formatting'
 
 type UnbilledEntry = {

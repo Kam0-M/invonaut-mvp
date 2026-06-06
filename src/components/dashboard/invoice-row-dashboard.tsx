@@ -25,9 +25,6 @@ export function InvoiceRowDashboard({
   const { format: fmt } = useCurrency()
   const router = useRouter()
 
-  const fmt = (amount: number) =>
-    fmt(amount)
-
   const formatDate = (dateString: string) =>
     new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',

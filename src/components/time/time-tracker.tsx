@@ -18,7 +18,7 @@ import { useRouter } from 'next/navigation'
 import { Play, Square, Clock } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTimer } from '@/hooks/use-timer'
-import { formatDurationClock, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
+import { formatDurationClock, calcBillableAmount } from '@/lib/utils/time-formatting'
 
 type Client = {
   id: string

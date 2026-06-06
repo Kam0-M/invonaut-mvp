@@ -15,7 +15,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, Clock, DollarSign, CheckCircle2, CircleDashed } from 'lucide-react'
 import { toast } from 'sonner'
-import { formatDuration, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
+import { formatDuration, calcBillableAmount } from '@/lib/utils/time-formatting'
 
 type Client = { id: string; name: string; company: string | null }
 

@@ -10,16 +10,8 @@
 //   - Pure display — no client-side state needed
 
 import { Clock, DollarSign, TrendingUp, Users } from 'lucide-react'
-import { formatDuration, toDecimalHours, calcBillableAmount, fmt } from '@/lib/utils/time-formatting'
+import { formatDuration, toDecimalHours, calcBillableAmount } from '@/lib/utils/time-formatting'
 import { useCurrency } from '@/lib/context/currency-context'
-
-// Compact formatter — abbreviates large values so they never overflow their card.
-// Mirrors formatCurrencyCompact in dashboard/page.tsx.
-function formatCompact(amount: number): string {
-  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
-  if (amount >= 10_000)    return `$${(amount / 1_000).toFixed(0)}K`
-  return fmt(amount)
-}
 
 type Client = { id: string; name: string; company: string | null }
 
@@ -53,6 +45,15 @@ function getWeekBounds(): { start: Date; end: Date } {
 export default function WeeklySummary({
   entries }: WeeklySummaryProps) {
   const { format: fmt } = useCurrency()
+
+  // Compact formatter — abbreviates large values. Defined inside component so it uses
+  // the currency-aware fmt from useCurrency().
+  function formatCompact(amount: number): string {
+    if (amount >= 1_000_000) return fmt(amount, { compact: true })
+    if (amount >= 10_000)    return fmt(amount, { compact: true })
+    return fmt(amount)
+  }
+
   const { start: weekStart, end: weekEnd } = getWeekBounds()
 
   const weekEntries = entries.filter(e => {

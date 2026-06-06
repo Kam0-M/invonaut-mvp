@@ -6,13 +6,9 @@ import CoreTabBar from '@/components/layout/core-tab-bar'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import ContractList from '@/components/contracts/contract-list'
 import BackToTop from '@/components/ui/back-to-top'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 
-const fmt = (n: number) =>
-  fmt(n)
 
-function formatCompact(n: number): string {
-}
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
@@ -38,6 +34,7 @@ export default async function ContractsPage() {
 
   const tier = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const formatCompact = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
 
   // Check active contract count for Starter
   let activeContractCount = 0

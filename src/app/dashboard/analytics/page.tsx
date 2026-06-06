@@ -19,19 +19,11 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import ClientIntelligencePanel     from '@/components/analytics/client-intelligence-panel'
 import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
 import BackToTop from '@/components/ui/back-to-top'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
-const fmt = (n: number): string => {
-}
 
-const yFmt = (v: number) => {
-  if (v === 0)        return '$0'
-  if (v >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`
-  if (v >= 1_000)     return `$${Math.round(v / 1_000)}K`
-  return `$${v}`
-}
 
 const categoryChartColors: Record<string, string> = {
   software: '#0066FF', hardware: '#6B7280', travel: '#F59E0B',
@@ -118,7 +110,7 @@ export default async function AnalyticsPage({
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
     .eq('id', user.id).single()
 
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')

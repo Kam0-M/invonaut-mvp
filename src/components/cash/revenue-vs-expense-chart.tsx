@@ -23,8 +23,6 @@ export type RevExpPoint = {
   profit:   number   // revenue - expenses (for tooltip)
 }
 
-const fmt = (n: number) =>
-  fmt(n)
 
 const formatYAxis = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -33,6 +31,7 @@ const formatYAxis = (n: number) => {
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
+  const { format: fmt } = useCurrency()
   if (!active || !payload?.length) return null
   const rev  = payload.find((p: any) => p.dataKey === 'revenue')?.value  ?? 0
   const exp  = payload.find((p: any) => p.dataKey === 'expenses')?.value ?? 0

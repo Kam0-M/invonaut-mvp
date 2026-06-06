@@ -8,7 +8,7 @@ import {
 import SubscriptionRequired from '@/components/subscription-required'
 import DeletePaymentButton  from '@/components/payments/delete-payment-button'
 import EditPaymentForm      from '@/components/payments/edit-payment-form'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -35,9 +35,9 @@ export default async function PaymentDetailPage({
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('user_profiles').select('stripe_subscription_id, subscription_status')
+    .from('user_profiles').select('stripe_subscription_id, subscription_status, currency, currency_symbol')
     .eq('id', user.id).single()
-  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
 
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')

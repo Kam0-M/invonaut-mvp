@@ -8,18 +8,12 @@ import BudgetSettings from '@/components/expenses/budget-settings'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 import BackToTop from '@/components/ui/back-to-top'
 import SubscriptionTracker from '@/components/intelligence/subscription-tracker'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
 }
 
-const fmt = (n: number) =>
-  fmt(n)
-
-// Compact formatter for summary cards — prevents overflow on large values
-M`
-}
 
 export default async function ExpensesPage({ searchParams }: PageProps) {
   const supabase = await createClient()
@@ -28,7 +22,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('subscription_tier, stripe_subscription_id, subscription_status')
+    .select('subscription_tier, stripe_subscription_id, subscription_status, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
@@ -37,6 +31,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   const tier       = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const formatCompact = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
   const isBusiness = tier === 'business'
   const isPro      = tier === 'professional' || tier === 'business'
 
