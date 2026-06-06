@@ -69,8 +69,9 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
         isExpanded ? 'px-4 gap-3' : 'justify-center'
       )}>
         <Link href="/dashboard" title="Dashboard"
-          className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors flex-shrink-0">
-          <span className="text-white font-black text-xs">IN</span>
+          className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors flex-shrink-0 overflow-hidden p-1">
+          {/* The Naut — white mark on brand blue */}
+          <img src="/naut-white.svg" alt="Invonaut" className="w-full h-full object-contain" draggable={false} />
         </Link>
         {isExpanded && (
           <span className="f-display text-white font-black text-sm tracking-tight truncate">Invonaut</span>

@@ -68,9 +68,15 @@ function PortalHeader({
             className="w-8 h-8 rounded object-contain bg-white/10"
           />
         ) : (
-          <span className="text-white font-black text-sm truncate max-w-[200px]">
-            {businessName}
-          </span>
+          <div className="flex items-center gap-2.5">
+            {/* The Naut — default logo when client hasn't set up white-label */}
+            <div className="w-7 h-7 rounded-lg bg-white/15 flex items-center justify-center p-1 flex-shrink-0">
+              <img src="/naut-white.svg" alt="Invonaut" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <span className="text-white font-black text-sm truncate max-w-[160px]">
+              {businessName}
+            </span>
+          </div>
         )}
       </div>
       <span className="text-white/60 text-xs">Powered by Invonaut</span>

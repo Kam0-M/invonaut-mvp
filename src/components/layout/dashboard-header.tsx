@@ -92,8 +92,9 @@ export default function DashboardHeader({
               <Image src={logoUrl} alt="Logo" width={28} height={28} className="w-full h-full object-contain" />
             </div>
           ) : (
-            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-xs font-bold">{initials}</span>
+            <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0 overflow-hidden p-1">
+              {/* The Naut — shown when user hasn't uploaded a custom logo */}
+              <img src="/naut-white.svg" alt="Invonaut" className="w-full h-full object-contain" draggable={false} />
             </div>
           )}
           <span className="text-sm font-medium text-gray-700 max-w-[160px] truncate">{displayName}</span>
