@@ -427,8 +427,8 @@ export default function LandingPageClient() {
         backdropFilter:'blur(16px)',transition:'all .25s',
         display:'flex',alignItems:'center'}}>
         <div style={{maxWidth:1160,margin:'0 auto',width:'100%',padding:'0 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <Link href="/" style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:9}}>
-            <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:'contain',flexShrink:0}} />
+          <Link href="/" style={{textDecoration:'none',display:'inline-flex',alignItems:'center',gap:10}}>
+            <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{width:38,height:38,objectFit:'contain',flexShrink:0}} />
             <span className="f-display" style={{fontSize:'1.25rem',fontWeight:700,color:'var(--ink)',letterSpacing:'-.02em'}}>Invonaut</span>
           </Link>
           <div style={{display:'flex',gap:2,alignItems:'center'}} className="hidden md:flex">

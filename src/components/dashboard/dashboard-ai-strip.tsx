@@ -28,8 +28,6 @@ type Insight = {
   urgent: boolean
 }
 
-function fmt(n: number) {
-}
 
 export default function DashboardAiStrip({
   overdueCount,
