@@ -22,8 +22,6 @@ export type StackedRevPoint = {
   profit:     number
 }
 
-const fmt = (n: number) =>
-  fmt(n)
 
 const formatYAxis = (n: number) => {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
@@ -32,6 +30,7 @@ const formatYAxis = (n: number) => {
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
+  const { format: fmt } = useCurrency()
   if (!active || !payload?.length) return null
   const invRev = payload.find((p: any) => p.dataKey === 'invoiceRev')?.value ?? 0
   const dirRev = payload.find((p: any) => p.dataKey === 'directRev')?.value  ?? 0

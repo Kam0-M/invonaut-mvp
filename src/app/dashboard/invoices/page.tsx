@@ -8,7 +8,7 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import SmartInvoiceDrafts from '@/components/intelligence/smart-invoice-drafts'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 // fmt injected per-request below
 

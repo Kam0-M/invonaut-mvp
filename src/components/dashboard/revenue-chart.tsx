@@ -15,8 +15,6 @@ type RevenueChartProps = {
   }>
 }
 
-const fmt = (value: number) =>
-  fmt(value)
 
 const formatYAxis = (value: number) => {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`
@@ -25,6 +23,7 @@ const formatYAxis = (value: number) => {
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
+  const { format: fmt } = useCurrency()
   if (active && payload && payload.length) {
     return (
       <div style={{

@@ -13,7 +13,7 @@ import { PaymentPrediction }    from '@/components/invoices/payment-prediction'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { NotFound }             from '@/components/ui/not-found'
 import InvoiceContractLinker    from '@/components/contracts/invoice-contract-linker'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 type PageProps = { params: Promise<{ id: string }> }
 
@@ -43,7 +43,6 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
       clients!inner(name, email, company, address)
     `)
     .eq('id', id).eq('user_id', user.id).single()
-  const fmt = makeCurrencyFormatter((profile as any)?.currency || \'USD\')
 
   if (error || !raw) {
     return (
@@ -52,6 +51,10 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
         backLink="/dashboard/invoices" backText="Back to Invoices" />
     )
   }
+
+  const { data: profile } = await supabase.from('user_profiles')
+    .select('currency, currency_symbol').eq('id', user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
 
   const inv = raw as any
   const invoice = {

@@ -27,8 +27,6 @@ interface ContractInvoiceLinkerProps {
   availableInvoices: Invoice[]
 }
 
-const fmt = (amount: number) =>
-  fmt(amount)
 
 const linkTypeLabels: Record<string, string> = {
   initial_payment: 'Initial payment',

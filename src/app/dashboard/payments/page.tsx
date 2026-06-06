@@ -6,10 +6,8 @@ import SubscriptionRequired from '@/components/subscription-required'
 import DirectPaymentList    from '@/components/payments/direct-payment-list'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 
-function formatCompact(n: number): string {
-}
 
 export default async function PaymentsPage() {
   const supabase = await createClient()
@@ -29,6 +27,7 @@ export default async function PaymentsPage() {
 
   const tier = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const formatCompact = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
 
   // Check monthly direct payment count for Starter (25/month limit)
   let monthlyPaymentCount = 0

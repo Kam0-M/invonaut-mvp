@@ -79,20 +79,17 @@ const LIMIT_OPTIONS: LimitVal[] = [5, 10, 20]
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
-const fmt = (n: number) =>
-  fmt(n)
 
-M`
-}
 
 // ─── Tooltips ─────────────────────────────────────────────────────────────────
 
 const RevenueTooltip = ({ active, payload, label }: any) => {
+  const { format: fmtT } = useCurrency()
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: '#fff', border: '2px solid #E5E7EB', borderRadius: 12, padding: '10px 14px', boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}>
       <p style={{ fontWeight: 700, color: '#6B7280', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px' }}>{label}</p>
-      <p style={{ fontWeight: 900, color: '#1D4ED8', fontSize: 16, margin: 0 }}>{fmt(payload[0].value)}</p>
+      <p style={{ fontWeight: 900, color: '#1D4ED8', fontSize: 16, margin: 0 }}>{fmtT(payload[0].value)}</p>
     </div>
   )
 }

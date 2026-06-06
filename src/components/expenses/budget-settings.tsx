@@ -20,8 +20,6 @@ interface BudgetSettingsProps {
   isBusiness: boolean
 }
 
-const fmt = (n: number) =>
-  fmt(n)
 
 export default function BudgetSettings({
   budgets: initialBudgets, isBusiness }: BudgetSettingsProps) {

@@ -7,10 +7,8 @@ import {
 } from 'lucide-react'
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
-const fmt = (n: number) => {
-}
 const fmtDate = (s: string) =>
   new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
 
@@ -46,8 +44,11 @@ export default async function ClientDetailPage({
 
   const {data:client,error} = await supabase.from('clients')
     .select('*').eq('id',id).eq('user_id',user.id).single()
-  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')
   if (error||!client) redirect('/dashboard/clients')
+
+  const {data:profile} = await supabase.from('user_profiles')
+    .select('currency, currency_symbol').eq('id',user.id).single()
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
 
   const {data:invoicesRaw} = await supabase.from('invoices')
     .select('id,invoice_number,total_amount,status,due_date,created_at')

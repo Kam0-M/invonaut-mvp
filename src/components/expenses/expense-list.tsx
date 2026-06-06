@@ -27,8 +27,6 @@ interface ExpenseListProps {
   totalAmount: number
 }
 
-const fmt = (n: number) =>
-  fmt(n)
 
 const categoryColors: Record<string, { pill: string; dot: string }> = {
   software:     { pill: 'bg-blue-50 text-blue-700 border-blue-200',      dot: 'bg-blue-500'    },

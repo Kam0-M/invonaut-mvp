@@ -25,8 +25,6 @@ interface TaxReserveEstimateProps {
   totalRevenue: number   // for context display
 }
 
-M`
-}
 
 const TAX_RATE = 0.28
 

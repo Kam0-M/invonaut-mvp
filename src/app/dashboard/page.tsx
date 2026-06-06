@@ -18,10 +18,8 @@ import OpportunityPanel            from '@/components/dashboard/opportunity-pane
 import ActivityFeedLive, { ActivityItem } from '@/components/dashboard/activity-feed-live'
 import IntelligenceFeed            from '@/components/intelligence/intelligence-feed'
 import WelcomeModal               from '@/components/dashboard/welcome-modal'
-import { makeCurrencyFormatter } from '@/lib/context/currency-context'
+import { makeCurrencyFormatter }  from '@/lib/utils/currency'
 
-const fmt = (n: number) => {
-}
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -30,7 +28,7 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name, logo_url')
+    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name, logo_url, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
@@ -38,6 +36,7 @@ export default async function DashboardPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier = profile?.subscription_tier ?? 'starter'
+  const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
   const isPro = tier === 'professional' || tier === 'business'
 
   // Intelligence insights (Pro+)

@@ -10,10 +10,9 @@ type ChartEntry = {
   color: string
 }
 
-const fmt = (n: number) =>
-  fmt(n)
 
 const CustomTooltip = ({ active, payload }: any) => {
+  const { format: fmt } = useCurrency()
   if (active && payload && payload.length) {
     return (
       <div style={{

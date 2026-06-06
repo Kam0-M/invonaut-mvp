@@ -42,8 +42,6 @@ const statusCfg: Record<string, { pill: string; dot: string; label: string }> = 
   completed: { pill: 'bg-teal-50 text-teal-700 border border-teal-200',          dot: 'bg-teal-500',    label: 'Completed' },
 }
 
-M`
-}
 
 function avatarColor(name: string) {
   const palette = [

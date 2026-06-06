@@ -2,17 +2,16 @@
 // src/lib/context/currency-context.tsx
 // Provides currency formatting to all dashboard client components.
 // Wrap the dashboard layout with <CurrencyProvider>; consume with useCurrency().
+//
+// Server components should import makeCurrencyFormatter from @/lib/utils/currency
+// directly — they cannot use this 'use client' file.
 
 import { createContext, useContext, useMemo } from 'react'
+import { CURRENCY_LOCALE, makeCurrencyFormatter as _makeFmt } from '@/lib/utils/currency'
 
-// ─── Currency locale map ──────────────────────────────────────────────────────
-// Maps ISO currency code → best-fit locale for Intl.NumberFormat
-const CURRENCY_LOCALE: Record<string, string> = {
-  USD: 'en-US', GBP: 'en-GB', EUR: 'de-DE', CAD: 'en-CA',
-  AUD: 'en-AU', NZD: 'en-NZ', SGD: 'en-SG', CHF: 'de-CH',
-  ZAR: 'en-ZA', NGN: 'en-NG', KES: 'sw-KE', INR: 'en-IN',
-  JPY: 'ja-JP', BRL: 'pt-BR', MXN: 'es-MX',
-}
+// Re-export so any file that already imports makeCurrencyFormatter from here
+// still compiles without changes — but server pages must switch to @/lib/utils/currency.
+export { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 export interface CurrencyCtx {
   currency:    string          // ISO code e.g. 'ZAR'
@@ -77,11 +76,4 @@ export function useCurrency() {
   return useContext(CurrencyContext)
 }
 
-// ─── Standalone factory (for server components + email templates) ─────────────
-export function makeCurrencyFormatter(currency = 'USD', _symbol = '$') {
-  const locale = CURRENCY_LOCALE[currency] ?? 'en-US'
-  return (n: number) => new Intl.NumberFormat(locale, {
-    style: 'currency', currency,
-    minimumFractionDigits: 2, maximumFractionDigits: 2,
-  }).format(n)
-}
+
