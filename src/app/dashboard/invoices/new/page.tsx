@@ -88,9 +88,6 @@ export default function NewInvoicePage() {
   const selectedClient = clients.find(c => c.id === clientId)
   const shouldShowDropdown = clientSearchQuery.trim().length > 0 && filteredClients.length > 0
 
-  const fmt = (amount: number): string => {
-    return fmt(amount)
-  }
 
   useEffect(() => {
     const checkSubscriptionAndFetchData = async () => {
