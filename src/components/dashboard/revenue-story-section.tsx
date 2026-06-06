@@ -28,6 +28,7 @@ function getSituationalTitle(
   previousMonth: number,
   trendPct: number,
   hasAnyRevenue: boolean,
+  fmt: (n: number) => string,
 ): { headline: string; sub: string; icon: 'up' | 'down' | 'flat' | 'none' } {
   // No revenue at all
   if (!hasAnyRevenue) {
@@ -104,7 +105,7 @@ export default function RevenueStorySection({
     : 0
 
   const { headline, sub, icon } = getSituationalTitle(
-    currentMonth, previousMonth, trendPct, hasAnyRevenue,
+    currentMonth, previousMonth, trendPct, hasAnyRevenue, fmt,
   )
 
   return (

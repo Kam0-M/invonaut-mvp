@@ -66,7 +66,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
       {/* Logo row */}
       <div className={cn(
         'h-14 flex items-center flex-shrink-0 border-b border-white/[0.06]',
-        isExpanded ? 'px-4 gap-3' : 'justify-center'
+        isExpanded ? 'px-4 gap-2' : 'justify-center'
       )}>
         <Link href="/dashboard" title="Dashboard"
           className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center hover:bg-blue-500 transition-colors flex-shrink-0 overflow-hidden p-1">
