@@ -111,7 +111,7 @@ const RateTooltip = ({ active, payload, label }: any) => {
 export default function ClientIntelligencePanel({
   allClientStats, sortedClients, sortBy, limit, viewMode, orientation,
 }: Props) {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
   const router       = useRouter()
   const pathname     = usePathname()
   const searchParams = useSearchParams()
@@ -162,9 +162,9 @@ export default function ClientIntelligencePanel({
 
   // Revenue Y-axis / X-axis tick formatter (same logic, reused)
   const revTickFmt = (v: number) => {
-    if (v >= 999_500) return `$${(v/1_000_000).toFixed(1)}M`
-    if (v >= 10_000)  return `$${(v/1_000).toFixed(0)}K`
-    return `$${v}`
+    if (v >= 999_500) return `${symbol}${(v/1_000_000).toFixed(1)}M`
+    if (v >= 10_000)  return `${symbol}${(v/1_000).toFixed(0)}K`
+    return `${symbol}${Math.round(v)}`
   }
 
   // ── Shared chart height ────────────────────────────────────────────────────

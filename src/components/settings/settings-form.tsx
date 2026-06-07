@@ -337,79 +337,25 @@ export default function SettingsForm({
         )}
       </div>
 
-      {/* ── Regional settings (currency + VAT) ────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
-            <Globe className="w-5 h-5 text-teal-600" />
+      {/* ── Regional settings — coming soon ────────────────────────────────── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 opacity-60 pointer-events-none select-none">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
+              <Globe className="w-5 h-5 text-teal-600" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black text-gray-900">Regional &amp; Tax Settings</h2>
+              <p className="text-sm text-gray-500">Multi-currency, VAT/GST labels, and regional tax numbers</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-black text-gray-900">Regional &amp; Tax Settings</h2>
-            <p className="text-sm text-gray-500">Currency, VAT/GST label, and tax number on invoices</p>
-          </div>
+          <span className="text-xs font-bold px-3 py-1 bg-teal-50 text-teal-700 rounded-full border border-teal-200">
+            Coming soon
+          </span>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-5">
-          {/* Currency */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Currency</label>
-            <select
-              value={currency}
-              onChange={e => setCurrency(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white focus:outline-none focus:border-blue-500 transition-colors"
-            >
-              {CURRENCIES.map(c => (
-                <option key={c.code} value={c.code}>{c.symbol} — {c.code} · {c.label}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1.5">Used on all invoices, reports, and the dashboard</p>
-          </div>
-
-          {/* Tax label */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Tax label on invoices</label>
-            <select
-              value={taxLabel}
-              onChange={e => setTaxLabel(e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 bg-white focus:outline-none focus:border-blue-500 transition-colors"
-            >
-              {TAX_LABEL_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-400 mt-1.5">VAT for UK/EU · GST for AU/NZ · Sales Tax for US</p>
-          </div>
-
-          {/* Tax / VAT number */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              {taxLabel === 'VAT' ? 'VAT number' : taxLabel === 'GST' ? 'GST number' : 'Tax / registration number'}
-              <span className="font-normal text-gray-400 ml-1">(optional)</span>
-            </label>
-            <input
-              type="text"
-              value={taxNumber}
-              onChange={e => setTaxNumber(e.target.value)}
-              placeholder={taxLabel === 'VAT' ? 'e.g. GB123456789' : taxLabel === 'GST' ? 'e.g. 12 345 678 912' : 'e.g. EIN 12-3456789'}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-blue-500 transition-colors font-mono"
-            />
-            <p className="text-xs text-gray-400 mt-1.5">Printed at the bottom of every invoice</p>
-          </div>
-
-          {/* Country */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Country</label>
-            <input
-              type="text"
-              value={country}
-              onChange={e => setCountry(e.target.value)}
-              placeholder="e.g. US, GB, AU, ZA"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:border-blue-500 transition-colors uppercase"
-              maxLength={2}
-            />
-            <p className="text-xs text-gray-400 mt-1.5">2-letter country code</p>
-          </div>
-        </div>
+        <p className="text-sm text-gray-400 mt-4 ml-13">
+          Full multi-currency support, VAT/GST configuration, and regional tax numbers are coming in a future update. Invoices currently display in USD.
+        </p>
       </div>
 
       {/* ── White label branding ──────────────────────────────────────────── */}

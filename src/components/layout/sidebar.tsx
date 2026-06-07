@@ -74,7 +74,7 @@ export function Sidebar({ subscriptionTier = 'starter' }: SidebarProps) {
           <img src="/naut-white.svg" alt="Invonaut" className="w-full h-full object-contain" draggable={false} />
         </Link>
         {isExpanded && (
-          <span className="f-display text-white font-black text-sm tracking-tight truncate">Invonaut</span>
+          <span className="text-white font-black text-[11px] tracking-[0.12em] uppercase truncate" style={{letterSpacing:'0.12em'}}>INVONAUT</span>
         )}
       </div>
 

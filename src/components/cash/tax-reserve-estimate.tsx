@@ -31,6 +31,7 @@ const TAX_RATE = 0.28
 export default function TaxReserveEstimate({
   netProfit, totalRevenue }: TaxReserveEstimateProps) {
   const { format: fmt } = useCurrency()
+  const formatCompact = (n: number) => fmt(n, { compact: true })
   const taxableProfit = Math.max(0, netProfit)
   const reserveAmount = Math.round(taxableProfit * TAX_RATE)
   const hasData       = totalRevenue > 0

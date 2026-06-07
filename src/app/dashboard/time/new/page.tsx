@@ -40,7 +40,7 @@ type Client = {
 }
 
 export default function NewTimePage() {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
   const router = useRouter()
 
   const [isLoading, setIsLoading]   = useState(true)
@@ -174,7 +174,7 @@ export default function NewTimePage() {
             <option value="">No client</option>
             {clients.map(c => (
               <option key={c.id} value={c.id}>
-                {c.name}{c.company ? ` — ${c.company}` : ''}{c.hourly_rate ? ` ($${c.hourly_rate}/hr)` : ''}
+                {c.name}{c.company ? ` — ${c.company}` : ''}{c.hourly_rate ? ` (${symbol}${c.hourly_rate}/hr)` : ''}
               </option>
             ))}
           </select>

@@ -33,7 +33,7 @@ interface TimeTrackerProps {
 
 export default function TimeTracker({
   clients }: TimeTrackerProps) {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
   const router = useRouter()
   const timer  = useTimer()
 
@@ -130,7 +130,7 @@ export default function TimeTracker({
             </div>
             {liveAmount !== null && (
               <div className="text-sm font-bold text-blue-500 mt-0.5">
-                {fmt(liveAmount)} @ ${hourlyRate}/hr
+                {fmt(liveAmount)} @ {symbol}{hourlyRate}/hr
               </div>
             )}
           </div>
@@ -154,7 +154,7 @@ export default function TimeTracker({
             <option value="">No client</option>
             {clients.map(c => (
               <option key={c.id} value={c.id}>
-                {c.name}{c.company ? ` — ${c.company}` : ''}{c.hourly_rate ? ` ($${c.hourly_rate}/hr)` : ''}
+                {c.name}{c.company ? ` — ${c.company}` : ''}{c.hourly_rate ? ` (${symbol}${c.hourly_rate}/hr)` : ''}
               </option>
             ))}
           </select>
