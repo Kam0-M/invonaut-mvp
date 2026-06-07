@@ -35,11 +35,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
         {/* Logo — The Naut mark + wordmark */}
         <div style={{ position: 'relative', zIndex: 10 }}>
-          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '12px' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
             <img
               src="/naut-white.svg"
               alt="Invonaut"
-              style={{ width: '36px', height: '36px', objectFit: 'contain' }}
+              style={{ width: '32px', height: '32px', objectFit: 'contain' }}
               draggable={false}
             />
             <span style={{ fontFamily: "'Fraunces', serif", fontSize: '1.4rem', fontWeight: 700, color: '#fff', letterSpacing: '-.02em' }}>

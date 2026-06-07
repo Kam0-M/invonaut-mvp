@@ -481,7 +481,7 @@ export default async function CashPage() {
             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Bank Position</p>
             {(connectedAccounts ?? []).length > 0 && liveBankBalance > 0 && (
               <p className="text-sm font-black text-gray-900 mt-0.5">
-                {`$${liveBankBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} available across ${(connectedAccounts ?? []).length} account${(connectedAccounts ?? []).length !== 1 ? 's' : ''}`}
+                {`${fmt(liveBankBalance)} available across ${(connectedAccounts ?? []).length} account${(connectedAccounts ?? []).length !== 1 ? 's' : ''}`}
               </p>
             )}
           </div>

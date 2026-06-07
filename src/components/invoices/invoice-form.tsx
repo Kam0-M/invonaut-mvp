@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
 import { Plus, Trash2 } from 'lucide-react'
+import { useCurrency } from '@/lib/context/currency-context'
 
 interface InvoiceItem {
   id: string
@@ -24,6 +25,7 @@ export function InvoiceForm() {
     notes: ''
   })
 
+  const { symbol } = useCurrency()
   const [items, setItems] = useState<InvoiceItem[]>([
     { id: '1', description: '', quantity: 1, rate: 0, amount: 0 }
   ])
@@ -180,7 +182,7 @@ export function InvoiceForm() {
                   Amount
                 </label>
                 <Input
-                  value={`$${item.amount.toFixed(2)}`}
+                  value={`${symbol}${item.amount.toFixed(2)}`}
                   disabled
                   className="bg-gray-50"
                 />

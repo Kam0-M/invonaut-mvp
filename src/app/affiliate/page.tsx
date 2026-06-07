@@ -57,7 +57,8 @@ export default function AffiliatePage() {
 
       {/* ── NAV ────────────────────────────────────────────────────────────── */}
       <nav style={{ borderBottom:'1px solid #E2E8F0', padding:'0 24px', height:58, display:'flex', alignItems:'center', justifyContent:'space-between', background:'#fff' }}>
-        <Link href="/" style={{ textDecoration:'none' }}>
+        <Link href="/" style={{ textDecoration:'none', display:'inline-flex', alignItems:'center', gap:6 }}>
+          <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{ width:32, height:32, objectFit:'contain', flexShrink:0 }} />
           <span className="f-display" style={{ fontSize:'1.2rem', fontWeight:700, color:'#0A0A0A', letterSpacing:'-.02em' }}>Invonaut</span>
         </Link>
         <div style={{ display:'flex', gap:12, alignItems:'center' }}>
@@ -292,7 +293,10 @@ export default function AffiliatePage() {
       {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
       <footer style={{ background:'#030712', padding:'40px 24px', borderTop:'1px solid rgba(255,255,255,0.04)' }}>
         <div style={{ maxWidth:1000, margin:'0 auto', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:16 }}>
-          <span className="f-display" style={{ fontSize:'1rem', fontWeight:700, color:'rgba(255,255,255,0.4)' }}>Invonaut</span>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <img src="/naut-white.svg" alt="" aria-hidden="true" style={{ width:24, height:24, objectFit:'contain', flexShrink:0, opacity:.4 }} />
+            <span className="f-display" style={{ fontSize:'1rem', fontWeight:700, color:'rgba(255,255,255,0.4)' }}>Invonaut</span>
+          </div>
           <div style={{ display:'flex', gap:24 }}>
             {[{href:'/',l:'Home'},{href:'/pricing',l:'Pricing'},{href:'/help',l:'Help'},{href:'/privacy',l:'Privacy'},{href:'/terms',l:'Terms'}].map(lk => (
               <Link key={lk.href} href={lk.href} className="aff-footer-link" style={{ fontSize:'.8rem', color:'rgba(255,255,255,0.3)', textDecoration:'none' }}>

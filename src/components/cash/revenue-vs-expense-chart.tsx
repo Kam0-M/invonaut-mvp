@@ -24,14 +24,15 @@ export type RevExpPoint = {
 }
 
 
-const formatYAxis = (n: number) => {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`
-  return `$${n}`
-}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
+  const formatYAxis = (n: number): string => {
+    const abs = Math.abs(n)
+    if (abs >= 999_500) return `${symbol}${(abs/1_000_000).toFixed(1)}M`
+    if (abs >= 9_950)   return `${symbol}${(abs/1_000).toFixed(0)}K`
+    return `${symbol}${Math.round(abs)}`
+  }
   if (!active || !payload?.length) return null
   const rev  = payload.find((p: any) => p.dataKey === 'revenue')?.value  ?? 0
   const exp  = payload.find((p: any) => p.dataKey === 'expenses')?.value ?? 0
@@ -70,7 +71,13 @@ const CustomLegend = () => (
 
 export function RevenueVsExpenseChart({
   data }: { data: RevExpPoint[] }) {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
+  const formatYAxis = (n: number): string => {
+    const abs = Math.abs(n)
+    if (abs >= 999_500) return `${symbol}${(abs/1_000_000).toFixed(1)}M`
+    if (abs >= 9_950)   return `${symbol}${(abs/1_000).toFixed(0)}K`
+    return `${symbol}${Math.round(abs)}`
+  }
   const hasData = data.some(d => d.revenue > 0 || d.expenses > 0)
 
   return (

@@ -30,14 +30,15 @@ export type ForecastPoint = {
 }
 
 
-const formatYAxis = (n: number) => {
-  if (Math.abs(n) >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`
-  if (Math.abs(n) >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`
-  return `$${n}`
-}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
+  const formatYAxis = (n: number): string => {
+    const abs = Math.abs(n)
+    if (abs >= 999_500) return `${symbol}${(abs/1_000_000).toFixed(1)}M`
+    if (abs >= 9_950)   return `${symbol}${(abs/1_000).toFixed(0)}K`
+    return `${symbol}${Math.round(abs)}`
+  }
   if (!active || !payload?.length) return null
   const d = payload[0].payload as ForecastPoint
   const isNegative = d.projectedBalance < 0
@@ -69,7 +70,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 export function ForecastChart({
   data }: { data: ForecastPoint[] }) {
-  const { format: fmt } = useCurrency()
+  const { format: fmt, symbol } = useCurrency()
+  const formatYAxis = (n: number): string => {
+    const abs = Math.abs(n)
+    if (abs >= 999_500) return `${symbol}${(abs/1_000_000).toFixed(1)}M`
+    if (abs >= 9_950)   return `${symbol}${(abs/1_000).toFixed(0)}K`
+    return `${symbol}${Math.round(abs)}`
+  }
   if (!data.length) return null
 
   const hasNegative = data.some(d => d.projectedBalance < 0)

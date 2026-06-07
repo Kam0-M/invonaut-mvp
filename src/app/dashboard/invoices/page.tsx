@@ -8,7 +8,7 @@ import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import CoreTabBar from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import SmartInvoiceDrafts from '@/components/intelligence/smart-invoice-drafts'
-import { makeCurrencyFormatter } from '@/lib/utils/currency'
+import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 
 // fmt injected per-request below
 
@@ -27,13 +27,11 @@ export default async function InvoicesPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier  = profile?.subscription_tier ?? 'starter'
-  const _fmtBase    = makeCurrencyFormatter((profile as any)?.currency || 'USD')
-  const formatCompact = (n: number): string => {
-    const abs = Math.abs(n), sign = n < 0 ? '-' : ''
-    if (abs >= 999_500) return sign + _fmtBase(abs).replace(/[\d,]+(\.\d+)?/, `${(abs / 1_000_000).toFixed(1)}M`)
-    if (abs >= 9_950)   return sign + _fmtBase(abs).replace(/[\d,]+(\.\d+)?/, `${(abs / 1_000).toFixed(0)}K`)
-    return _fmtBase(n)
-  }
+  const _fmtBase      = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const formatCompact = makeCompactFormatter(
+    (profile as any)?.currency      || 'USD',
+    (profile as any)?.currency_symbol,
+  )
   const fmt = _fmtBase
   const isPro = tier === 'professional' || tier === 'business'
 

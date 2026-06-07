@@ -44,13 +44,7 @@ function avatarColor(name: string) {
   return palette[Math.abs(hash) % palette.length]
 }
 
-function makeCompact(fmt: (n: number) => string) {
-  return function formatCompact(n: number): string {
-    if (n >= 999_500) return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000_000).toFixed(1)}M`)
-    if (n >= 9_950)   return fmt(n).replace(/[\d,]+(\.\d+)?/, `${(n / 1_000).toFixed(0)}K`)
-    return fmt(n)
-  }
-}
+
 function formatDate(s: string) {
   return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
@@ -104,7 +98,7 @@ function RiskPill({ score, status }: { score?: number | null; status: string }) 
 export function InvoiceList({
   invoices, hasActiveSubscription }: InvoiceListProps) {
   const { format: fmt } = useCurrency()
-  const formatCompact = makeCompact(fmt)
+  const formatCompact = (n: number) => fmt(n, { compact: true })
   const [filters, setFilters] = useState({ status: 'all', search: '' })
 
   const filteredInvoices = useMemo(() => {
