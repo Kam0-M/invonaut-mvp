@@ -692,6 +692,126 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+
+      {/* ── FOUNDER ──────────────────────────────────────────────────────── */}
+      <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+        <div style={{maxWidth:1060,margin:'0 auto'}}>
+          <Reveal>
+            <motion.div
+              variants={fadeUp}
+              className="founder-grid"
+              style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:80,alignItems:'center'}}
+            >
+              {/* Photo */}
+              <div style={{position:'relative'}}>
+                {/* Subtle blue accent behind photo */}
+                <div style={{
+                  position:'absolute',inset:0,
+                  background:'linear-gradient(145deg,rgba(0,85,255,0.08) 0%,transparent 60%)',
+                  borderRadius:24,
+                  transform:'translate(10px,10px)',
+                }}/>
+                <img
+                  src="/founder-kamo.jpg"
+                  alt="Kamohelo Thakhisi — Founder, Invonaut"
+                  style={{
+                    width:'100%',
+                    borderRadius:20,
+                    objectFit:'cover',
+                    objectPosition:'center top',
+                    aspectRatio:'3/4',
+                    position:'relative',
+                    display:'block',
+                    boxShadow:'0 24px 64px rgba(0,0,0,0.12)',
+                  }}
+                />
+                {/* Floating stat pill */}
+                <div style={{
+                  position:'absolute',bottom:28,left:'50%',transform:'translateX(-50%)',
+                  background:'rgba(255,255,255,0.92)',backdropFilter:'blur(12px)',
+                  borderRadius:40,padding:'10px 20px',
+                  boxShadow:'0 8px 32px rgba(0,0,0,0.1)',
+                  border:'1px solid rgba(0,85,255,0.1)',
+                  display:'flex',alignItems:'center',gap:10,
+                  whiteSpace:'nowrap',
+                }}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:'#00C4A0',flexShrink:0}}/>
+                  <span style={{fontSize:'.8rem',fontWeight:700,color:'#0A0A0A',letterSpacing:'-.01em'}}>
+                    Building since age 18
+                  </span>
+                </div>
+              </div>
+
+              {/* Text */}
+              <div>
+                <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--blue)',marginBottom:20}}>
+                  The Founder
+                </p>
+                <h2 className="f-display" style={{fontSize:'clamp(1.9rem,3.5vw,2.8rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.1,color:'var(--ink)',marginBottom:28}}>
+                  I built the back-office<br/>I always needed.
+                </h2>
+
+                {/* Pull quote */}
+                <div style={{
+                  borderLeft:'3px solid var(--blue)',
+                  paddingLeft:20,
+                  marginBottom:28,
+                }}>
+                  <p style={{fontSize:'1.05rem',color:'var(--blue)',fontWeight:700,lineHeight:1.65,fontStyle:'italic'}}>
+                    "The work isn't chasing invoices. The work is the work. Everything else should run itself."
+                  </p>
+                </div>
+
+                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
+                  I spent months watching talented freelancers lose hours every week to things that should never require human attention — sending payment reminders, reconciling bank statements, building financial reports from spreadsheets that were already out of date.
+                </p>
+                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
+                  The work isn't the overhead. The overhead is just the tax on doing good work. So I spent a year building a system that eliminates it entirely — contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
+                </p>
+                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:36}}>
+                  Invonaut is that system. Built solo. Designed to run quietly in the background while you do the part that actually matters.
+                </p>
+
+                {/* Signature block */}
+                <div style={{display:'flex',alignItems:'center',gap:16,paddingTop:28,borderTop:'1px solid var(--rule)'}}>
+                  <img
+                    src="/founder-kamo.jpg"
+                    alt="Kamohelo Thakhisi"
+                    style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',objectPosition:'center top',flexShrink:0}}
+                  />
+                  <div>
+                    <p style={{fontWeight:800,fontSize:'.95rem',color:'var(--ink)',letterSpacing:'-.01em',marginBottom:2}}>
+                      Kamohelo Thakhisi
+                    </p>
+                    <p style={{fontSize:'.8rem',color:'var(--faint)',fontWeight:500}}>
+                      Founder & CEO, Invonaut
+                    </p>
+                  </div>
+                  <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderRadius:8,background:'var(--surf)',border:'1px solid var(--rule)'}}>
+                    <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{width:18,height:18,objectFit:'contain',opacity:.7}}/>
+                    <span style={{fontSize:'.75rem',fontWeight:700,color:'var(--faint)',letterSpacing:'.05em',textTransform:'uppercase'}}>Invonaut</span>
+                  </div>
+                </div>
+              </div>
+
+            </motion.div>
+          </Reveal>
+        </div>
+      </section>
+
+      <style jsx global>{`
+        @media (max-width: 860px) {
+          .founder-grid {
+            grid-template-columns: 1fr !important;
+            gap: 48px !important;
+          }
+          .founder-grid img:first-child {
+            max-width: 340px;
+            margin: 0 auto;
+          }
+        }
+      `}</style>
+
       {/* ── PRICING ──────────────────────────────────────────────────────── */}
       <section id="pricing" style={{padding:'100px 24px',background:'var(--surf)'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
@@ -711,7 +831,7 @@ export default function LandingPageClient() {
           <Reveal><motion.div variants={fadeUp}><LandingPricingSection/></motion.div></Reveal>
           <Reveal>
             <motion.p variants={fadeUp} style={{fontSize:'.825rem',color:'var(--faint)',marginTop:36,textAlign:'center'}}>
-              A bookkeeper charges $300–500/month. A fractional CFO charges more. Invonaut does what both do — automatically — starting at $19.
+              A bookkeeper charges $300–500/month. A fractional CFO charges more. Invonaut does what both do — automatically — starting at $29.
             </motion.p>
           </Reveal>
         </div>
