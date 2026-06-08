@@ -36,7 +36,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           subscriptionTier={subscriptionTier}
           businessName={businessName}
         />
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto" style={{background:'var(--inv-surf)'}}>
           <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
             <PageAutoRefresh interval={30_000} />
             {children}

@@ -51,7 +51,7 @@ export default function ActivityFeedLive({ items, viewAll }: Props) {
     <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden inv-fade-up inv-fade-up-5">
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-50">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Activity</p>
+        <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Live Activity</p>
         <span className="flex items-center gap-1.5 text-xs font-bold text-teal-600">
           <span className="w-1.5 h-1.5 rounded-full bg-teal-400 inv-pulse-dot" />Live
         </span>

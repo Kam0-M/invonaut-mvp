@@ -41,7 +41,7 @@ export default async function PortalPage() {
       {/* Page header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Client Portal</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Client Portal</p>
           <div className="flex items-center gap-3 flex-wrap">
             {isLive ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-600 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">

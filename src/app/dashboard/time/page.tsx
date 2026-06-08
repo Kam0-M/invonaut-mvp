@@ -120,7 +120,7 @@ export default async function TimePage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Time Tracking</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Time Tracking</p>
           <p className="text-sm text-gray-500 font-medium">Track billable hours · convert to invoices with one click</p>
         </div>
         <Link href="/dashboard/time/new"

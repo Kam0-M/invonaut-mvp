@@ -349,7 +349,7 @@ export default async function CashPage() {
       {/* ── Page header ──────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Cash Management</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Cash Management</p>
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-1.5">
               <span className="text-sm font-black text-gray-900">{fmt(totalRevenue)}</span>

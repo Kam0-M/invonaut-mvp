@@ -79,7 +79,7 @@ export default async function PaymentsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">All income sources</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">All income sources</p>
           {payments.length > 0 && (
             <div className="flex items-center gap-4">
               {[

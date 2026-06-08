@@ -118,7 +118,7 @@ export default async function ContractDetailPage({ params }: { params: Promise<{
 
         {/* Left — clauses */}
         <div className="xl:col-span-2 space-y-3">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline">
             Contract Clauses · {clauses.length} section{clauses.length !== 1 ? 's' : ''}
           </p>
           {clauses.length === 0 ? (

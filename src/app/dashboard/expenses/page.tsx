@@ -87,7 +87,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Expenses</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Expenses</p>
           {expenses.length > 0 && (
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1.5">

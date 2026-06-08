@@ -97,7 +97,7 @@ function ErrorCard({
   body: string
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFF]">
       {brandColor && businessName !== undefined && (
         <PortalHeader
           brandColor={brandColor}
@@ -264,7 +264,7 @@ export default async function PortalInvoicePage({
   const downloadUrl = `${appUrl}/api/portal/download-invoice?invoiceId=${invoice.id}&token=${token}&slug=${slug}`
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F8FAFF]">
       <PortalHeader
         brandColor={brandColor}
         logoUrl={logoUrl}
