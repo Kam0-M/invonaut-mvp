@@ -69,7 +69,7 @@ function inRange(dateStr:string,start:Date,end:Date) {
 const fmtPct = (n:number) => `${n>=0?'+':''}${n.toFixed(1)}%`
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const EXP_COLORS: Record<string,string> = {
-  software:'#0066FF',hardware:'#6B7280',travel:'#F59E0B',meals:'#FF6B35',marketing:'#EC4899',
+  software:'#0055FF',hardware:'#6B7280',travel:'#F59E0B',meals:'#FF6B35',marketing:'#EC4899',
   office:'#00D4AA',professional:'#6366F1',utilities:'#14B8A6',education:'#8B5CF6',
   insurance:'#22C55E',taxes:'#EF4444',other:'#9CA3AF',
 }
@@ -113,7 +113,7 @@ const CSS = `
   .rpt-input:focus{border-color:#0055FF}
   .rpt-select{padding:9px 12px;border:1px solid #E2E8F0;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.825rem;color:#0A0A0A;background:#fff;outline:none;cursor:pointer;width:100%}
   .rpt-select:focus{border-color:#0055FF}
-  .rpt-add-btn{padding:9px 20px;border-radius:9px;background:linear-gradient(135deg,#0044EE,#0066FF);color:#fff;font-weight:700;font-size:.82rem;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif}
+  .rpt-add-btn{padding:9px 20px;border-radius:9px;background:linear-gradient(135deg,#0055FF,#0040DD);color:#fff;font-weight:700;font-size:.82rem;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif}
   .rpt-add-btn:disabled{opacity:.6;cursor:not-allowed}
   .del-btn{padding:5px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:#94A3B8;display:flex;align-items:center;transition:color .12s,background .12s}
   .del-btn:hover{color:#EF4444;background:#FEF2F2}
@@ -174,6 +174,7 @@ function CatRow({name,amount,total,color}:{name:string,amount:number,total:numbe
 }
 
 function PeriodChart({rows}:{rows:{label:string,revenue:number,expenses:number}[]}) {
+  const { format: fmtC } = useCurrency()
   const max=Math.max(...rows.flatMap(r=>[r.revenue,r.expenses]),1), H=160
   return (
     <div style={{padding:'24px 24px 0'}}>
@@ -181,7 +182,7 @@ function PeriodChart({rows}:{rows:{label:string,revenue:number,expenses:number}[
         {rows.map((r,i)=>(
           <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
             <div style={{display:'flex',gap:2,alignItems:'flex-end',width:'100%',height:H}}>
-              <div style={{flex:1,borderRadius:'3px 3px 0 0',background:'linear-gradient(180deg,#0066FF,#0044CC)',height:`${Math.round((r.revenue/max)*H)}px`,minHeight:r.revenue>0?3:0,opacity:.85}} title={`Revenue: ${fmtC(r.revenue)}`}/>
+              <div style={{flex:1,borderRadius:'3px 3px 0 0',background:'linear-gradient(180deg,#0055FF,#0040DD)',height:`${Math.round((r.revenue/max)*H)}px`,minHeight:r.revenue>0?3:0,opacity:.85}} title={`Revenue: ${fmtC(r.revenue)}`}/>
               <div style={{flex:1,borderRadius:'3px 3px 0 0',background:'linear-gradient(180deg,#FF6B35,#E04E20)',height:`${Math.round((r.expenses/max)*H)}px`,minHeight:r.expenses>0?3:0,opacity:.75}} title={`Expenses: ${fmtC(r.expenses)}`}/>
             </div>
             <span style={{fontSize:'.6rem',color:'#94A3B8',fontWeight:600,letterSpacing:'.02em'}}>{r.label}</span>
@@ -189,7 +190,7 @@ function PeriodChart({rows}:{rows:{label:string,revenue:number,expenses:number}[
         ))}
       </div>
       <div style={{display:'flex',gap:20,padding:'16px 0 20px',borderTop:'1px solid #F1F5F9',marginTop:8}}>
-        {[{c:'#0066FF',l:'Revenue'},{c:'#FF6B35',l:'Expenses'}].map(x=>(
+        {[{c:'#0055FF',l:'Revenue'},{c:'#FF6B35',l:'Expenses'}].map(x=>(
           <div key={x.l} style={{display:'flex',alignItems:'center',gap:6}}>
             <span style={{width:10,height:10,borderRadius:2,background:x.c,display:'inline-block'}}/>
             <span style={{fontSize:'.72rem',fontWeight:600,color:'#64748B'}}>{x.l}</span>
