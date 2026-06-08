@@ -97,7 +97,7 @@ export default function IntelligenceFeed({ insights, isPro, lastRefreshed }: Pro
           <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
             <Zap className="w-4 h-4 text-blue-600" />
           </div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Financial Intelligence</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Financial Intelligence</p>
         </div>
         <div className="bg-gray-50 rounded-xl border border-dashed border-gray-200 p-6 text-center">
           <p className="text-sm font-black text-gray-900 mb-1">Intelligence requires Professional</p>
@@ -121,7 +121,7 @@ export default function IntelligenceFeed({ insights, isPro, lastRefreshed }: Pro
             <Zap className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Financial Intelligence</p>
+            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Financial Intelligence</p>
             {lastRefreshed && (
               <p className="text-[10px] text-gray-300 mt-0.5">Updated {timeAgo(lastRefreshed)}</p>
             )}

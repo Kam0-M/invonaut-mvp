@@ -26,7 +26,7 @@ export default function BillingPlansSection({ plans, currentTier, hasActiveSubsc
       {/* Section header + toggle */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Available plans</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Available plans</p>
           <p className="text-sm font-black text-gray-900 mt-0.5">
             {!hasEverSubscribed ? 'Start your 14-day free trial' : 'Switch or upgrade your plan'}
           </p>

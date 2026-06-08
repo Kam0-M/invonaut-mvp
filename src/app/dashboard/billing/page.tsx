@@ -135,7 +135,7 @@ export default async function BillingPage({
 
       {/* ── Page header ──────────────────────────────────────────────────── */}
       <div>
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Billing & Subscription</p>
+        <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Billing & Subscription</p>
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-sm font-black text-gray-900">{currentPlan?.name ?? 'Starter'} plan</span>
           <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>

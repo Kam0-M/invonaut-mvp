@@ -12,11 +12,23 @@
    inputs, textareas, and selects across the entire app. */
 :root {
   color-scheme: light;
+
+  /* ── Design tokens (shared with landing page) ────────────────── */
+  --inv-ink:    #07070F;
+  --inv-blue:   #0055FF;
+  --inv-teal:   #00C4A0;
+  --inv-orange: #FF6B35;
+  --inv-mid:    #64748B;
+  --inv-faint:  #94A3B8;
+  --inv-rule:   #E2E8F0;
+  --inv-surf:   #F8FAFF;
+  --inv-surf2:  #EFF4FF;
+  --inv-near-black: #0A0A0A;
 }
 
 body {
-  color: #1a1a1a;
-  background-color: #fafafa;
+  color: #0A0A0A;
+  background-color: #F8FAFF;
 }
 
 /* Global input safety net — ensures text is always visible regardless
@@ -99,23 +111,23 @@ body {
   50%       { background-position: 100% 50%; }
 }
 .inv-sidebar-active {
-  background: linear-gradient(135deg, #0066FF, #0052CC, #0066FF);
+  background: linear-gradient(135deg, #0055FF, #0040DD, #0055FF);
   background-size: 200% 200%;
   animation: inv-sidebar-active 8s ease-in-out infinite;
 }
 
 /* ── Primary gradient buttons ──────────────────────────────────────────── */
-/* Blue primary — bg-btn-blue */
+/* Blue primary — matches landing page #0055FF exactly */
 .btn-primary {
-  background: linear-gradient(135deg, #0066FF 0%, #0052CC 100%);
+  background: linear-gradient(135deg, #0055FF 0%, #0040DD 100%);
   color: white;
   font-weight: 700;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 102, 255, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 85, 255, 0.25);
 }
 .btn-primary:hover {
-  background: linear-gradient(135deg, #0052CC 0%, #003DA6 100%);
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.35);
+  background: linear-gradient(135deg, #0040DD 0%, #002EBF 100%);
+  box-shadow: 0 4px 12px rgba(0, 85, 255, 0.35);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: scale(0.98) translateY(0); }
@@ -205,7 +217,7 @@ body {
   50%       { background-position: 100% 50%; }
 }
 .inv-animated-bar {
-  background: linear-gradient(90deg, #2563EB, #0D9488, #7C3AED, #DB2777, #2563EB);
+  background: linear-gradient(90deg, #0055FF, #00C4A0, #0055FF, #FF6B35, #0055FF);
   background-size: 300% 100%;
   animation: inv-gradient-shift 4s ease-in-out infinite;
 }
@@ -250,6 +262,31 @@ body {
 /* Button press feedback */
 button:active:not(:disabled),
 a:active { transform: scale(0.97); }
+
+/* ── Landing-aligned card standard ─────────────────────────────────────── */
+/* Replaces generic hover:shadow-md with a blue-tinted lift matching the landing page */
+.inv-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid var(--inv-rule);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.inv-card:hover {
+  box-shadow: 0 0 0 1px rgba(0,85,255,0.06), 0 8px 24px rgba(0,85,255,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  transform: translateY(-1px);
+}
+
+/* ── Page section overline ──────────────────────────────────────────────── */
+/* Used above page titles — matches landing label style */
+.inv-overline {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--inv-blue);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 /* ── Auth page orb animations ─────────────────────────────── */
 @keyframes auth-orb-drift {
   0%   { transform: translate(0px, 0px) scale(1); }

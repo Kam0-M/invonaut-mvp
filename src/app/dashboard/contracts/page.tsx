@@ -78,7 +78,7 @@ export default async function ContractsPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Contract lifecycle</p>
+            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline">Contract lifecycle</p>
             {totalValue > 0 && (
               <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
                 {formatCompact(totalValue)} active

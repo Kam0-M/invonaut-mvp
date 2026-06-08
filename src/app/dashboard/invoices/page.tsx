@@ -112,7 +112,7 @@ export default async function InvoicesPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Invoice pipeline</p>
+            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline">Invoice pipeline</p>
             {invoices.length > 0 && (
               <div className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
                 <Zap className="w-3 h-3" />AI scoring active

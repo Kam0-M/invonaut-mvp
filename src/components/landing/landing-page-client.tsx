@@ -731,7 +731,7 @@ export default function LandingPageClient() {
                 </div>
                 {/* Floating stat pill */}
                 <div style={{
-                  position:'absolute',bottom:28,left:'50%',transform:'translateX(-50%)',
+                  position:'absolute',bottom:76,left:'50%',transform:'translateX(-50%)',
                   background:'rgba(255,255,255,0.92)',backdropFilter:'blur(12px)',
                   borderRadius:40,padding:'10px 20px',
                   boxShadow:'0 8px 32px rgba(0,0,0,0.1)',
@@ -748,7 +748,12 @@ export default function LandingPageClient() {
 
               {/* Text */}
               <div>
-                <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--blue)',marginBottom:24}}>
+                <p style={{
+                  fontSize:'.78rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',
+                  color:'#0055FF',marginBottom:24,marginTop:8,display:'block',
+                  WebkitFontSmoothing:'antialiased',MozOsxFontSmoothing:'grayscale',
+                  textRendering:'geometricPrecision',
+                }}>
                   The Founder
                 </p>
                 <h2 className="f-display" style={{fontSize:'clamp(1.9rem,3.5vw,2.8rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.1,color:'var(--ink)',marginBottom:28}}>

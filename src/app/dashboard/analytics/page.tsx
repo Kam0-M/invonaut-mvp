@@ -280,7 +280,7 @@ export default async function AnalyticsPage({
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Analytics</p>
+          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Analytics</p>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-sm font-black text-gray-900">Business Intelligence</span>
             <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full flex items-center gap-1">
