@@ -4,6 +4,7 @@
 // Gradient mesh hero · Interactive demo · Vibrant CTA · Fraunces editorial headlines
 
 import { useRef, useState, useEffect, useCallback } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield } from 'lucide-react'
@@ -694,37 +695,40 @@ export default function LandingPageClient() {
 
 
       {/* ── FOUNDER ──────────────────────────────────────────────────────── */}
-      <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+      <section style={{padding:'120px 24px 100px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1060,margin:'0 auto'}}>
           <Reveal>
             <motion.div
               variants={fadeUp}
               className="founder-grid"
-              style={{display:'grid',gridTemplateColumns:'420px 1fr',gap:80,alignItems:'center'}}
+              style={{display:'grid',gridTemplateColumns:'400px 1fr',gap:80,alignItems:'center'}}
             >
-              {/* Photo */}
+              {/* Photo — Next.js Image for crisp rendering on all screens */}
               <div style={{position:'relative'}}>
-                {/* Subtle blue accent behind photo */}
+                {/* Subtle blue accent shadow behind photo */}
                 <div style={{
                   position:'absolute',inset:0,
                   background:'linear-gradient(145deg,rgba(0,85,255,0.08) 0%,transparent 60%)',
                   borderRadius:24,
                   transform:'translate(10px,10px)',
                 }}/>
-                <img
-                  src="/founder-kamo.jpg"
-                  alt="Kamohelo Thakhisi — Founder, Invonaut"
-                  style={{
-                    width:'100%',
-                    borderRadius:20,
-                    objectFit:'cover',
-                    objectPosition:'center top',
-                    aspectRatio:'3/4',
-                    position:'relative',
-                    display:'block',
-                    boxShadow:'0 24px 64px rgba(0,0,0,0.12)',
-                  }}
-                />
+                <div style={{position:'relative',borderRadius:20,overflow:'hidden',boxShadow:'0 24px 64px rgba(0,0,0,0.12)'}}>
+                  <Image
+                    src="/founder-kamo.jpg"
+                    alt="Kamo Motelle — Founder, Invonaut"
+                    width={400}
+                    height={533}
+                    quality={95}
+                    priority
+                    style={{
+                      width:'100%',
+                      height:'auto',
+                      display:'block',
+                      objectFit:'cover',
+                      objectPosition:'center top',
+                    }}
+                  />
+                </div>
                 {/* Floating stat pill */}
                 <div style={{
                   position:'absolute',bottom:28,left:'50%',transform:'translateX(-50%)',
@@ -744,11 +748,11 @@ export default function LandingPageClient() {
 
               {/* Text */}
               <div>
-                <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--blue)',marginBottom:20}}>
+                <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--blue)',marginBottom:24}}>
                   The Founder
                 </p>
                 <h2 className="f-display" style={{fontSize:'clamp(1.9rem,3.5vw,2.8rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.1,color:'var(--ink)',marginBottom:28}}>
-                  I built the back-office<br/>I always needed.
+                  I saw the gap.<br/>I spent a year closing it.
                 </h2>
 
                 {/* Pull quote */}
@@ -758,33 +762,38 @@ export default function LandingPageClient() {
                   marginBottom:28,
                 }}>
                   <p style={{fontSize:'1.05rem',color:'var(--blue)',fontWeight:700,lineHeight:1.65,fontStyle:'italic'}}>
-                    "The work isn't chasing invoices. The work is the work. Everything else should run itself."
+                    "Running a business shouldn't feel like two full-time jobs. One of them should handle itself."
                   </p>
                 </div>
 
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
-                  I spent months watching talented freelancers lose hours every week to things that should never require human attention — sending payment reminders, reconciling bank statements, building financial reports from spreadsheets that were already out of date.
+                  Talking to freelancers and small business owners, the same pattern kept surfacing — talented people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
                 </p>
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
-                  The work isn't the overhead. The overhead is just the tax on doing good work. So I spent a year building a system that eliminates it entirely — contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
+                  The overhead isn't the work. It's just the tax on doing good work. So I spent a year building a system that eliminates it entirely — contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
                 </p>
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:36}}>
-                  Invonaut is that system. Built solo. Designed to run quietly in the background while you do the part that actually matters.
+                  Invonaut is that system. Built solo. Designed to run quietly in the background while you focus on the part that actually matters.
                 </p>
 
                 {/* Signature block */}
                 <div style={{display:'flex',alignItems:'center',gap:16,paddingTop:28,borderTop:'1px solid var(--rule)'}}>
-                  <img
-                    src="/founder-kamo.jpg"
-                    alt="Kamohelo Thakhisi"
-                    style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',objectPosition:'center top',flexShrink:0}}
-                  />
+                  <div style={{width:48,height:48,borderRadius:'50%',overflow:'hidden',flexShrink:0}}>
+                    <Image
+                      src="/founder-kamo.jpg"
+                      alt="Kamo Motelle"
+                      width={48}
+                      height={48}
+                      quality={90}
+                      style={{objectFit:'cover',objectPosition:'center top',width:'100%',height:'100%'}}
+                    />
+                  </div>
                   <div>
                     <p style={{fontWeight:800,fontSize:'.95rem',color:'var(--ink)',letterSpacing:'-.01em',marginBottom:2}}>
-                      Kamohelo Thakhisi
+                      Kamo Motelle
                     </p>
                     <p style={{fontSize:'.8rem',color:'var(--faint)',fontWeight:500}}>
-                      Founder & CEO, Invonaut
+                      Founder &amp; CEO, Invonaut
                     </p>
                   </div>
                   <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderRadius:8,background:'var(--surf)',border:'1px solid var(--rule)'}}>
@@ -805,7 +814,7 @@ export default function LandingPageClient() {
             grid-template-columns: 1fr !important;
             gap: 48px !important;
           }
-          .founder-grid img:first-child {
+          .founder-grid > div:first-child {
             max-width: 340px;
             margin: 0 auto;
           }
