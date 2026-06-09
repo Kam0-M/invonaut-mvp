@@ -63,7 +63,7 @@ const CSS = `
   .f-display { font-family:'Fraunces',serif; font-optical-sizing:auto; }
   .f-mono    { font-family:'DM Mono',monospace; }
   .aff-join-card {
-    background: linear-gradient(145deg,#002ECC 0%,#0044EE 40%,#0055FF 70%,#003DCC 100%);
+    background: linear-gradient(145deg,#002ECC 0%,#0040DD 40%,#0055FF 70%,#002EBF 100%);
     border-radius: 20px;
     padding: 56px 48px;
     position: relative;
@@ -94,7 +94,7 @@ const CSS = `
   }
   .copy-btn {
     flex-shrink:0; padding:8px 16px; border-radius:8px;
-    background:linear-gradient(135deg,#0044EE,#0066FF);
+    background:linear-gradient(135deg,#0055FF,#0040DD);
     color:#fff; font-size:.78rem; font-weight:700;
     border:none; cursor:pointer; display:flex; align-items:center; gap:6px;
     transition: opacity .15s;
@@ -205,7 +205,7 @@ function JoinScreen({ onJoined }: { onJoined: () => void }) {
             <button
               onClick={join}
               disabled={loading}
-              style={{background:'#fff',color:'#0044EE',padding:'13px 32px',borderRadius:10,fontWeight:800,fontSize:'.95rem',border:'none',cursor:loading?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:9,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',opacity:loading?0.7:1,fontFamily:"'DM Sans',sans-serif"}}>
+              style={{background:'#fff',color:'#0055FF',padding:'13px 32px',borderRadius:10,fontWeight:800,fontSize:'.95rem',border:'none',cursor:loading?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:9,boxShadow:'0 4px 20px rgba(0,0,0,0.2)',opacity:loading?0.7:1,fontFamily:"'DM Sans',sans-serif"}}>
               {loading ? <Loader2 size={16} className="animate-spin"/> : <Zap size={16}/>}
               {loading ? 'Setting up…' : 'Join free — get my link'}
             </button>
@@ -390,7 +390,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
           <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
             {s.eligible_amount >= 20 && (
               <button onClick={requestPayout} disabled={requestingPO}
-                style={{padding:'9px 20px',borderRadius:9,background:'linear-gradient(135deg,#0044EE,#0066FF)',color:'#fff',fontWeight:700,fontSize:'.82rem',border:'none',cursor:requestingPO?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:7,opacity:requestingPO?0.7:1,fontFamily:"'DM Sans',sans-serif"}}>
+                style={{padding:'9px 20px',borderRadius:9,background:'linear-gradient(135deg,#0055FF,#0040DD)',color:'#fff',fontWeight:700,fontSize:'.82rem',border:'none',cursor:requestingPO?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',gap:7,opacity:requestingPO?0.7:1,fontFamily:"'DM Sans',sans-serif"}}>
                 {requestingPO ? <Loader2 size={13} className="animate-spin"/> : <DollarSign size={13}/>}
                 Request {fmt(s.eligible_amount)} payout
               </button>
