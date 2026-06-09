@@ -1,5 +1,6 @@
 // src/app/api/affiliate/request-payout/route.ts
-// Creates a payout request for all approved commissions.
+// Creates a payout request. Commissions move to 'pending' (not 'paid') until
+// admin actually marks the transfer done. total_paid is updated at that point too.
 
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse }  from 'next/server'
@@ -15,7 +16,6 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get affiliate account
     const { data: account } = await supabase
       .from('affiliate_accounts')
       .select('id, payout_method, payout_email, total_paid')
@@ -27,10 +27,13 @@ export async function POST() {
     }
 
     if (!account.payout_method || !account.payout_email) {
-      return NextResponse.json({ error: 'Please set your payout method and email first' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Please set your payout method and email first' },
+        { status: 400 }
+      )
     }
 
-    // Get approved commissions not yet paid
+    // Only grab commissions that are approved — not already pending or paid
     const { data: approved } = await supabase
       .from('affiliate_commissions')
       .select('id, amount')
@@ -38,19 +41,23 @@ export async function POST() {
       .eq('status', 'approved')
 
     if (!approved || approved.length === 0) {
-      return NextResponse.json({ error: 'No approved commissions to pay out' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'No approved commissions to pay out' },
+        { status: 400 }
+      )
     }
 
     const total = approved.reduce((sum, c) => sum + Number(c.amount), 0)
 
     if (total < MIN_PAYOUT) {
-      return NextResponse.json({
-        error: `Minimum payout is $${MIN_PAYOUT}. You have $${total.toFixed(2)} available.`
-      }, { status: 400 })
+      return NextResponse.json(
+        { error: `Minimum payout is $${MIN_PAYOUT}. You have $${total.toFixed(2)} available.` },
+        { status: 400 }
+      )
     }
 
-    // Create payout record
-    const { error: payoutErr } = await supabase
+    // Create payout record (status: pending — awaiting admin confirmation)
+    const { data: payoutRow, error: payoutErr } = await supabase
       .from('affiliate_payouts')
       .insert({
         affiliate_id:     account.id,
@@ -60,24 +67,24 @@ export async function POST() {
         payout_method:    account.payout_method,
         requested_at:     new Date().toISOString(),
       })
+      .select('id')
+      .single()
 
-    if (payoutErr) {
+    if (payoutErr || !payoutRow) {
       console.error('Payout insert error:', payoutErr)
       return NextResponse.json({ error: 'Failed to create payout request' }, { status: 500 })
     }
 
-    // Mark commissions as pending payout
+    // Move commissions to 'pending' — they leave 'approved' so they don't
+    // show up in the eligible balance again, but aren't 'paid' yet either.
     const ids = approved.map(c => c.id)
     await supabase
       .from('affiliate_commissions')
-      .update({ status: 'paid' })
+      .update({ status: 'pending' })
       .in('id', ids)
 
-    // Update total_paid on account
-    await supabase
-      .from('affiliate_accounts')
-      .update({ total_paid: Number(account.total_paid) + total })
-      .eq('id', account.id)
+    // NOTE: total_paid is NOT updated here — it's updated when admin marks paid.
+    // This avoids showing affiliates a paid balance before you've sent the money.
 
     return NextResponse.json({ ok: true, amount: total, commission_count: approved.length })
   } catch (err) {
@@ -87,7 +94,7 @@ export async function POST() {
 }
 
 export async function PATCH(req: Request) {
-  // Update payout method/email
+  // Update payout method/email only
   try {
     const { payout_method, payout_email } = await req.json()
     const supabase = await createClient()

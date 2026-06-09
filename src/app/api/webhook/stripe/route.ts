@@ -53,7 +53,12 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session
-        await handleCheckoutCompleted(session)
+        // Route portal invoice payments separately — they have type: 'portal_invoice' in metadata
+        if (session.metadata?.type === 'portal_invoice') {
+          await handlePortalInvoicePayment(session)
+        } else {
+          await handleCheckoutCompleted(session)
+        }
         break
       }
 
@@ -434,5 +439,31 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     }
   } catch (error) {
     console.error('Error in handleInvoicePaymentFailed:', error)
+  }
+}
+// ── Portal invoice payment handler ───────────────────────────────────────────
+// Fired when a client pays a freelancer's invoice via the client portal.
+// Marks the invoice as paid in Supabase.
+async function handlePortalInvoicePayment(session: Stripe.Checkout.Session) {
+  const invoiceId = session.metadata?.invoice_id
+  const userId    = session.metadata?.user_id
+
+  if (!invoiceId || !userId) {
+    console.error('handlePortalInvoicePayment: missing invoice_id or user_id in metadata', session.metadata)
+    return
+  }
+
+  const supabase = createAdminClient()
+
+  const { error } = await supabase
+    .from('invoices')
+    .update({ status: 'paid' })
+    .eq('id', invoiceId)
+    .eq('user_id', userId)
+
+  if (error) {
+    console.error('handlePortalInvoicePayment DB error:', error)
+  } else {
+    console.log(`Portal invoice ${invoiceId} marked as paid (user ${userId})`)
   }
 }

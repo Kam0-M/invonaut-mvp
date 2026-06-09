@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { Lock, ArrowLeft } from 'lucide-react'
+import PayNowButton from '@/components/portal/pay-now-button'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -123,10 +124,11 @@ export default async function PortalInvoicePage({
   searchParams,
 }: {
   params: Promise<{ slug: string; id: string }>
-  searchParams: Promise<{ token?: string }>
+  searchParams: Promise<{ token?: string; payment_success?: string }>
 }) {
   const { slug, id } = await params
-  const { token } = await searchParams
+  const { token, payment_success } = await searchParams
+  const invoiceId = id
   const supabase = createAdminClient()
 
   // 1. Resolve portal settings
@@ -273,6 +275,21 @@ export default async function PortalInvoicePage({
 
       <main className="max-w-3xl mx-auto px-4 py-8 space-y-6">
 
+        {/* Payment success banner */}
+        {payment_success === 'true' && (
+          <div className="bg-green-50 border border-green-200 rounded-2xl p-5 flex items-start gap-3">
+            <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div>
+              <p className="font-black text-green-800 text-sm">Payment received — thank you!</p>
+              <p className="text-green-700 text-sm mt-0.5">Your payment is being processed. This invoice will be marked as paid shortly.</p>
+            </div>
+          </div>
+        )}
+
         {/* Back link */}
         <Link
           href={`/portal/${slug}?token=${token}`}
@@ -410,15 +427,29 @@ export default async function PortalInvoicePage({
           )}
         </div>
 
-        {/* Download button */}
-        <div className="flex justify-end">
+        {/* Download button + Pay Now button */}
+        <div className="flex flex-col sm:flex-row justify-end gap-3">
           <a
             href={downloadUrl}
             download
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg"
+            className="inline-flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 px-5 py-3 rounded-xl font-bold hover:bg-gray-50 transition-all text-sm"
           >
             Download PDF
           </a>
+
+          {/* Pay Now — only show for unpaid payable invoices */}
+          {displayStatus !== 'paid' && displayStatus !== 'cancelled' && displayStatus !== 'draft' && (
+            <div className="sm:w-72">
+              <PayNowButton
+                invoiceId={invoiceId}
+                token={token || ''}
+                slug={slug}
+                amount={Number(invoice.total_amount)}
+                formatAmount={formatCurrency(Number(invoice.total_amount))}
+                brandColor={brandColor}
+              />
+            </div>
+          )}
         </div>
 
       </main>
