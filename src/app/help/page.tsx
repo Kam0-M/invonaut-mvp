@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import HelpFaq from '@/components/help/help-faq'
+import HelpQuickNav from '@/components/help/help-quick-nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -157,30 +158,7 @@ export default async function HelpPage() {
           </div>
 
           {/* Quick nav */}
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Quick Start',  href: '#quick-start'  },
-              { label: 'The Platform', href: '#features'      },
-              { label: 'Automations',  href: '#automations'   },
-              { label: 'FAQ',          href: '#faq'           },
-              { label: 'Security',     href: '#security'      },
-            ].map(item => (
-              <a key={item.label} href={item.href}
-                className="transition-all"
-                style={{
-                  padding:'6px 14px',borderRadius:99,fontSize:12,fontWeight:700,
-                  color:'rgba(255,255,255,0.5)',
-                  background:'rgba(255,255,255,0.05)',
-                  border:'1px solid rgba(255,255,255,0.1)',
-                  textDecoration:'none',
-                }}
-                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.color='#fff';(e.currentTarget as HTMLElement).style.background='rgba(0,85,255,0.2)';(e.currentTarget as HTMLElement).style.borderColor='rgba(0,85,255,0.4)'}}
-                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.color='rgba(255,255,255,0.5)';(e.currentTarget as HTMLElement).style.background='rgba(255,255,255,0.05)';(e.currentTarget as HTMLElement).style.borderColor='rgba(255,255,255,0.1)'}}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
+          <HelpQuickNav />
         </div>
       </div>
 
