@@ -112,7 +112,7 @@ export default function RevenueStorySection({
     <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden inv-fade-up inv-fade-up-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
 
       {/* Header */}
-      <div className="p-6 border-b border-gray-50 bg-gradient-to-br from-blue-50/50 to-transparent">
+      <div className="p-6 border-b border-gray-50 bg-[#F8FAFF]">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5">

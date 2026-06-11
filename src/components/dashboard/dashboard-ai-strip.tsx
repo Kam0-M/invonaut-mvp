@@ -83,7 +83,7 @@ export default function DashboardAiStrip({
       text:   `${fmt(pendingPayments)} awaiting payment`,
       sub:    'Outstanding sent invoices',
       href:   '/dashboard/invoices?status=sent',
-      color:  'text-indigo-600 bg-indigo-50 border-indigo-200',
+      color:  'text-blue-600 bg-blue-50 border-blue-200',
       urgent: false,
     })
   }

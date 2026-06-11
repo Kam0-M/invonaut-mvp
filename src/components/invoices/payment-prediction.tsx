@@ -82,12 +82,12 @@ export function PaymentPrediction({ invoiceId, clientId, clientName, invoiceAmou
 
   if (loading) {
     return (
-      <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+      <Card className="p-6 bg-[#F8FAFF] border-blue-100">
         <div className="flex items-center gap-3">
           <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">AI Payment Prediction</h3>
-            <p className="text-sm text-gray-600">Analyzing payment patterns...</p>
+            <h3 className="text-base font-black text-gray-900">AI Payment Prediction</h3>
+            <p className="text-sm text-gray-500 font-medium">Analyzing payment patterns...</p>
           </div>
         </div>
       </Card>
@@ -96,13 +96,12 @@ export function PaymentPrediction({ invoiceId, clientId, clientName, invoiceAmou
 
   if (error) {
     return (
-      <Card className="p-6 bg-red-50 border-red-200">
+      <Card className="p-6 bg-red-50 border-red-100">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Prediction Unavailable</h3>
-            <p className="text-sm text-gray-600 mt-1">{error}</p>
-            <p className="text-xs text-gray-500 mt-2">Check browser console for details.</p>
+            <h3 className="text-base font-black text-gray-900">Prediction unavailable</h3>
+            <p className="text-sm text-gray-600 font-medium mt-1">{error}</p>
           </div>
         </div>
       </Card>
@@ -165,12 +164,12 @@ export function PaymentPrediction({ invoiceId, clientId, clientName, invoiceAmou
   }
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-blue-200 shadow-md">
+    <Card className="p-6 bg-[#F8FAFF] border-blue-100">
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-6 h-6 text-blue-600" />
-          <h3 className="text-xl font-bold text-gray-900">AI Payment Prediction</h3>
+          <Sparkles className="w-5 h-5 text-blue-600" />
+          <h3 className="text-base font-black text-gray-900">AI Payment Prediction</h3>
         </div>
         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${riskColors.bg} ${riskColors.text} ${riskColors.border} border`}>
           {formatRiskLevel(prediction.riskLevel)} Risk

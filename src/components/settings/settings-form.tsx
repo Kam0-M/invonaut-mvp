@@ -341,20 +341,20 @@ export default function SettingsForm({
       <div className="bg-white rounded-2xl border border-gray-100 p-5 opacity-60 pointer-events-none select-none">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-teal-100 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center">
               <Globe className="w-5 h-5 text-teal-600" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-gray-900">Regional &amp; Tax Settings</h2>
+              <h2 className="text-base font-black text-gray-900">Regional &amp; Tax Settings</h2>
               <p className="text-sm text-gray-500">Multi-currency, VAT/GST labels, and regional tax numbers</p>
             </div>
           </div>
-          <span className="text-xs font-bold px-3 py-1 bg-teal-50 text-teal-700 rounded-full border border-teal-200">
-            Coming soon
+          <span className="text-xs font-bold px-3 py-1 bg-[#F8FAFF] text-[#0055FF] rounded-full border border-blue-100 flex-shrink-0">
+            Coming later
           </span>
         </div>
-        <p className="text-sm text-gray-400 mt-4 ml-13">
-          Full multi-currency support, VAT/GST configuration, and regional tax numbers are coming in a future update. Invoices currently display in USD.
+        <p className="text-sm text-gray-400 mt-4 ml-[52px]">
+          Multi-currency support and regional tax configuration are in progress. For now, all invoices are issued in USD.
         </p>
       </div>
 

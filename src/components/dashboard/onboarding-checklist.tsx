@@ -138,7 +138,7 @@ export default function OnboardingChecklist({
           backgroundSize: '20px 20px',
         }} />
         <div className="relative z-10 p-8 text-center">
-          <div className="inv-celebrate-icon inv-celebrate-float inline-flex w-16 h-16 rounded-2xl bg-emerald-500 items-center justify-center mb-4 shadow-lg shadow-emerald-200">
+          <div className="inv-celebrate-icon inv-celebrate-float inline-flex w-16 h-16 rounded-2xl bg-[#00C4A0] items-center justify-center mb-4">
             <PartyPopper className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-black text-gray-900 mb-2">You're all set!</h3>
@@ -161,7 +161,7 @@ export default function OnboardingChecklist({
     return (
       <button
         onClick={handleRestore}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-gray-200 text-sm font-bold text-gray-600 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition-all shadow-sm"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-600 hover:border-blue-300 hover:text-blue-700 hover:bg-[#F8FAFF] transition-all"
         title="Restore setup guide"
       >
         <RotateCcw className="w-3.5 h-3.5" />
@@ -171,7 +171,7 @@ export default function OnboardingChecklist({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-[#F8FAFF]">
       <div className="absolute inset-0 opacity-[0.04]" style={{
         backgroundImage: 'radial-gradient(circle, #2563EB 1px, transparent 1px)',
         backgroundSize: '24px 24px',

@@ -78,7 +78,7 @@ export default function DowngradeConfirmButton({
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
       onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
     >
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="bg-gradient-to-r from-gray-800 to-gray-900 text-white p-6 rounded-t-2xl sticky top-0 z-10">
           <div className="flex items-start justify-between gap-3">

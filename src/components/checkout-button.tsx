@@ -14,7 +14,7 @@ export default function CheckoutButton({
   priceId, 
   planId, 
   buttonText,
-  className = "w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm hover:shadow-xl transition-all hover:scale-105",
+  className = "w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all",
   disabled = false
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false)

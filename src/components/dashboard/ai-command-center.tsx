@@ -136,7 +136,7 @@ export default function AICommandCenter({
       <div className="inv-shimmer-sweep-wrap" aria-hidden />
 
       {/* Content — lightly tinted so shimmer passes through */}
-      <div className="relative z-10 bg-gradient-to-br from-blue-50/60 to-slate-50/80 p-6 sm:p-8">
+      <div className="relative z-10 bg-[#F8FAFF]/80 p-6 sm:p-8">
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">

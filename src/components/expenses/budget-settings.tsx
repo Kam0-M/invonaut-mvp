@@ -92,7 +92,7 @@ export default function BudgetSettings({
 
   if (!isBusiness) {
     return (
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-3">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
         <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-gray-400" />
           Budget Alerts
@@ -100,7 +100,7 @@ export default function BudgetSettings({
         <p className="text-xs text-gray-400 leading-relaxed">
           Set monthly spending limits per category. Get emailed at 80% and 100% of each limit.
         </p>
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-lg">
+        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055FF] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg">
           Business plan only
         </div>
       </div>
@@ -108,7 +108,7 @@ export default function BudgetSettings({
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-4">
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-amber-500" />
@@ -131,13 +131,13 @@ export default function BudgetSettings({
 
       {/* Add form */}
       {showForm && (
-        <div className="border-2 border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3">
+        <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3">
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">Category</label>
             <select
               value={newCategory}
               onChange={e => setNewCategory(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
             >
               <option value="">Select a category...</option>
               {availableCategories.map(c => (
@@ -156,7 +156,7 @@ export default function BudgetSettings({
                 placeholder="500"
                 min="1"
                 step="1"
-                className="w-full pl-7 pr-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
+                className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
               />
             </div>
           </div>

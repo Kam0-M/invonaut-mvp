@@ -145,7 +145,7 @@ export default function RunwayCalculator({
               placeholder="0.00"
               suppressHydrationWarning
               disabled={isSaving}
-              className="w-full pl-8 pr-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 font-bold
+              className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 text-gray-900 font-bold
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                          disabled:bg-gray-50 text-lg"
             />
@@ -180,7 +180,7 @@ export default function RunwayCalculator({
 
       {/* Runway display */}
       {hasBalance && (
-        <div className={`rounded-xl border-2 p-5 ${runwayBg(currentRunway)}`}>
+        <div className={`rounded-xl border p-5 ${runwayBg(currentRunway)}`}>
           <p className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-1">Estimated Runway</p>
           <p className={`text-4xl font-black tracking-tight ${runwayColor(currentRunway)} min-w-0 truncate`}
              title={isFinite(currentRunway) ? `${currentRunway.toFixed(2)} months` : 'Unlimited'}>

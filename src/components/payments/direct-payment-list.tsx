@@ -88,7 +88,7 @@ export default function DirectPaymentList({
     }`
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg">
+    <div className="bg-white rounded-2xl border border-gray-100 ">
 
       {/* Controls */}
       <div className="p-6 border-b border-gray-100 space-y-4">
@@ -98,7 +98,7 @@ export default function DirectPaymentList({
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by description, client, or category…"
-          className="w-full px-4 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none"
         />
 
         <div className="flex flex-wrap gap-4">
@@ -205,7 +205,7 @@ export default function DirectPaymentList({
                         {methodLabel}
                       </span>
                       {payment.payment_type === 'prepay' && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                           Prepaid
                         </span>
                       )}

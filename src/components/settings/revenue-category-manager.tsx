@@ -191,7 +191,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
           title={c.label}
           onClick={() => onChange(c.hex)}
           className={`w-7 h-7 rounded-full border-2 transition-all flex items-center justify-center flex-shrink-0 ${
-            value === c.hex ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'
+            value === c.hex ? 'border-gray-800 ring-2 ring-offset-1 ring-gray-400' : 'border-transparent'
           }`}
           style={{ backgroundColor: c.hex }}
         >
@@ -210,7 +210,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
 
       {/* Block message banner — shown when deletion is rejected */}
       {deleteBlockMsg && (
-        <div className="flex items-start gap-3 p-4 bg-amber-50 border-2 border-amber-200 rounded-xl">
+        <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex-1 text-sm font-medium text-amber-800">{deleteBlockMsg}</div>
           <button
             onClick={() => setDeleteBlockMsg(null)}
@@ -223,7 +223,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
 
       {/* Category list */}
       {categories.length === 0 && !showAddForm ? (
-        <div className="text-center py-10 rounded-xl border-2 border-dashed border-gray-200">
+        <div className="text-center py-10 rounded-xl border border-dashed border-gray-200">
           <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
             <Tag className="w-6 h-6 text-gray-400" />
           </div>
@@ -231,7 +231,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
           <p className="text-xs text-gray-400">Add categories to tag your income by source</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-100 border-2 border-gray-100 rounded-xl overflow-hidden">
+        <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
           {categories.map(cat => (
             <div key={cat.id} className="bg-white">
               {editingId === cat.id ? (
@@ -247,7 +247,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
                         onChange={e => setEditName(e.target.value)}
                         placeholder="Category name"
                         maxLength={60}
-                        className="w-full px-3 py-2 text-sm font-bold text-gray-900 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none"
+                        className="w-full px-3 py-2 text-sm font-bold text-gray-900 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none"
                         onKeyDown={e => { if (e.key === 'Enter') handleEdit(cat.id); if (e.key === 'Escape') cancelEdit() }}
                         autoFocus
                       />
@@ -257,7 +257,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
                         onChange={e => setEditDescription(e.target.value)}
                         placeholder="Description (optional)"
                         maxLength={120}
-                        className="w-full px-3 py-2 text-sm text-gray-600 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none"
+                        className="w-full px-3 py-2 text-sm text-gray-600 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none"
                       />
                       <ColorPicker value={editColor} onChange={setEditColor} />
                     </div>
@@ -322,7 +322,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
 
       {/* Add form */}
       {showAddForm ? (
-        <div className="p-4 border-2 border-blue-200 bg-blue-50 rounded-xl space-y-3">
+        <div className="p-4 border border-blue-200 bg-blue-50 rounded-xl space-y-3">
           <p className="text-sm font-black text-gray-900">New Category</p>
           <div className="flex gap-3 items-start">
             <div className="w-9 h-9 rounded-lg flex-shrink-0 mt-0.5" style={{ backgroundColor: addColor }} />
@@ -333,7 +333,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
                 onChange={e => setAddName(e.target.value)}
                 placeholder="Category name (e.g. Consulting, Delivery, Subscriptions)"
                 maxLength={60}
-                className="w-full px-3 py-2 text-sm font-bold text-gray-900 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none bg-white"
+                className="w-full px-3 py-2 text-sm font-bold text-gray-900 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none bg-white"
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') { setShowAddForm(false); setAddName(''); setAddDescription(''); setAddColor(DEFAULT_COLOR) } }}
                 autoFocus
               />
@@ -343,7 +343,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
                 onChange={e => setAddDescription(e.target.value)}
                 placeholder="Description (optional)"
                 maxLength={120}
-                className="w-full px-3 py-2 text-sm text-gray-600 border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none bg-white"
+                className="w-full px-3 py-2 text-sm text-gray-600 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl focus:outline-none bg-white"
               />
               <ColorPicker value={addColor} onChange={setAddColor} />
             </div>
@@ -372,7 +372,7 @@ export default function RevenueCategoryManager({ initialCategories }: Props) {
         <button
           type="button"
           onClick={() => setShowAddForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-300 text-gray-600 text-sm font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all w-full justify-center"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-dashed border-gray-300 text-gray-600 text-sm font-bold hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all w-full justify-center"
         >
           <Plus className="w-4 h-4" />
           Add Category

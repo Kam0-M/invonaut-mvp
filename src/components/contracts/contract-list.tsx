@@ -47,7 +47,7 @@ function avatarColor(name: string) {
   const palette = [
     { bg: 'bg-blue-100',   text: 'text-blue-700'   },
     { bg: 'bg-teal-100',   text: 'text-teal-700'   },
-    { bg: 'bg-indigo-100', text: 'text-indigo-700' },
+    { bg: 'bg-sky-100', text: 'text-sky-700' },
     { bg: 'bg-amber-100',  text: 'text-amber-700'  },
     { bg: 'bg-cyan-100',   text: 'text-cyan-700'   },
   ]
@@ -98,7 +98,7 @@ export default function ContractList({
             placeholder="Search title or client…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-8 py-2.5 text-sm border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
+            className="w-full pl-9 pr-8 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-colors"
           />
           {search && (
             <button

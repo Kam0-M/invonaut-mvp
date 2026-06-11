@@ -59,7 +59,7 @@ export function DeleteInvoiceButton({
     <>
       <button
         onClick={() => setIsDialogOpen(true)}
-        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-red-300 bg-white hover:bg-red-50 hover:border-red-400 hover:shadow-lg transition-all duration-200 font-bold text-red-600 text-sm whitespace-nowrap"
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 transition-all duration-200 font-bold text-red-600 text-sm whitespace-nowrap"
       >
         <Trash2 className="w-4 h-4" />
         Delete Invoice
@@ -77,7 +77,7 @@ export function DeleteInvoiceButton({
       />
 
       {error && (
-        <div className="mt-2 p-3 bg-red-50 border-2 border-red-200 rounded-xl">
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-sm text-red-600 font-medium">{error}</p>
         </div>
       )}

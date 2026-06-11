@@ -14,7 +14,7 @@ const plans = [
     annualMonthly: 24,
     annualTotal:  290,
     accent:       '#F59E0B',
-    description:  'For freelancers getting started.',
+    description:  'For small businesses getting started.',
     features: [
       '25 invoices per month',
       'Unlimited clients',
@@ -36,7 +36,7 @@ const plans = [
     annualMonthly: 49,
     annualTotal:  590,
     accent:       '#0055FF',
-    description:  'For established freelancers.',
+    description:  'For growing businesses that need more.',
     highlighted:  true,
     features: [
       'Everything in Starter, plus:',
@@ -61,7 +61,7 @@ const plans = [
     annualMonthly: 91,
     annualTotal:  1090,
     accent:       '#00B894',
-    description:  'For small agencies and studios.',
+    description:  'For businesses that want the full stack.',
     features: [
       { text: 'Everything in Professional, plus:', soon: false },
       { text: 'Budget tracking with 80% & 100% alerts', soon: false },

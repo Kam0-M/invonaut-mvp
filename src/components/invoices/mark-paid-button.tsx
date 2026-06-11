@@ -60,7 +60,7 @@ export function MarkAsPaidButton({
     <button
       onClick={handleMarkAsPaid}
       disabled={isMarking}
-      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-green-300 bg-green-600 hover:bg-green-700 hover:border-green-400 hover:shadow-lg transition-all duration-200 font-bold text-white text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? 'w-full' : ''}`}
+      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#00C4A0] hover:bg-[#00b090] text-white transition-all duration-200 font-bold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed ${fullWidth ? 'w-full' : ''}`}
     >
       {isMarking ? (
         <>

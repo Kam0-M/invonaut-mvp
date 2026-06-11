@@ -39,7 +39,7 @@ function getBaseUrl(): string {
 const SLUG_REGEX = /^[a-z0-9-]{3,40}$/
 
 function avatarColor(name: string) {
-  const palette = ['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-indigo-100 text-indigo-700','bg-amber-100 text-amber-700']
+  const palette = ['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-sky-100 text-sky-700','bg-amber-100 text-amber-700']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return palette[Math.abs(hash) % palette.length]
@@ -147,7 +147,7 @@ export default function PortalSettingsForm({
         </div>
 
         {/* URL bar */}
-        <div className="flex items-stretch rounded-xl border-2 border-gray-200 overflow-hidden focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 mb-2">
+        <div className="flex items-stretch rounded-xl border border-gray-200 overflow-hidden focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 mb-2">
           <span className="inline-flex items-center px-3 bg-gray-50 text-gray-400 text-xs font-mono border-r-2 border-gray-200 flex-shrink-0">
             {host}/portal/
           </span>
@@ -192,7 +192,7 @@ export default function PortalSettingsForm({
             <textarea rows={3} value={customMessage}
               onChange={e => { setCustomMessage(e.target.value); setSaved(false) }}
               placeholder="Thanks for working with us. View your invoices and documents below."
-              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-sm text-gray-900 placeholder:text-gray-300
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 placeholder:text-gray-300
                          focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all resize-none"
             />
             <p className="text-xs text-gray-400 mt-1.5">Shown at the top of your client's portal page.</p>

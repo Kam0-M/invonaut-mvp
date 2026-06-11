@@ -83,7 +83,7 @@ export default function DismissRemindersButton({
   // ── Active state — show dismiss option ───────────────────────────────────
   if (showConfirm) {
     return (
-      <div className="rounded-xl border-2 border-orange-100 bg-orange-50/40 p-4 space-y-3">
+      <div className="rounded-xl border border-orange-100 bg-orange-50/40 p-4 space-y-3">
         <p className="text-xs font-bold text-gray-700 leading-relaxed">
           Stop all expiry reminders for this contract? You can re-enable them at any time.
         </p>

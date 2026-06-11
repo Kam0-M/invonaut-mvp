@@ -95,7 +95,7 @@ export default function EditPaymentForm({ payment, categories, clients }: Props)
   }
 
   const toggleBtn = (active: boolean) =>
-    `flex-1 py-2 rounded-xl text-sm font-bold transition-all border-2 ${
+    `flex-1 py-2 rounded-xl text-sm font-bold transition-all border ${
       active ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
     }`
 
@@ -104,7 +104,7 @@ export default function EditPaymentForm({ payment, categories, clients }: Props)
     : null
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg space-y-6">
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-10  space-y-6">
       <h2 className="text-xl font-black text-gray-900">Edit Payment</h2>
 
       {/* Amount + Date */}
@@ -143,8 +143,8 @@ export default function EditPaymentForm({ payment, categories, clients }: Props)
         <div className="flex flex-wrap gap-2">
           {PAYMENT_METHODS.map(m => (
             <button key={m.value} type="button" onClick={() => setPaymentMethod(m.value)} disabled={loading}
-              className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
-                paymentMethod === m.value ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+              className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
+                paymentMethod === m.value ? 'bg-[#0055FF] text-white border-[#0055FF]' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
               }`}>{m.label}</button>
           ))}
         </div>

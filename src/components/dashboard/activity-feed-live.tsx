@@ -26,7 +26,7 @@ const typeConfig: Record<ActivityType, {
   invoice:  { border: 'border-l-blue-500',  hover: 'hover:bg-blue-50/40',  iconBg: 'bg-blue-50',  iconColor: 'text-blue-600',  label: 'Invoice',      Icon: FileText  },
   payment:  { border: 'border-l-teal-500',  hover: 'hover:bg-teal-50/40',  iconBg: 'bg-teal-50',  iconColor: 'text-teal-600',  label: 'Payment',      Icon: Banknote  },
   followup: { border: 'border-l-cyan-500',  hover: 'hover:bg-cyan-50/40',  iconBg: 'bg-cyan-50',  iconColor: 'text-cyan-600',  label: 'AI Follow-up', Icon: Bot       },
-  contract: { border: 'border-l-indigo-500',hover: 'hover:bg-indigo-50/40',iconBg: 'bg-indigo-50',iconColor: 'text-indigo-600',label: 'Contract',     Icon: FileCheck },
+  contract: { border: 'border-l-blue-400',  hover: 'hover:bg-blue-50/30',  iconBg: 'bg-blue-50',  iconColor: 'text-blue-600',  label: 'Contract',     Icon: FileCheck },
 }
 
 function relativeTime(ts: string) {

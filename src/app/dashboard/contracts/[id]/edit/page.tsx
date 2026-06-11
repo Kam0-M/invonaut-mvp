@@ -51,7 +51,7 @@ function ClauseLibraryPanel({
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-md h-full flex flex-col shadow-2xl">
+      <div className="relative bg-white w-full max-w-md h-full flex flex-col shadow-[0_0_40px_rgba(0,0,0,0.12)]">
         <div className="flex items-center justify-between p-5 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-blue-600" />
@@ -458,8 +458,8 @@ export default function EditContractPage({
         </div>
 
         {clauses.length === 0 && (
-          <div className="border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center">
-            <p className="text-gray-400 text-sm">
+          <div className="border border-dashed border-gray-200 rounded-2xl p-8 text-center">
+            <p className="text-gray-400 text-sm font-medium">
               No clauses yet. Add from the library or create a blank clause.
             </p>
           </div>
@@ -529,7 +529,7 @@ export default function EditContractPage({
 
         <button
           onClick={addBlankClause}
-          className="w-full border-2 border-dashed border-gray-200 rounded-2xl py-4 flex items-center justify-center gap-2 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all font-semibold text-sm"
+          className="w-full border border-dashed border-gray-200 rounded-2xl py-4 flex items-center justify-center gap-2 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-[#F8FAFF] transition-all font-semibold text-sm"
         >
           <Plus className="w-4 h-4" />
           Add blank clause
@@ -541,7 +541,7 @@ export default function EditContractPage({
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 btn-primary px-8 py-4 rounded-xl transition-all disabled:opacity-50"
         >
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
           {isSaving ? 'Saving...' : 'Save Changes'}

@@ -34,7 +34,7 @@ export function PricingErrorBanner() {
 
   return (
     <div className="max-w-5xl mx-auto mb-8">
-      <div className="bg-red-50 border-2 border-red-200 rounded-xl p-6 relative">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 relative">
         <button
           onClick={() => setShowError(false)}
           className="absolute top-4 right-4 text-red-400 hover:text-red-600"

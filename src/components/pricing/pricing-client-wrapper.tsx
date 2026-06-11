@@ -86,7 +86,7 @@ export default function PricingClientWrapper({
       monthlyPrice: 59,
       annualMonthlyPrice: 49,
       annualTotalPrice: 590,
-      description: 'For growing freelancers and businesses',
+      description: 'For growing businesses that need more',
       monthlyPriceId: professionalPriceId,
       annualPriceId: professionalAnnualPriceId,
       highlighted: true,
@@ -110,7 +110,7 @@ export default function PricingClientWrapper({
       monthlyPrice: 109,
       annualMonthlyPrice: 91,
       annualTotalPrice: 1090,
-      description: 'For small agencies and studios',
+      description: 'For businesses that want the full stack',
       monthlyPriceId: businessPriceId,
       annualPriceId: businessAnnualPriceId,
       highlighted: false,
@@ -182,7 +182,7 @@ export default function PricingClientWrapper({
             return (
               <div
                 key={plan.id}
-                className={`rounded-2xl p-8 border-2 flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
+                className={`rounded-2xl p-8 border flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
                   plan.highlighted
                     ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500'
                     : plan.id === 'starter'

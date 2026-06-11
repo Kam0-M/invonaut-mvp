@@ -37,7 +37,7 @@ const categoryColors: Record<string, { pill: string; dot: string }> = {
   office:       { pill: 'bg-cyan-50 text-cyan-700 border-cyan-200',      dot: 'bg-cyan-500'    },
   professional: { pill: 'bg-violet-50 text-violet-700 border-violet-200',dot: 'bg-violet-500'  },
   utilities:    { pill: 'bg-teal-50 text-teal-700 border-teal-200',      dot: 'bg-teal-500'    },
-  education:    { pill: 'bg-indigo-50 text-indigo-700 border-indigo-200',dot: 'bg-indigo-500'  },
+  education:    { pill: 'bg-blue-50 text-blue-700 border-blue-200',dot: 'bg-blue-500'  },
   insurance:    { pill: 'bg-green-50 text-green-700 border-green-200',   dot: 'bg-green-500'   },
   taxes:        { pill: 'bg-red-50 text-red-700 border-red-200',         dot: 'bg-red-500'     },
   other:        { pill: 'bg-gray-50 text-gray-600 border-gray-200',      dot: 'bg-gray-400'    },
@@ -146,7 +146,7 @@ export default function ExpenseList({
           </p>
           <Link
             href="/dashboard/expenses/new"
-            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all hover:shadow-lg hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all "
           >
             Add first expense
           </Link>

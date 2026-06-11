@@ -32,15 +32,15 @@ export function InvoiceRow({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'bg-gray-100 text-gray-800 border-2 border-gray-300'
+        return 'bg-gray-100 text-gray-700 border border-gray-200'
       case 'sent':
-        return 'bg-blue-100 text-blue-800 border-2 border-blue-300'
+        return 'bg-blue-50 text-blue-700 border border-blue-200'
       case 'paid':
-        return 'bg-green-100 text-green-800 border-2 border-green-300'
+        return 'bg-teal-50 text-teal-700 border border-teal-200'
       case 'overdue':
-        return 'bg-red-100 text-red-800 border-2 border-red-300'
+        return 'bg-red-50 text-red-700 border border-red-200'
       default:
-        return 'bg-gray-100 text-gray-800 border-2 border-gray-300'
+        return 'bg-gray-100 text-gray-700 border border-gray-200'
     }
   }
 

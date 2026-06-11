@@ -88,7 +88,7 @@ export default function InvoiceContractLinker({
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider">
           Linked Contracts
@@ -106,13 +106,13 @@ export default function InvoiceContractLinker({
 
       {/* Contract picker */}
       {showPicker && (
-        <div className="border-2 border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3">
+        <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3">
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">Contract</label>
             <select
               value={selectedContractId}
               onChange={e => setSelectedContractId(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
             >
               <option value="">Select a contract...</option>
               {unlinkedContracts.map(c => (

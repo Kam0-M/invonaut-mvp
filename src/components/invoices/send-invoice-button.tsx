@@ -99,7 +99,7 @@ export function SendInvoiceButton({
           setIsOpen(true)
           setEmail(clientEmail)
         }}
-        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border-2 border-blue-300 bg-blue-600 hover:bg-blue-700 hover:border-blue-400 hover:shadow-lg transition-all duration-200 font-bold text-white text-sm whitespace-nowrap"
+        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl btn-primary transition-all duration-200 text-sm whitespace-nowrap"
       >
         <Mail className="w-4 h-4" />
         Send Invoice
@@ -122,14 +122,14 @@ export function SendInvoiceButton({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="client@example.com"
               disabled={isSending}
-              className="w-full h-12 text-base border-2"
+              className="w-full h-12 text-base"
             />
             <p className="text-xs text-gray-500 mt-2 font-medium">
               Invoice will be sent to this email address
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-xl border-2 border-gray-200 p-6">
+          <div className="bg-[#F8FAFF] rounded-xl border border-gray-100 p-6">
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-gray-500 mb-2">
@@ -139,7 +139,7 @@ export function SendInvoiceButton({
                   {subjectLine}
                 </p>
               </div>
-              <div className="pt-4 border-t-2 border-gray-200">
+              <div className="pt-4 border-t border-gray-100">
                 <p className="text-xs font-black uppercase tracking-wide text-gray-500 mb-2">
                   Recipient
                 </p>
@@ -150,7 +150,7 @@ export function SendInvoiceButton({
                   {email || clientEmail}
                 </p>
               </div>
-              <div className="pt-4 border-t-2 border-gray-200">
+              <div className="pt-4 border-t border-gray-100">
                 <p className="text-xs text-gray-600 font-medium">
                   <span className="font-bold">Note:</span> A PDF copy of invoice {invoiceNumber} will be attached to this email.
                 </p>
@@ -158,18 +158,18 @@ export function SendInvoiceButton({
             </div>
           </div>
 
-          <div className="flex gap-3 justify-end pt-6 border-t-2 border-gray-200">
+          <div className="flex gap-3 justify-end pt-6 border-t border-gray-100">
             <button
               onClick={handleClose}
               disabled={isSending}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border-2 border-gray-300 bg-white text-gray-700 font-bold hover:bg-gray-50 hover:border-gray-400 hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               onClick={handleSend}
               disabled={isSending || !email.trim()}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl btn-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSending ? (
                 <>
