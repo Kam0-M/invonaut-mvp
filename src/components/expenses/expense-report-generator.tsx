@@ -44,7 +44,7 @@ export default function ExpenseReportGenerator() {
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
       <h3 className="font-black text-gray-900">Export Report</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -54,7 +54,7 @@ export default function ExpenseReportGenerator() {
             type="date"
             value={startDate}
             onChange={e => setStartDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
           />
         </div>
         <div>
@@ -63,7 +63,7 @@ export default function ExpenseReportGenerator() {
             type="date"
             value={endDate}
             onChange={e => setEndDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all"
           />
         </div>
         <div>
@@ -71,7 +71,7 @@ export default function ExpenseReportGenerator() {
           <select
             value={category}
             onChange={e => setCategory(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all bg-white"
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 focus:border-blue-500 outline-none transition-all bg-white"
           >
             <option value="all">All categories</option>
             {EXPENSE_CATEGORIES.map(c => (
@@ -85,7 +85,7 @@ export default function ExpenseReportGenerator() {
         <button
           onClick={() => handleExport('csv')}
           disabled={!!isExporting}
-          className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
         >
           {isExporting === 'csv'
             ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -96,7 +96,7 @@ export default function ExpenseReportGenerator() {
         <button
           onClick={() => handleExport('pdf')}
           disabled={!!isExporting}
-          className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-50"
         >
           {isExporting === 'pdf'
             ? <Loader2 className="w-4 h-4 animate-spin" />

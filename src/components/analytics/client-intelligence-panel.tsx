@@ -184,7 +184,7 @@ export default function ClientIntelligencePanel({
   const isChartView = viewMode === 'revenue' || viewMode === 'rate'
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-lg p-8">
+    <div className="bg-white rounded-2xl border border-gray-100  p-8">
 
       {/* Section header */}
       <div className="flex flex-col sm:flex-row sm:items-start gap-4 mb-6">

@@ -95,19 +95,19 @@ export default async function TimePage() {
             Track billable hours and turn them into invoices
           </p>
         </div>
-        <div className="bg-white rounded-2xl border-2 border-gray-100 p-12 text-center">
-          <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Clock className="w-8 h-8 text-blue-500" />
+        <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+          <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <Clock className="w-7 h-7 text-blue-600" />
           </div>
-          <h3 className="text-xl font-black text-gray-900 mb-2">Subscribe to track time</h3>
-          <p className="text-gray-500 mb-6">
+          <h3 className="text-xl font-black text-gray-900 mb-2">Time tracking requires a plan</h3>
+          <p className="text-sm text-gray-500 mb-6 font-medium">
             Log billable hours per client and convert them directly to invoice line items.
           </p>
           <Link
             href="/pricing"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all"
+            className="inline-flex items-center gap-2 btn-primary px-6 py-3 rounded-xl"
           >
-            View Plans
+            Start free trial
           </Link>
         </div>
       </div>

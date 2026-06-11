@@ -115,7 +115,7 @@ function SignatureCanvas({ onChange }: { onChange: (dataUrl: string | null) => v
   return (
     <div className="space-y-2">
       {/* Fixed height container so the layout never shifts when the clear button appears */}
-      <div className="relative border-2 border-gray-200 rounded-xl bg-white overflow-hidden" style={{ height: '144px' }}>
+      <div className="relative border border-gray-200 rounded-xl bg-white overflow-hidden" style={{ height: '144px' }}>
         <canvas
           ref={canvasRef}
           width={600}
@@ -198,7 +198,7 @@ export default function ContractSigningForm({
 
   if (signed) {
     return (
-      <div className="bg-white rounded-2xl border-2 border-green-100 shadow-sm p-8 text-center space-y-4">
+      <div className="bg-white rounded-2xl border border-green-100 shadow-sm p-8 text-center space-y-4">
         <div className="flex justify-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
             <CheckCircle className="w-8 h-8 text-green-600" />
@@ -215,7 +215,7 @@ export default function ContractSigningForm({
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-blue-100 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-2xl border border-blue-100 shadow-sm p-6 space-y-5">
       <div>
         <h2 className="font-black text-gray-900 mb-1">Sign this contract</h2>
         <p className="text-sm text-gray-500">
@@ -233,7 +233,7 @@ export default function ContractSigningForm({
           value={signerName}
           onChange={e => setSignerName(e.target.value)}
           placeholder="Enter your full legal name"
-          className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+          className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
         />
       </div>
 
@@ -254,7 +254,7 @@ export default function ContractSigningForm({
             onChange={e => setAgreed(e.target.checked)}
             className="sr-only peer"
           />
-          <div className="w-5 h-5 border-2 border-gray-300 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors" />
+          <div className="w-5 h-5 border border-gray-200 rounded peer-checked:bg-blue-600 peer-checked:border-blue-600 transition-colors" />
           {agreed && (
             <svg
               className="absolute inset-0 w-5 h-5 text-white p-0.5"
@@ -278,7 +278,7 @@ export default function ContractSigningForm({
         type="button"
         onClick={handleSign}
         disabled={!canSign || isSigning}
-        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl font-bold text-base hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 rounded-xl font-bold text-base hover:from-blue-700 hover:to-blue-800 hover: transition-all disabled:opacity-40 disabled:cursor-not-allowed"
       >
         {isSigning ? (
           <><Loader2 className="w-5 h-5 animate-spin" /> Signing...</>

@@ -38,14 +38,14 @@ export default function CancelSubscriptionButton({ currentTier }: CancelSubscrip
     <>
       <button
         onClick={() => setShowModal(true)}
-        className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl transition-all hover:scale-105"
+        className="w-full bg-gradient-to-r bg-red-600 hover:bg-red-700 transition-all"
       >
         Cancel Subscription
       </button>
 
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full shadow-2xl">
+          <div className="bg-white rounded-2xl max-w-lg w-full ">
             {/* Header */}
             <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl">
               <div className="flex items-start justify-between">
@@ -142,7 +142,7 @@ export default function CancelSubscriptionButton({ currentTier }: CancelSubscrip
 
               {/* Downgrade note for Professional users only */}
               {isProfessional && (
-                <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-5">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
                   <p className="text-sm text-blue-900 font-medium">
                     <strong>Prefer a lower cost over no access?</strong> Use "Downgrade to Starter" ($30/mo) instead to keep creating invoices and managing clients without losing everything.
                   </p>
@@ -151,7 +151,7 @@ export default function CancelSubscriptionButton({ currentTier }: CancelSubscrip
 
               {/* Confirmation note for Starter users */}
               {isStarter && (
-                <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-4 mb-5">
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
                   <p className="text-sm text-gray-700">
                     You won't be charged again. Your data will be waiting for you if you decide to come back.
                   </p>

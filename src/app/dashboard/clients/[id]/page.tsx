@@ -24,7 +24,7 @@ const STATUS_CFG: Record<string,{pill:string;dot:string;label:string}> = {
 const METHOD: Record<string,string> = {cash:'Cash',bank:'Bank Transfer',mobile:'Mobile Money',pos:'POS'}
 
 function avatarColor(name: string) {
-  const p=['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-indigo-100 text-indigo-700','bg-amber-100 text-amber-700']
+  const p=['bg-blue-100 text-blue-700','bg-teal-100 text-teal-700','bg-orange-100 text-orange-700','bg-amber-100 text-amber-700']
   let h=0; for(let i=0;i<name.length;i++) h=name.charCodeAt(i)+((h<<5)-h)
   return p[Math.abs(h)%p.length]
 }

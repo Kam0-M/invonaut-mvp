@@ -70,7 +70,7 @@ export default function ReceiptUploader({ onUploaded, currentUrl }: ReceiptUploa
       </label>
 
       {preview ? (
-        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border-2 border-gray-200">
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
           {isPdf ? (
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
               <FileImage className="w-5 h-5 text-red-600" />
@@ -108,7 +108,7 @@ export default function ReceiptUploader({ onUploaded, currentUrl }: ReceiptUploa
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 text-sm font-bold text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50/30 transition-all disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-dashed border-gray-200 text-sm font-bold text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-[#F8FAFF] transition-all disabled:opacity-50"
         >
           {uploading
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Uploading...</>

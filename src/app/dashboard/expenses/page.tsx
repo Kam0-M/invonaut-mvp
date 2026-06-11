@@ -123,7 +123,7 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
               Log and categorise every business expense, attach receipts, and keep your spending visible. Professional plan unlocks AI-suggested categories. Business plan adds monthly budget limits with automatic overspend alerts.
             </p>
             <Link href="/pricing"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-primary rounded-xl hover:shadow-lg transition-all">
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl btn-primary transition-all">
               View Plans
             </Link>
           </div>

@@ -84,7 +84,7 @@ export default function LogoUploader({ userId, currentLogoUrl, onLogoUploaded }:
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onClick={() => !previewUrl && fileInputRef.current?.click()}
-          className={`relative rounded-xl border-dashed border-2 transition-all duration-200 ${
+          className={`relative rounded-xl border-dashed border transition-all duration-200 ${
             isDragging
               ? 'border-blue-400 bg-blue-50'
               : previewUrl

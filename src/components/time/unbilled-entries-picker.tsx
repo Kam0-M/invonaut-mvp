@@ -134,7 +134,7 @@ export default function UnbilledEntriesPicker({
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-white rounded-2xl  w-full max-w-2xl max-h-[85vh] flex flex-col">
 
         {/* ── Header ─────────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
@@ -178,10 +178,10 @@ export default function UnbilledEntriesPicker({
               {/* Select / deselect all */}
               <button
                 onClick={toggleAll}
-                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 border-dashed border-gray-200
+                className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border border-dashed border-gray-200
                            hover:border-blue-300 hover:bg-blue-50 transition-all text-sm font-bold text-gray-600"
               >
-                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
                   selected.size === entries.length
                     ? 'bg-blue-600 border-blue-600'
                     : 'border-gray-300'
@@ -207,14 +207,14 @@ export default function UnbilledEntriesPicker({
                   <button
                     key={entry.id}
                     onClick={() => toggle(entry.id)}
-                    className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl border-2 text-left transition-all ${
+                    className={`w-full flex items-start gap-3 px-4 py-4 rounded-xl border text-left transition-all ${
                       isSelected
                         ? 'border-blue-400 bg-blue-50 shadow-sm'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     {/* Checkbox */}
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
                       isSelected ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
                     }`}>
                       {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -262,7 +262,7 @@ export default function UnbilledEntriesPicker({
             <div className="flex gap-3">
               <button
                 onClick={onClose}
-                className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-700 font-bold
+                className="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-bold
                            hover:bg-gray-50 transition-all text-sm"
               >
                 Cancel

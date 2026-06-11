@@ -55,7 +55,7 @@ function FileIcon({ mimeType, className }: { mimeType: string; className?: strin
 
 // Background colour for the file icon badge
 function iconBg(mimeType: string): string {
-  if (mimeType.startsWith('image/'))  return 'bg-purple-100 text-purple-600'
+  if (mimeType.startsWith('image/'))  return 'bg-blue-100 text-blue-600'
   if (mimeType === 'application/pdf') return 'bg-red-100 text-red-600'
   if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return 'bg-green-100 text-green-600'
   if (mimeType.includes('word') || mimeType.includes('document'))     return 'bg-blue-100 text-blue-600'
@@ -149,12 +149,12 @@ export default function ClientFilesTab({ clientId, initialFiles }: Props) {
   const fileToDelete = files.find(f => f.id === deleteId)
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 p-10 shadow-lg">
+    <div className="bg-white rounded-2xl border border-gray-100 p-10">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 bg-[#0055FF] rounded-xl flex items-center justify-center flex-shrink-0">
             <Paperclip className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -167,7 +167,7 @@ export default function ClientFilesTab({ clientId, initialFiles }: Props) {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0055FF] text-white font-bold text-sm hover:bg-[#0044DD] hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
         >
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
           {uploading ? 'Uploading…' : 'Upload File'}
@@ -180,15 +180,15 @@ export default function ClientFilesTab({ clientId, initialFiles }: Props) {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => !uploading && fileInputRef.current?.click()}
-        className={`mb-6 rounded-xl border-2 border-dashed p-8 text-center transition-all cursor-pointer ${
+        className={`mb-6 rounded-xl border border-dashed p-8 text-center transition-all cursor-pointer ${
           isDragging
-            ? 'border-indigo-400 bg-indigo-50'
-            : 'border-gray-300 hover:border-indigo-400 hover:bg-gray-50'
+            ? 'border-blue-400 bg-blue-50'
+            : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
         } ${uploading ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
       >
         <div className="flex flex-col items-center gap-2">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isDragging ? 'bg-indigo-100' : 'bg-gray-100'}`}>
-            <Upload className={`w-6 h-6 ${isDragging ? 'text-indigo-600' : 'text-gray-400'}`} />
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${isDragging ? 'bg-blue-100' : 'bg-gray-100'}`}>
+            <Upload className={`w-6 h-6 ${isDragging ? 'text-[#0055FF]' : 'text-gray-400'}`} />
           </div>
           <p className="text-sm font-bold text-gray-700">
             {isDragging ? 'Drop to upload' : 'Drag & drop or click to upload'}
@@ -224,7 +224,7 @@ export default function ClientFilesTab({ clientId, initialFiles }: Props) {
                   href={file.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-bold text-gray-900 hover:text-indigo-600 transition-colors truncate block"
+                  className="text-sm font-bold text-gray-900 hover:text-[#0055FF] transition-colors truncate block"
                   title={file.file_name}
                 >
                   {file.file_name}
@@ -239,7 +239,7 @@ export default function ClientFilesTab({ clientId, initialFiles }: Props) {
                 href={file.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs font-bold text-indigo-500 hover:text-indigo-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="text-xs font-bold text-blue-500 hover:text-blue-700 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 Download ↗
               </a>

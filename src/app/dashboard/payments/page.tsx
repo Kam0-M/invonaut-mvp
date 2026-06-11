@@ -87,7 +87,7 @@ export default async function PaymentsPage() {
                 { label: 'This month', value: formatCompact(thisMonthIncome), color: 'text-blue-600'   },
                 { label: 'Cash',       value: String(cashCount),              color: 'text-amber-600'  },
                 { label: 'Bank',       value: String(bankCount),              color: 'text-green-600'  },
-                { label: 'Mobile/POS', value: String(mobileCount + posCount), color: 'text-purple-600' },
+                { label: 'Mobile/POS', value: String(mobileCount + posCount), color: 'text-orange-500' },
               ].map(s => (
                 <div key={s.label} className="flex items-center gap-1.5">
                   <span className={`text-sm font-black ${s.color}`}>{s.value}</span>

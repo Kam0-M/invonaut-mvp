@@ -524,7 +524,7 @@ export default function NewInvoicePage() {
 
           {/* Add from Time Entries */}
           {clientId && (
-            <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl border border-blue-100">
+            <div className="flex items-center gap-4 p-4 bg-[#F8FAFF] rounded-xl border border-blue-100">
               <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Clock className="w-5 h-5 text-white" />
               </div>
@@ -736,7 +736,7 @@ export default function NewInvoicePage() {
           </div>
 
           {/* Totals Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-100 p-8">
+          <div className="bg-[#F8FAFF] rounded-2xl border border-blue-100 p-8">
             <div className="space-y-4">
               <div className="flex justify-between text-base">
                 <span className="font-bold text-gray-700">Subtotal:</span>

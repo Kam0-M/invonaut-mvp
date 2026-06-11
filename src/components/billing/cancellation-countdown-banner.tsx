@@ -42,7 +42,7 @@ export default function CancellationCountdownBanner({ cancelAt, currentTier }: C
   })
 
   return (
-    <div className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-300 rounded-2xl p-6 mb-8">
+    <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 mb-8">
       <div className="flex items-start gap-4">
         {/* Warning Icon */}
         <div className="flex-shrink-0">

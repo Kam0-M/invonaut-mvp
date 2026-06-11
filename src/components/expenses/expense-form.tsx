@@ -94,7 +94,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
     <div className="space-y-6">
 
       {/* Core fields */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-5">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
         <h3 className="font-black text-gray-900">Expense details</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -166,7 +166,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
                   type="button"
                   onClick={handleAISuggest}
                   disabled={isCategorizing}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-purple-600 hover:text-purple-700 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-[#0055FF] hover:text-blue-700 transition-colors disabled:opacity-50"
                 >
                   {isCategorizing
                     ? <Loader2 className="w-3 h-3 animate-spin" />
@@ -221,7 +221,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
       </div>
 
       {/* Receipt upload */}
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6">
+      <div className="bg-white rounded-2xl border border-gray-100 p-6">
 
         {/* COGS toggle */}
         <div
@@ -268,7 +268,7 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-4 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl transition-all disabled:opacity-50"
+          className="inline-flex items-center gap-2 bg-gradient-to-r btn-primary transition-all disabled:opacity-50"
         >
           {isSaving && <Loader2 className="w-5 h-5 animate-spin" />}
           {isSaving ? 'Saving...' : 'Save Expense'}

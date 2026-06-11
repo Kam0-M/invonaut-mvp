@@ -39,7 +39,7 @@ export default function ReactivateSubscriptionButton() {
     <button
       onClick={handleReactivate}
       disabled={isReactivating}
-      className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-3 rounded-xl font-bold hover:shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+      className="w-full bg-gradient-to-r bg-[#00C4A0] hover:bg-[#00b090] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {isReactivating ? (
         <span className="flex items-center justify-center gap-2">

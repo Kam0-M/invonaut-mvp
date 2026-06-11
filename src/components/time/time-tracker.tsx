@@ -103,10 +103,10 @@ export default function TimeTracker({
   }
 
   return (
-    <div className={`rounded-2xl border-2 p-6 transition-all ${
+    <div className={`rounded-2xl border p-6 transition-all ${
       timer.isRunning
-        ? 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-300 shadow-lg'
-        : 'bg-white border-gray-100 shadow-sm'
+        ? 'bg-[#F8FAFF] border-blue-200'
+        : 'bg-white border-gray-100'
     }`}>
       <div className="flex items-center gap-3 mb-5">
         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -147,7 +147,7 @@ export default function TimeTracker({
             value={selectedClientId}
             onChange={e => setSelectedClientId(e.target.value)}
             disabled={timer.isRunning || isSaving}
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm font-medium
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm font-medium
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                        bg-white disabled:bg-gray-50 disabled:text-gray-500"
           >
@@ -172,7 +172,7 @@ export default function TimeTracker({
             onKeyDown={e => { if (e.key === 'Enter' && !timer.isRunning) handleStart() }}
             disabled={timer.isRunning || isSaving}
             placeholder="e.g. Homepage redesign, Client call..."
-            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-900 text-sm
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all
                        disabled:bg-gray-50 disabled:text-gray-500"
           />
@@ -186,7 +186,7 @@ export default function TimeTracker({
           disabled={isSaving}
           className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white
                      px-6 py-3 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800
-                     hover:shadow-lg transition-all disabled:opacity-50"
+                     hover: transition-all disabled:opacity-50"
         >
           <Play className="w-4 h-4" />
           Start Timer
@@ -197,7 +197,7 @@ export default function TimeTracker({
           disabled={isSaving}
           className="inline-flex items-center gap-2 bg-gradient-to-r from-red-500 to-red-600 text-white
                      px-6 py-3 rounded-xl font-bold hover:from-red-600 hover:to-red-700
-                     hover:shadow-lg transition-all disabled:opacity-50"
+                     hover: transition-all disabled:opacity-50"
         >
           <Square className="w-4 h-4 fill-current" />
           {isSaving ? 'Saving...' : 'Stop & Save'}

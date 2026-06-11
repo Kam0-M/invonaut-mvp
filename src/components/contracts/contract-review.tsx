@@ -90,15 +90,15 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
   // Locked state for non-Pro users
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-3">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
         <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-purple-500" />
+          <Sparkles className="w-4 h-4 text-[#0055FF]" />
           AI Contract Review
         </h3>
         <p className="text-xs text-gray-400 leading-relaxed">
           Automatically flag missing protections — no IP clause, no liability cap, weak payment terms, and more.
         </p>
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 border border-purple-200 px-3 py-1.5 rounded-lg">
+        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055FF] bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
           Professional & Business only
         </div>
       </div>
@@ -106,10 +106,10 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6 space-y-4">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-purple-500" />
+          <Sparkles className="w-4 h-4 text-[#0055FF]" />
           AI Contract Review
         </h3>
         {result && (
@@ -130,7 +130,7 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
           </p>
           <button
             onClick={handleReview}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-600 to-violet-600 text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:from-purple-700 hover:to-violet-700 hover:shadow-lg transition-all"
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-[#0055FF] to-[#0044DD] text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:from-[#0044DD] hover:to-[#0033CC] hover: transition-all"
           >
             <Sparkles className="w-4 h-4" />
             Review with AI
@@ -141,7 +141,7 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center gap-3 py-2">
-          <Loader2 className="w-5 h-5 animate-spin text-purple-500 flex-shrink-0" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#0055FF] flex-shrink-0" />
           <div>
             <p className="text-sm font-bold text-gray-700">Reviewing contract...</p>
             <p className="text-xs text-gray-400">This usually takes 5–10 seconds.</p>
@@ -158,7 +158,7 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
           </div>
           <button
             onClick={handleReview}
-            className="inline-flex items-center gap-2 border-2 border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2 border border-gray-200 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-colors"
           >
             Try again
           </button>
@@ -212,7 +212,7 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
           <button
             onClick={handleReview}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-[#0055FF] transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5" />
             Re-run review

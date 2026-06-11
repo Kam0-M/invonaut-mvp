@@ -41,7 +41,7 @@ export default function DeletePaymentButton({ paymentId, description }: Props) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border-2 border-red-200 bg-white text-red-600 font-bold hover:bg-red-50 hover:border-red-300 hover:shadow-lg transition-all"
+        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 bg-white text-red-600 font-bold hover:bg-red-50 hover:border-red-300 hover: transition-all"
       >
         <Trash2 className="w-4 h-4" />Delete
       </button>

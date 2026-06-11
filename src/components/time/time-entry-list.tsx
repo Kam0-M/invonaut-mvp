@@ -83,7 +83,7 @@ export default function TimeEntryList({
   ]
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
       {/* Header + filter tabs */}
       <div className="px-6 pt-6 pb-4 border-b border-gray-100">
         <h2 className="text-xl font-black text-gray-900 tracking-tight mb-4">Time Log</h2>

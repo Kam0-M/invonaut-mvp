@@ -40,16 +40,16 @@ export function InvoiceActions({ invoiceId, currentStatus }: InvoiceActionsProps
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
       {error && (
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 flex items-start gap-2 w-full sm:w-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2 w-full sm:w-auto">
           <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-          <p className="text-sm font-medium text-red-800">{error}</p>
+          <p className="text-sm font-medium text-red-700">{error}</p>
         </div>
       )}
       {currentStatus === 'draft' && (
         <button
           onClick={() => updateStatus('sent')}
           disabled={isUpdating}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[160px]"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl btn-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
         >
           <Send className="w-4 h-4" />
           {isUpdating ? 'Updating...' : 'Mark as Sent'}
@@ -59,7 +59,7 @@ export function InvoiceActions({ invoiceId, currentStatus }: InvoiceActionsProps
         <button
           onClick={() => updateStatus('paid')}
           disabled={isUpdating}
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-green-700 text-white font-bold hover:from-green-700 hover:to-green-800 hover:shadow-2xl hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[160px]"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#00C4A0] hover:bg-[#00b090] text-white font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed min-w-[160px]"
         >
           <CheckCircle className="w-4 h-4" />
           {isUpdating ? 'Updating...' : 'Mark as Paid'}

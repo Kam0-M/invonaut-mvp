@@ -126,7 +126,7 @@ export default function ContractActions({
         {isEditable && (
           <Link
             href={`/dashboard/contracts/${contractId}/edit`}
-            className="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all"
+            className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all"
           >
             <Pencil className="w-4 h-4" />
             Edit
@@ -140,8 +140,8 @@ export default function ContractActions({
             disabled={isSending}
             className={
               isResend
-                ? 'inline-flex items-center gap-2 border-2 border-blue-300 text-blue-700 bg-white hover:bg-blue-50 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50'
-                : 'inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover:shadow-lg transition-all disabled:opacity-50'
+                ? 'inline-flex items-center gap-2 border border-blue-300 text-blue-700 bg-white hover:bg-blue-50 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50'
+                : 'inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover: transition-all disabled:opacity-50'
             }
           >
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -153,7 +153,7 @@ export default function ContractActions({
         {isExtendable && (
           <button
             onClick={() => setShowExtendPicker(!showExtendPicker)}
-            className="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all"
+            className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all"
           >
             <CalendarClock className="w-4 h-4" />
             Extend
@@ -165,7 +165,7 @@ export default function ContractActions({
           <button
             onClick={handleRenew}
             disabled={isRenewing}
-            className="inline-flex items-center gap-2 border-2 border-gray-300 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
+            className="inline-flex items-center gap-2 border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50"
           >
             {isRenewing
               ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -185,7 +185,7 @@ export default function ContractActions({
 
       {/* Extend date picker — inline dropdown */}
       {showExtendPicker && (
-        <div className="border-2 border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3 w-full sm:w-72">
+        <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/30 space-y-3 w-full sm:w-72">
           <div>
             <label className="block text-xs font-bold text-gray-700 mb-1.5">
               New expiry date
@@ -195,7 +195,7 @@ export default function ContractActions({
               min={minDate}
               value={newExpiryDate}
               onChange={e => setNewExpiryDate(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border-2 border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 bg-white focus:border-blue-500 outline-none transition-all"
             />
             {expiryDate && (
               <p className="text-xs text-gray-400 mt-1.5">

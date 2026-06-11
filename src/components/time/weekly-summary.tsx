@@ -115,7 +115,7 @@ export default function WeeklySummary({
   ]
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-xl font-black text-gray-900 tracking-tight">This Week</h2>
         <span className="text-xs font-bold text-gray-400 uppercase tracking-wide">

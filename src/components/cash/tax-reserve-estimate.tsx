@@ -37,7 +37,7 @@ export default function TaxReserveEstimate({
   const hasData       = totalRevenue > 0
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-gray-100 p-6">
       <div className="flex items-center gap-3 mb-5">
         <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
           <PiggyBank className="w-5 h-5 text-white" />
@@ -59,7 +59,7 @@ export default function TaxReserveEstimate({
       ) : (
         <>
           {/* Reserve amount */}
-          <div className="bg-gradient-to-br from-amber-50 to-yellow-50 border-2 border-amber-200 rounded-xl p-5 mb-4">
+          <div className="bg-amber-50/50 border border-amber-200 rounded-xl p-5 mb-4">
             <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">Estimated Reserve</p>
             <p
               className="text-3xl font-black text-amber-900 tracking-tight truncate min-w-0"

@@ -26,7 +26,7 @@ export default function CancellationBanner() {
   if (!showBanner) return null
 
   return (
-    <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-6 mb-8 shadow-lg">
+    <div className="bg-orange-50 border border-orange-200">
       <div className="flex items-start gap-4">
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
@@ -69,7 +69,7 @@ export default function CancellationBanner() {
             </Link>
             <button
               onClick={handleDismiss}
-              className="inline-flex items-center gap-2 bg-white text-orange-600 border-2 border-orange-600 px-4 py-2 rounded-lg font-bold text-sm hover:bg-orange-50 transition-all"
+              className="inline-flex items-center gap-2 bg-white text-orange-600 border border-orange-500 px-4 py-2 rounded-lg font-bold text-sm hover:bg-orange-50 transition-all"
             >
               Continue Browsing
             </button>

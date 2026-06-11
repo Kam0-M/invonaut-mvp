@@ -76,7 +76,7 @@ export function ClientRow({
           {/* View Button (always visible) */}
           <Link 
             href={`/dashboard/clients/${id}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 transition-all text-xs font-bold text-blue-700"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 transition-all text-xs font-bold text-blue-700"
           >
             View
           </Link>
@@ -85,7 +85,7 @@ export function ClientRow({
           {hasActiveSubscription ? (
             <Link 
               href={`/dashboard/clients/${id}/edit`}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-xs font-bold text-gray-700"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-xs font-bold text-gray-700"
             >
               <Edit className="w-3.5 h-3.5" />
               Edit
@@ -93,7 +93,7 @@ export function ClientRow({
           ) : (
             <button
               disabled
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 border-2 border-gray-200 text-gray-400 text-xs font-bold cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-100 border border-gray-200 text-gray-400 text-xs font-bold cursor-not-allowed"
               title="Subscribe to edit clients"
             >
               <Lock className="w-3.5 h-3.5" />
