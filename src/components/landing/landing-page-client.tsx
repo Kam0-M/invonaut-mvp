@@ -373,9 +373,6 @@ const STEPS = [
   { n:'03', c:'var(--blue)', title:'Contracts protect you',     body:"Create from templates, collect signatures in minutes. Automatic reminders at 30, 15, 7, and 1 day before expiry. Nothing slips through without you knowing." },
   { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash forecast brings together your expected income and tracked expenses. See exactly what's coming — before it becomes a problem." },
 ]
-  { n:'03', c:'var(--blue)', title:'Contracts protect you',     body:"Create from templates, collect e-signatures in minutes. Automatic reminders at 30, 15, 7, and 1 day before expiry mean nothing slips." },
-  { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash flow forecast combines AI-predicted invoice payments and logged expenses. Know exactly how long your money lasts." },
-]
 const PLATFORM = [
   { group:'Track every dollar', color:'var(--blue)',
     items:[
