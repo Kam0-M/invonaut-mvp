@@ -135,7 +135,6 @@ export default function ExpenseList({
   if (expenses.length === 0) {
     return (
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="h-1 inv-animated-bar" />
         <div className="p-12 text-center">
           <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Receipt className="w-7 h-7 text-orange-400" />

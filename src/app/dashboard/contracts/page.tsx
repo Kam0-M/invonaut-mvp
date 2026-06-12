@@ -142,7 +142,6 @@ export default async function ContractsPage() {
 
       {contracts.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="h-1 inv-animated-bar" />
           <div className="p-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
               <FileCheck className="w-7 h-7 text-blue-600" />
