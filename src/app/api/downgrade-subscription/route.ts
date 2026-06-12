@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
 // Create admin Supabase client (bypasses RLS)
 function createAdminClient() {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       console.log('Setting subscription to cancel at period end...')
 
       // Step 1: Update Stripe subscription
-      const subscription = await stripe.subscriptions.update(
+      const subscription = await getStripe().subscriptions.update(
         profile.stripe_subscription_id,
         {
           cancel_at_period_end: true,

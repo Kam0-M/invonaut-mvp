@@ -6,7 +6,7 @@ import { NextRequest, NextResponse }                from 'next/server'
 import { createClient as createSupabaseClient }     from '@supabase/supabase-js'
 import Stripe                                        from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
 function adminClient() {
   return createSupabaseClient(
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Create Stripe Checkout Session (one-time payment, not subscription)
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       mode:                 'payment',
       payment_method_types: ['card'],
       line_items: [{

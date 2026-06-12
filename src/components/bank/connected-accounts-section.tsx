@@ -171,9 +171,9 @@ export default function ConnectedAccountsSection({
 
                 {/* Balance */}
                 <div className="text-right flex-shrink-0">
-                  <p className="text-lg font-black text-gray-900">{fmt(acc.current_balance, acc.currency)}</p>
+                  <p className="text-lg font-black text-gray-900">{fmt(acc.current_balance ?? 0)}</p>
                   {acc.available_balance !== acc.current_balance && (
-                    <p className="text-xs text-gray-400">{fmt(acc.available_balance, acc.currency)} available</p>
+                    <p className="text-xs text-gray-400">{fmt(acc.available_balance ?? 0)} available</p>
                   )}
                 </div>
               </div>

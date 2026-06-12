@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
 export async function POST() {
   try {
@@ -32,7 +32,7 @@ export async function POST() {
     }
 
     // Get current subscription state
-    const currentSubscription = await stripe.subscriptions.retrieve(
+    const currentSubscription = await getStripe().subscriptions.retrieve(
       profile.stripe_subscription_id
     )
 
@@ -43,7 +43,7 @@ export async function POST() {
     console.log('Before update - status:', currentSubscription.status)
 
     // Reactivate subscription (remove cancel_at_period_end)
-    const subscription = await stripe.subscriptions.update(
+    const subscription = await getStripe().subscriptions.update(
       profile.stripe_subscription_id,
       {
         cancel_at_period_end: false,
@@ -51,7 +51,7 @@ export async function POST() {
     )
 
     // Verify the update worked
-    const updated = await stripe.subscriptions.retrieve(profile.stripe_subscription_id)
+    const updated = await getStripe().subscriptions.retrieve(profile.stripe_subscription_id)
     console.log('After update - cancel_at_period_end:', updated.cancel_at_period_end)
     console.log('After update - cancel_at:', updated.cancel_at)
     console.log('After update - status:', updated.status)

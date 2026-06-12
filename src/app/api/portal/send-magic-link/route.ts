@@ -3,7 +3,7 @@ import { randomBytes } from 'crypto'
 import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 export async function POST(request: NextRequest) {
   try {
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 </html>
 `.trim()
 
-    const { error: emailError } = await resend.emails.send({
+    const { error: emailError } = await getResend().emails.send({
       from: 'Invonaut <onboarding@resend.dev>',
       to: client.email,
       subject: `${businessName} has shared your client portal`,

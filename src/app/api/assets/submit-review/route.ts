@@ -3,7 +3,7 @@ import { createClient as adminClient } from '@supabase/supabase-js'
 import { NextResponse }       from 'next/server'
 import { Resend }             from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 function createAdmin() {
   return adminClient(
@@ -104,7 +104,7 @@ export async function POST(req: Request) {
 </html>`
 
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from:    'Invonaut <onboarding@resend.dev>',
       to:      reviewer_email,
       subject: `Asset review requested: ${asset.name} — $${Number(asset.purchase_cost).toLocaleString()}`,

@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
 import { generateInvoiceEmailHTML, generateInvoiceEmailText } from '@/lib/email/invoice-email-template'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 export async function POST(request: NextRequest) {
   try {
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Send email via Resend
-    const { data: emailData, error: emailError } = await resend.emails.send({
+    const { data: emailData, error: emailError } = await getResend().emails.send({
       from: 'Invonaut <onboarding@resend.dev>',
       to: recipientEmail,
       subject,

@@ -45,7 +45,7 @@ export default async function CancellationPendingPage() {
     if (currentTier === 'business' && targetTier === 'professional') {
       return [
         { title: 'Budget tracking & overspend alerts', desc: 'Category-level monthly limits with 80% and 100% notifications' },
-        { title: 'AI daily briefings',                 desc: 'Every morning: who owes you, what's at risk, and what to act on' },
+        { title: 'AI daily briefings',                 desc: "Every morning: who owes you, what's at risk, and what to act on" },
         { title: 'Priority support (24hr)',            desc: 'Faster response time on all support requests' },
       ]
     }
