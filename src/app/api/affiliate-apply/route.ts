@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Notify Kamohelo
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'Invonaut <noreply@invonaut.app>',
       to: 'kamohelo.thakhisi@gmail.com',
       subject: `New Affiliate Application — ${name}`,
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Confirm to applicant
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'Invonaut <noreply@invonaut.app>',
       to: email,
       subject: "We received your affiliate application",

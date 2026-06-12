@@ -112,7 +112,7 @@ export default function UpcomingPaymentsList({
               }`}
               title={fmt(inv.total_amount)}
             >
-              {formatCompact(inv.total_amount)}
+              {fmt(inv.total_amount)}
             </span>
           </Link>
         )

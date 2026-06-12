@@ -28,7 +28,7 @@ import {
   type WeeklyTimeSummaryEmailData,
 } from '@/lib/email/weekly-time-summary-email-template'
 
-const resend  = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invonaut-mvp-git-main-kam0-ms-projects.vercel.app'
 
 function createAdminClient() {
@@ -152,7 +152,7 @@ export async function GET(request: NextRequest) {
         const toEmail = profile.email ?? ''
         if (!toEmail) continue
 
-        await resend.emails.send({
+        await getResend().emails.send({
           from:    'Invonaut <notifications@invonaut.app>',
           to:      [toEmail],
           subject: `Your time summary: ${emailData.totalHours} hrs tracked (${emailData.weekStart} – ${emailData.weekEnd})`,

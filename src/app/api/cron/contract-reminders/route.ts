@@ -6,7 +6,7 @@ import {
   generateContractReminderEmailText,
 } from '@/lib/email/contract-reminder-email-template'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invonaut-mvp.vercel.app'
 
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
         //   - AND this stage hasn't been sent yet
         if (daysUntilExpiry <= stage.days && !stagesSent.includes(stage.key)) {
           try {
-            await resend.emails.send({
+            await getResend().emails.send({
               from:    'Invonaut <onboarding@resend.dev>',
               to:      ownerEmail,
               subject: `⏰ Contract expiring in ${daysUntilExpiry} day${daysUntilExpiry === 1 ? '' : 's'}: ${contract.title}`,

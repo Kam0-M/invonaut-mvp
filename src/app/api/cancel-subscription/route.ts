@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
 export async function POST() {
   try {
@@ -30,7 +30,7 @@ export async function POST() {
     }
 
     // Cancel immediately in Stripe
-    await stripe.subscriptions.cancel(profile.stripe_subscription_id)
+    await getStripe().subscriptions.cancel(profile.stripe_subscription_id)
 
     console.log(`✅ Subscription ${profile.stripe_subscription_id} canceled immediately`)
 

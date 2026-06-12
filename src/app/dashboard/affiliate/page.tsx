@@ -270,6 +270,7 @@ function JoinScreen({ onJoined }: { onJoined: () => void }) {
 
 // ─── Dashboard Screen ─────────────────────────────────────────────────────────
 function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh: () => void }) {
+  const { format: fmt } = useCurrency()
   const [copied,        setCopied]        = useState(false)
   const [showPayout,    setShowPayout]    = useState(false)
   const [payoutMethod,  setPayoutMethod]  = useState(data.account?.payout_method || '')

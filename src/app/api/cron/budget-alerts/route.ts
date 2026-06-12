@@ -7,7 +7,7 @@ import {
 } from '@/lib/email/budget-alert-email-template'
 import { getCategoryLabel } from '@/lib/ai/expense-categorization'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invonaut-mvp-git-main-kam0-ms-projects.vercel.app'
 
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       // ── 100% threshold ────────────────────────────────────────────────────
       if (percentUsed >= 100 && budget.alert_100_sent_month !== currentMonth) {
         try {
-          await resend.emails.send({
+          await getResend().emails.send({
             from:    'Invonaut <onboarding@resend.dev>',
             to:      ownerEmail,
             subject: `🚨 Budget exceeded: ${categoryLabel} (${percentUsed}% used)`,
@@ -131,7 +131,7 @@ export async function GET(request: NextRequest) {
         budget.alert_80_sent_month !== currentMonth
       ) {
         try {
-          await resend.emails.send({
+          await getResend().emails.send({
             from:    'Invonaut <onboarding@resend.dev>',
             to:      ownerEmail,
             subject: `⚠️ Budget alert: ${categoryLabel} is at ${percentUsed}%`,

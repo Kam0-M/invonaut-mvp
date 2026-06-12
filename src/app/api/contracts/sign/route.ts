@@ -4,7 +4,7 @@ import { headers } from 'next/headers'
 import { Resend } from 'resend'
 import { generateContractPDF } from '@/lib/contracts/generate-contract-pdf'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 
 function createAdminClient() {
@@ -212,7 +212,7 @@ export async function POST(request: NextRequest) {
 
       // Email to client (only if their email matches OWNER_EMAIL in demo mode)
       if (clientEmail && clientEmail === OWNER_EMAIL) {
-        await resend.emails.send({
+        await getResend().emails.send({
           from: 'Invonaut <onboarding@resend.dev>',
           to: clientEmail,
           subject: `Contract signed: ${contract.title}`,
@@ -223,7 +223,7 @@ export async function POST(request: NextRequest) {
 
       // Email to owner (only if their email matches OWNER_EMAIL in demo mode)
       if (ownerEmail && ownerEmail === OWNER_EMAIL) {
-        await resend.emails.send({
+        await getResend().emails.send({
           from: 'Invonaut <onboarding@resend.dev>',
           to: ownerEmail,
           subject: `${clientName} has signed: ${contract.title}`,

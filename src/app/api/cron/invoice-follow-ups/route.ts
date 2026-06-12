@@ -25,7 +25,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
-const resend  = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://invonaut-mvp-git-main-kam0-ms-projects.vercel.app'
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 
@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
         // Resend free tier: only sends to verified owner email
         const emailTo = toEmail === OWNER_EMAIL ? toEmail : OWNER_EMAIL
 
-        await resend.emails.send({
+        await getResend().emails.send({
           from:    'Invonaut <onboarding@resend.dev>',
           to:      [emailTo],
           subject: `Payment reminder: Invoice ${inv.invoice_number} is ${daysOverdue} day${daysOverdue !== 1 ? 's' : ''} overdue`,

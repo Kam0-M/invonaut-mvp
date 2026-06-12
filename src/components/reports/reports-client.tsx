@@ -916,7 +916,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                   {label:'Gross Profit',   a:compData.a.gross,    b:compData.b.gross,    color:'#374151', inv:false},
                   {label:'Total Expenses', a:compData.a.totalExp, b:compData.b.totalExp, color:'#FF6B35', inv:true},
                   {label:'EBIT (Net Profit)',a:compData.a.ebit,   b:compData.b.ebit,     color:'#374151', inv:false},
-                  {label:'EBITDA',         a:compData.a.ebitda,   b:compData.b.ebitda,   color:'#00C4A0', inv:false},
+                  {label:'Net Profit',      a:compData.a.net,      b:compData.b.net,      color:'#00C4A0', inv:false},
                 ].map(row=>{
                   const diff=row.a-row.b
                   const pct=row.b!==0?(diff/Math.abs(row.b))*100:null
@@ -943,7 +943,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
               {label:'Revenue',  a:compData.a.revenue,  b:compData.b.revenue,  colorA:'#0055FF', colorB:'rgba(0,85,255,0.35)'},
               {label:'Expenses', a:compData.a.totalExp, b:compData.b.totalExp, colorA:'#FF6B35', colorB:'rgba(255,107,53,0.35)'},
               {label:'Net Profit',a:compData.a.ebit,    b:compData.b.ebit,     colorA:'#16A34A', colorB:'rgba(22,163,74,0.35)'},
-              {label:'EBITDA',   a:compData.a.ebitda,   b:compData.b.ebitda,   colorA:'#00C4A0', colorB:'rgba(0,196,160,0.35)'},
+              {label:'Gross Profit',a:compData.a.gross,   b:compData.b.gross,    colorA:'#00C4A0', colorB:'rgba(0,196,160,0.35)'},
             ].map(m=>{
               const max=Math.max(Math.abs(m.a),Math.abs(m.b),1)
               return (

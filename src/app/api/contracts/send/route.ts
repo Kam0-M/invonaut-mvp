@@ -3,7 +3,7 @@ import { randomBytes } from 'crypto'
 import { createClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
 
 export async function POST(request: NextRequest) {
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 </body>
 </html>`.trim()
 
-    const { error: emailError } = await resend.emails.send({
+    const { error: emailError } = await getResend().emails.send({
       from: 'Invonaut <onboarding@resend.dev>',
       to: clientData.email,
       subject: `${businessName} has sent you a contract to sign`,

@@ -2,7 +2,7 @@
 // src/app/asset-review/[token]/page.tsx
 // Public magic-link review page — no Invonaut account required
 
-import { useEffect, useState, use } from 'react'
+import React, { useEffect, useState, use } from 'react'
 import { CheckCircle2, XCircle, Clock, AlertTriangle, Loader2, Building2, Calendar, DollarSign, Hash, Tag, FileText } from 'lucide-react'
 
 interface Asset {
@@ -99,7 +99,7 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
 
   // ── Invalid / expired / used ────────────────────────────────────────────────
   if (!data || data.status !== 'valid' || !asset) {
-    const msgs: Record<string, { icon: JSX.Element; title: string; body: string }> = {
+    const msgs: Record<string, { icon: React.ReactElement; title: string; body: string }> = {
       used:    { icon: <CheckCircle2 size={40} color="#059669" />, title: 'Already reviewed', body: 'This review link has already been used. The asset has been processed.' },
       expired: { icon: <Clock size={40} color="#D97706" />,        title: 'Link expired',      body: 'This review link expired after 7 days. Ask the submitter to send a new request.' },
       invalid: { icon: <AlertTriangle size={40} color="#DC2626" />,title: 'Invalid link',      body: 'This review link is invalid or has been revoked. Please contact the person who sent it.' },

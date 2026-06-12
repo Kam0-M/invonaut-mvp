@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import Stripe from 'stripe'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
 export async function POST(request: Request) {
   try {
@@ -50,11 +50,11 @@ export async function POST(request: Request) {
     if (hasActiveSubscription && profile.subscription_tier !== planId) {
       console.log('🔄 Upgrading/downgrading existing subscription')
       
-      const subscription = await stripe.subscriptions.update(
+      const subscription = await getStripe().subscriptions.update(
         profile.stripe_subscription_id!,
         {
           items: [{
-            id: (await stripe.subscriptions.retrieve(profile.stripe_subscription_id!)).items.data[0].id,
+            id: (await getStripe().subscriptions.retrieve(profile.stripe_subscription_id!)).items.data[0].id,
             price: priceId,
           }],
           proration_behavior: 'create_prorations',
@@ -119,7 +119,7 @@ export async function POST(request: Request) {
       sessionParams.subscription_data!.trial_period_days = trialDays
     }
 
-    const session = await stripe.checkout.sessions.create(sessionParams)
+    const session = await getStripe().checkout.sessions.create(sessionParams)
 
     console.log('✅ Checkout session created:', session.id, 'Trial days:', trialDays)
 

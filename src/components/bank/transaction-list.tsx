@@ -316,7 +316,7 @@ export default function TransactionList({
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className={`text-sm font-black ${isIn ? 'text-teal-600' : 'text-red-500'}`}>
-                            {isIn ? '+' : '-'}{fmt(tx.amount, tx.currency)}
+                            {isIn ? '+' : '-'}{fmt(tx.amount)}
                           </p>
                           {matched && (
                             <span className="text-[10px] font-black text-teal-600 bg-teal-100 px-1.5 py-0.5 rounded-full">
