@@ -361,48 +361,51 @@ function ProductDemo() {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PAINS = [
   { n:'01', head:'Your invoices are being paid whenever your clients feel like it.',
-    body:"Without automated follow-ups, late payment is the default. Most freelancers have thousands of dollars in outstanding invoices — not because clients won't pay, but because nobody is consistently asking." },
-  { n:'02', head:"Half your income isn't in your accounting tool.",
-    body:"Cash from a client. A POS payment. A bank transfer that arrived while you were on a job. Most finance tools only track invoices — giving you a partial, misleading picture of your real revenue." },
-  { n:'03', head:"You'll find out your contract expired after the fact.",
-    body:"Contracts expire quietly. The client knows their obligations are over. You find out when the work stops or the dispute starts." },
+    body:"Without automated follow-ups, late payment becomes the default. Most businesses have thousands of dollars sitting in outstanding invoices — not because clients won't pay, but because nobody is consistently and professionally asking." },
+  { n:'02', head:"Half your income isn't showing up anywhere.",
+    body:"Cash from a client. A POS payment. A bank transfer that came in while you were on a job. Most finance tools only see invoices — leaving a big part of your real income invisible, and your numbers wrong." },
+  { n:'03', head:"You'll find out your contract expired after it already matters.",
+    body:"Contracts expire quietly. The client knows their obligations are over. You find out when the work stops or the disagreement starts. By then, you're already at a disadvantage." },
 ]
 const STEPS = [
-  { n:'01', c:'var(--blue)', title:'Capture all income',        body:"Log invoices for billed work. Log direct payments for everything else — cash, POS, mobile money, bank transfer. Your real total income, visible in one place." },
-  { n:'02', c:'var(--teal)', title:'AI handles the chasing',    body:"Every invoice gets an AI risk score. Overdue invoices trigger automatic follow-up emails. You're informed. You don't have to act." },
+  { n:'01', c:'var(--blue)', title:'Capture all income',        body:"Log invoices for billed work. Log direct payments for everything else — cash, card, bank transfer, mobile money. Your complete picture, in one place." },
+  { n:'02', c:'var(--teal)', title:'Invonaut handles the chasing', body:"Every invoice is scored for payment risk. Overdue invoices trigger follow-up emails automatically. You stay informed without spending an hour on admin." },
+  { n:'03', c:'var(--blue)', title:'Contracts protect you',     body:"Create from templates, collect signatures in minutes. Automatic reminders at 30, 15, 7, and 1 day before expiry. Nothing slips through without you knowing." },
+  { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash forecast brings together your expected income and tracked expenses. See exactly what's coming — before it becomes a problem." },
+]
   { n:'03', c:'var(--blue)', title:'Contracts protect you',     body:"Create from templates, collect e-signatures in minutes. Automatic reminders at 30, 15, 7, and 1 day before expiry mean nothing slips." },
   { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash flow forecast combines AI-predicted invoice payments and logged expenses. Know exactly how long your money lasts." },
 ]
 const PLATFORM = [
   { group:'Track every dollar', color:'var(--blue)',
     items:[
-      { name:'Invoice management',     desc:"Create, send, and track invoices with branded PDFs. AI predicts which clients will pay late before they do. Automated follow-ups fire without you touching anything." },
-      { name:'Direct payment logging', desc:"Log cash, POS, bank transfer, and mobile money in seconds. Not everything goes through an invoice — now none of it is invisible." },
-      { name:'Time tracking',          desc:"Live timer or manual entry. Convert any client's unbilled hours into a full draft invoice in one click, with all line items pre-filled." },
-      { name:'Expense tracking',       desc:"AI-suggested categories on every entry. Upload receipts. Set monthly limits — automatic alerts at 80% and 100% spend." },
+      { name:'Invoice management',     desc:"Create, send, and track invoices with your branding on them. The system predicts which clients might pay late and follows up on your behalf — without you asking it to." },
+      { name:'Direct payment logging', desc:"Not every payment comes with an invoice. Log cash, card, bank transfer, and mobile money in seconds so your real income is always reflected in your numbers." },
+      { name:'Time tracking',          desc:"Start a timer or log hours manually. When it's time to bill, convert tracked time to a full invoice in one click — line items already filled in." },
+      { name:'Expense tracking',       desc:"Log what you spend, upload receipts, and set monthly limits. Get notified at 80% and 100% of your limit so nothing catches you off guard." },
     ]},
   { group:'Protect your work', color:'var(--teal)',
     items:[
-      { name:'Contract management', desc:"Six template types, a 19-clause library, and legally-binding e-signatures. Automatic reminders at 30/15/7/1 days before expiry." },
-      { name:'Client portal',       desc:"A branded portal where clients view invoices, download PDFs, and sign contracts. Access by magic link — no account needed." },
-      { name:'White-label branding',desc:"Your logo, your colours, everywhere your clients see — invoices, emails, the portal, and contract PDFs. Invonaut is invisible." },
+      { name:'Contract management', desc:"Six ready-to-use contract templates, a library of standard clauses, and legally binding digital signatures. Reminders go out at 30, 15, 7, and 1 day before expiry — automatically." },
+      { name:'Client portal',       desc:"A branded space where clients view their invoices, download PDFs, and sign contracts. They get a link by email — no account, no password, no friction." },
+      { name:'White-label branding',desc:"Your logo and colours appear on every invoice, every email, and every client-facing page. Invonaut works in the background — clients only see your brand." },
     ]},
-  { group:'Understand your money', color:'#8B5CF6',
+  { group:'Understand your money', color:'var(--blue)',
     items:[
-      { name:'Cash flow forecast',   desc:"90-day projection of your bank balance. Runway calculator. Predicted payment dates. Know before it becomes a crisis." },
-      { name:'Revenue intelligence', desc:"Every dollar by source, category, and payment method. Know which services earn the most and which clients deserve the most of your time." },
-      { name:'Bank connections',     desc:"Connect via Plaid. Transactions sync automatically. Invonaut matches incoming deposits to outstanding invoices and marks them paid." },
+      { name:'Cash flow forecast',   desc:"See your next 90 days in plain numbers — how much is coming in, how much is going out, and how long your money lasts. Updated every time you open it." },
+      { name:'Revenue intelligence', desc:"Every dollar broken down by source, client, and category. See which work earns the most and which clients are worth the most of your time." },
+      { name:'Bank connections',     desc:"Link your bank account and transactions come in automatically. Invonaut matches deposits to outstanding invoices and keeps your records current." },
     ]},
 ]
 const AUTOMATIONS = [
-  { s:'Daily · 9:00am',   n:'Invoice follow-up reminders',  d:"Sent to every client with an overdue invoice and an AI risk score of 60% or higher." },
-  { s:'Daily · 9:00am',   n:'Contract expiry warnings',      d:"Dispatched at 30, 15, 7, and 1 day before a contract expires. Sent to you." },
-  { s:'Daily · 9:00am',   n:'Contract auto-expiry',          d:"Contracts hard-expire at their end date. Status updates automatically." },
-  { s:'Daily · 9:00am',   n:'Budget overspend alerts',       d:"Email at 80% and again at 100% of any expense category's monthly limit." },
-  { s:'Monday · 9:00am',  n:'Weekly time summary',           d:"Total hours tracked, billable value, and any unbilled work not yet invoiced." },
-  { s:'On send',          n:'AI invoice risk scoring',       d:"GPT-4o-mini evaluates every invoice for payment probability based on client history." },
-  { s:'On entry',         n:'AI expense categorisation',     d:"Category suggested from the description. Accept, correct, or change — it learns." },
-  { s:'On open',          n:'90-day cash forecast',          d:"Balance projection recalculated live every time you open the cash flow page." },
+  { s:'Daily · 9:00am',   n:'Invoice follow-up reminders',  d:"Sent automatically to every client with an overdue invoice where the AI has flagged a payment risk." },
+  { s:'Daily · 9:00am',   n:'Contract expiry warnings',      d:"Sent to you at 30, 15, 7, and 1 day before any contract expires. You always know what's about to lapse." },
+  { s:'Daily · 9:00am',   n:'Contract auto-expiry',          d:"Contracts reach their end date and update automatically. No manual status changes needed." },
+  { s:'Daily · 9:00am',   n:'Budget overspend alerts',       d:"An email goes out at 80% and again at 100% of any expense category's monthly limit." },
+  { s:'Monday · 9:00am',  n:'Weekly time summary',           d:"Total hours logged, billable value outstanding, and any work not yet converted to an invoice." },
+  { s:'On send',          n:'Invoice payment risk scoring',  d:"Every invoice is assessed for likelihood of on-time payment based on the client's history." },
+  { s:'On entry',         n:'Expense category suggestions',  d:"Invonaut suggests the right category from what you type. Accept it or change it — the system learns either way." },
+  { s:'On open',          n:'90-day cash forecast refresh',  d:"Your cash position is recalculated every time you open the cash flow page — always based on current data." },
 ]
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -457,7 +460,7 @@ export default function LandingPageClient() {
             {/* Left */}
             <motion.div variants={stagger(.1)} initial="hidden" animate="show">
               <motion.p variants={fadeUp} style={{fontSize:'.76rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--faint)',marginBottom:24}}>
-                For freelancers and independent businesses
+                The business operations platform
               </motion.p>
               <motion.h1 variants={fadeUp} className="f-display" style={{fontSize:'clamp(2.6rem,5.5vw,4.6rem)',fontWeight:800,lineHeight:1.03,letterSpacing:'-.025em',marginBottom:20}}>
                 You built a business,<br/>not an{' '}
@@ -475,7 +478,7 @@ export default function LandingPageClient() {
                 </Link>
               </motion.div>
               <motion.p variants={fadeUp} style={{fontSize:'.75rem',color:'var(--faint)'}}>
-                No credit card required · Cancel anytime · Plans from $19/mo
+                No credit card required · Cancel anytime · Plans from $29/mo
               </motion.p>
             </motion.div>
 
@@ -512,7 +515,7 @@ export default function LandingPageClient() {
         <div style={{maxWidth:920,margin:'0 auto'}}>
           <Reveal>
             <motion.p variants={fadeUp} style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(255,255,255,0.28)',marginBottom:72}}>
-              The three things that quietly cost freelancers money
+              The three things quietly costing your business money
             </motion.p>
           </Reveal>
           {PAINS.map((p,i)=>(
@@ -678,9 +681,9 @@ export default function LandingPageClient() {
           <div className="trust-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:40}}>
             {[
               {title:'No lock-in',         body:'Cancel any time. Your data exports in full. No contracts. No exit fees.'},
-              {title:'Free for 14 days',   body:'Every plan, fully featured. No credit card required to start.'},
-              {title:'Finance-grade auth', body:'Row-level security on every table. Auth by Supabase. Payments by Stripe.'},
-              {title:'No outside funding', body:"Built without investors. Pricing reflects what the product is worth — not a growth target."},
+              {title:'Free for 14 days',   body:'Every plan, fully featured. No credit card required to start. Try everything before you commit.'},
+              {title:'Built on solid security', body:'Your financial data is protected at the row level — only you can see it. Payments handled by Stripe, one of the world\'s most trusted payment processors.'},
+              {title:'No outside funding', body:"Built without investors. Pricing reflects what the product is worth — not a growth target. That keeps it honest."},
             ].map(({title,body})=>(
               <Reveal key={title}>
                 <motion.div variants={fadeUp}>
@@ -772,7 +775,7 @@ export default function LandingPageClient() {
                 </div>
 
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
-                  Talking to freelancers and small business owners, the same pattern kept surfacing — talented people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
+                  Talking to small business owners and service businesses, the same pattern kept surfacing — capable people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
                 </p>
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
                   The overhead isn't the work. It's just the tax on doing good work. So I spent a year building a system that eliminates it entirely — contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
@@ -877,7 +880,7 @@ export default function LandingPageClient() {
                 </Link>
               </div>
               <p style={{color:'rgba(255,255,255,0.3)',fontSize:'.75rem'}}>
-                Plans from $19/mo · No credit card · Cancel anytime · 14-day free trial
+                Plans from $29/mo · No credit card · Cancel anytime · 14-day free trial
               </p>
             </div>
 

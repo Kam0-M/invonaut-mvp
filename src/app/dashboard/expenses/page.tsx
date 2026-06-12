@@ -113,7 +113,6 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
       {!hasActiveSubscription ? (
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="h-1 bg-gradient-to-r from-orange-500 to-amber-400" />
           <div className="p-12 sm:p-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-orange-50 flex items-center justify-center mx-auto mb-6">
               <Receipt className="w-8 h-8 text-orange-500" />

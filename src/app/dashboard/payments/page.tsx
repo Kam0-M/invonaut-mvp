@@ -106,7 +106,6 @@ export default async function PaymentsPage() {
       {/* Empty state */}
       {payments.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="h-1 inv-animated-bar" />
           <div className="p-12 text-center">
             <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
               <Banknote className="w-7 h-7 text-teal-600" />
