@@ -1,21 +1,47 @@
 import { redirect }    from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link            from 'next/link'
-import {
-  Check, CreditCard, AlertCircle, Zap,
-  Clock, CheckCircle2,
-} from 'lucide-react'
-import CancelSubscriptionButton  from '@/components/billing/cancel-subscription-button'
-import DowngradeConfirmButton    from '@/components/billing/downgrade-confirm-button'
-import CancellationCountdownBanner from '@/components/billing/cancellation-countdown-banner'
-import SuccessReload             from '@/components/billing/success-reload'
-import BillingPlansSection       from '@/components/billing/billing-plans-section'
+import { Check, CreditCard, Zap, Clock, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react'
+import CancelSubscriptionButton     from '@/components/billing/cancel-subscription-button'
+import DowngradeConfirmButton       from '@/components/billing/downgrade-confirm-button'
+import CancellationCountdownBanner  from '@/components/billing/cancellation-countdown-banner'
+import SuccessReload                from '@/components/billing/success-reload'
+import BillingPlansSection          from '@/components/billing/billing-plans-section'
 
-export default async function BillingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ success?: string; trial_canceled?: string; upgraded?: string; error?: string }>
-}) {
+export const dynamic = 'force-dynamic'
+
+const PLANS = [
+  {
+    id: 'starter', name: 'Starter', monthlyPrice: 29, annualMonthlyPrice: 24, annualTotalPrice: 290,
+    color: 'orange', tagline: 'Everything you need to get started',
+    features: ['25 invoices / month','Unlimited clients','Direct payment logging','Revenue categories',
+      'Basic AI payment predictions','Email invoicing + PDF attachments','Automated follow-up reminders',
+      'Expense tracking','3 active contracts','Time tracking + invoice from hours','Client portal (view-only)'],
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER        ?? '',
+    annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL ?? '',
+  },
+  {
+    id: 'professional', name: 'Professional', monthlyPrice: 59, annualMonthlyPrice: 49, annualTotalPrice: 590,
+    color: 'blue', tagline: 'For growing businesses that need more',
+    features: ['Unlimited invoices + direct payments','Unlimited clients + contracts',
+      'White-label branding (logo & colours)','Branded client portal + file storage',
+      'Cash flow forecast (90-day)','Revenue intelligence dashboard','Advanced AI predictions',
+      'AI contract review','AI expense categorisation','Weekly time summary emails'],
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL        ?? '',
+    annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL ?? '',
+  },
+  {
+    id: 'business', name: 'Business', monthlyPrice: 109, annualMonthlyPrice: 91, annualTotalPrice: 1090,
+    color: 'teal', tagline: 'Full autonomy for serious operations',
+    features: ['Everything in Professional','Budget tracking & alerts','Per-category monthly limits',
+      '80% & 100% overspend notifications','AI daily financial briefings',
+      'Priority email support (24hr)','Early access to new features'],
+    monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS        ?? '',
+    annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL ?? '',
+  },
+]
+
+export default async function BillingPage({ searchParams }: { searchParams: Promise<{ success?: string; trial_canceled?: string; upgraded?: string; error?: string }> }) {
   const params   = await searchParams
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -27,14 +53,14 @@ export default async function BillingPage({
     .eq('id', user.id)
     .single()
 
-  const currentTier          = profile?.subscription_tier    || 'starter'
-  const subscriptionStatus   = profile?.subscription_status  || 'inactive'
+  const currentTier           = profile?.subscription_tier   || 'starter'
+  const subscriptionStatus    = profile?.subscription_status || 'inactive'
   const hasActiveSubscription = !!profile?.stripe_subscription_id &&
     (subscriptionStatus === 'active' || subscriptionStatus === 'trialing')
-  const hasEverSubscribed    = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
-  const isOnTrial            = subscriptionStatus === 'trialing'
-  const trialEndDate         = profile?.trial_end_date ? new Date(profile.trial_end_date) : null
-  const daysLeftInTrial      = trialEndDate
+  const hasEverSubscribed     = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
+  const isOnTrial             = subscriptionStatus === 'trialing'
+  const trialEndDate          = profile?.trial_end_date ? new Date(profile.trial_end_date) : null
+  const daysLeftInTrial       = trialEndDate
     ? Math.max(0, Math.ceil((trialEndDate.getTime() - Date.now()) / 86_400_000)) : 0
 
   let cancelAtPeriodEnd  = false
@@ -55,185 +81,95 @@ export default async function BillingPage({
     } catch { /* stripe not reachable in dev */ }
   }
 
-  const plans = [
-    {
-      id: 'starter', name: 'Starter',
-      monthlyPrice: 29, annualMonthlyPrice: 24, annualTotalPrice: 290,
-      color: 'orange',
-      tagline: 'Everything you need to get started',
-      features: [
-        '25 invoices / month',
-        'Unlimited clients',
-        'Direct payment logging (cash, POS, mobile)',
-        'Revenue categories',
-        'Basic AI payment predictions',
-        'Email invoicing + PDF attachments',
-        'Automated follow-up reminders',
-        'Expense tracking',
-        '3 active contracts',
-        'Time tracking + invoice from hours',
-        'Client portal (view-only)',
-      ],
-      monthlyPriceId: process.env.STRIPE_PRICE_ID_STARTER        ?? '',
-      annualPriceId:  process.env.STRIPE_PRICE_ID_STARTER_ANNUAL ?? '',
-    },
-    {
-      id: 'professional', name: 'Professional',
-      monthlyPrice: 59, annualMonthlyPrice: 49, annualTotalPrice: 590,
-      color: 'blue',
-      tagline: 'For growing businesses that need more',
-      features: [
-        'Unlimited invoices + direct payments',
-        'Unlimited clients + contracts',
-        'White-label branding (logo & colours)',
-        'Branded client portal + file storage',
-        'Cash flow forecast (90-day)',
-        'Revenue intelligence dashboard',
-        'Advanced AI predictions',
-        'AI contract review',
-        'AI expense categorisation',
-        'Weekly time summary emails',
-      ],
-      monthlyPriceId: process.env.STRIPE_PRICE_ID_PROFESSIONAL        ?? '',
-      annualPriceId:  process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL ?? '',
-    },
-    {
-      id: 'business', name: 'Business',
-      monthlyPrice: 109, annualMonthlyPrice: 91, annualTotalPrice: 1090,
-      color: 'teal',
-      tagline: 'Full autonomy for serious operations',
-      features: [
-        'Everything in Professional',
-        'Budget tracking & alerts',
-        'Per-category monthly limits',
-        '80% & 100% overspend notifications',
-        'AI daily financial briefings',
-        'Priority email support (24hr)',
-        'Early access to new features',
-      ],
-      monthlyPriceId: process.env.STRIPE_PRICE_ID_BUSINESS        ?? '',
-      annualPriceId:  process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL ?? '',
-    },
-  ]
-  const currentPlan  = plans.find(p => p.id === currentTier)
+  const currentPlan  = PLANS.find(p => p.id === currentTier)
   const trialCanceled = params.trial_canceled === 'true'
 
-  // Status badge config
-  const statusBadge: Record<string, { label: string; cls: string }> = {
-    active:    { label: '✓ Active',   cls: 'bg-teal-50 text-teal-700 border border-teal-200' },
-    trialing:  { label: '⏱ Trial',    cls: 'bg-blue-50 text-blue-700 border border-blue-200' },
-    past_due:  { label: '⚠ Past due', cls: 'bg-red-50 text-red-700 border border-red-200'   },
-    canceled:  { label: 'Inactive',   cls: 'bg-gray-100 text-gray-600'                       },
-    inactive:  { label: 'Inactive',   cls: 'bg-gray-100 text-gray-600'                       },
+  const TIER_COLOR: Record<string, string> = {
+    starter: 'var(--inv-orange)', professional: 'var(--inv-blue)', business: 'var(--inv-teal)',
   }
-  const badge = statusBadge[subscriptionStatus] ?? statusBadge.inactive
+  const planColor = TIER_COLOR[currentTier] || 'var(--inv-blue)'
 
   return (
     <div className="space-y-5">
 
-      {/* ── Page header ──────────────────────────────────────────────────── */}
+      {/* ── Page header ───────────────────────────────────────────────────── */}
       <div>
-        <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Billing & Subscription</p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-sm font-black text-gray-900">{currentPlan?.name ?? 'Starter'} plan</span>
-          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${badge.cls}`}>{badge.label}</span>
-          {nextBillingDate && subscriptionStatus === 'active' && (
-            <span className="text-xs text-gray-400 font-medium">
-              Next billing {nextBillingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </span>
-          )}
-        </div>
+        <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest mb-1">Billing & Subscription</p>
+        <h1 className="text-2xl font-black text-gray-900" style={{ letterSpacing: '-.02em' }}>Your plan</h1>
       </div>
 
       <SuccessReload shouldReload={params.success === 'true' && !hasActiveSubscription} />
 
-      {/* ── Toast banners ────────────────────────────────────────────────── */}
+      {/* ── Toasts ────────────────────────────────────────────────────────── */}
       {params.success === 'true' && !trialCanceled && (
-        <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+        <div className="bg-[#00C4A0]/10 border border-[#00C4A0]/30 rounded-2xl p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-[#00C4A0] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-teal-900">
-              {isOnTrial ? 'Free trial started' : 'Subscription activated'}
-            </p>
-            <p className="text-xs text-teal-700 font-medium mt-0.5">
-              {isOnTrial
-                ? `You won't be charged until ${trialEndDate?.toLocaleDateString()}.`
-                : 'Your payment was successful. All features are now active.'}
+            <p className="text-sm font-black text-gray-900">{isOnTrial ? 'Free trial started' : 'Subscription activated'}</p>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">
+              {isOnTrial ? `You won't be charged until ${trialEndDate?.toLocaleDateString()}.` : 'Payment successful. All features are now active.'}
             </p>
           </div>
         </div>
       )}
-
       {params.upgraded === 'true' && (
-        <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-black text-teal-900">Plan updated</p>
-            <p className="text-xs text-teal-700 font-medium mt-0.5">
-              Your subscription has been upgraded. All new features are now available.
-            </p>
-          </div>
+        <div className="bg-[#00C4A0]/10 border border-[#00C4A0]/30 rounded-2xl p-4 flex items-start gap-3">
+          <CheckCircle2 className="w-4 h-4 text-[#00C4A0] flex-shrink-0 mt-0.5" />
+          <p className="text-sm font-black text-gray-900">Plan updated — all new features are now active.</p>
         </div>
       )}
-
       {params.error === 'upgrade_failed' && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-red-900">Upgrade failed</p>
-            <p className="text-xs text-red-700 font-medium mt-0.5">
-              We couldn't upgrade your subscription. Please try again or contact support.
-            </p>
+            <p className="text-sm font-black text-gray-900">Upgrade failed</p>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">Please try again or contact us at kamo@invonaut.app.</p>
           </div>
         </div>
       )}
-
       {trialCanceled && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-black text-blue-900">Trial canceled</p>
-            <p className="text-xs text-blue-700 font-medium mt-0.5">
-              Your free trial has been canceled. You were not charged. Subscribe anytime to regain access.
-            </p>
+            <p className="text-sm font-black text-gray-900">Trial canceled</p>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">You were not charged. Subscribe anytime to regain access.</p>
           </div>
         </div>
       )}
-
       {cancelAtPeriodEnd && cancelAtTimestamp && (
         <CancellationCountdownBanner cancelAt={cancelAtTimestamp} currentTier={currentTier} />
       )}
 
-      {/* ── NEW USER — never subscribed ───────────────────────────────────── */}
+      {/* ── NEW USER — dark hero ───────────────────────────────────────────── */}
       {!hasActiveSubscription && !hasEverSubscribed && (
-        <div className="relative overflow-hidden rounded-2xl bg-gray-900 p-8 inv-fade-up">
-          <div className="absolute inset-0 opacity-[0.04]" style={{
-            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
+        <div className="relative overflow-hidden rounded-2xl bg-[#070C1A] p-8 md:p-10">
+          <div className="absolute inset-0 pointer-events-none" style={{
+            background: 'radial-gradient(ellipse 55% 70% at 110% 20%, rgba(0,196,160,0.18) 0%, transparent 60%), radial-gradient(ellipse 40% 60% at -5% 80%, rgba(0,85,255,0.14) 0%, transparent 60%)',
           }} />
-          <div className="absolute top-0 right-0 w-72 h-72 opacity-[0.07] pointer-events-none"
-            style={{ background: 'radial-gradient(circle, #00D4AA 0%, transparent 70%)' }} />
-          <div className="relative z-10 max-w-lg">
-            <p className="text-xs font-bold text-teal-400 uppercase tracking-widest mb-3">From Contract to Cash. Automated.</p>
-            <h2 className="text-3xl font-black text-white mb-3 leading-tight">
-              One platform for<br /><span className="text-teal-400">your entire workflow.</span>
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }} />
+          <div className="relative z-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#00C4A0] mb-4">From Contract to Cash. Automated.</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-3 leading-tight" style={{ fontFamily: "'Fraunces', serif", letterSpacing: '-.03em' }}>
+              One platform.<br /><span className="text-[#00C4A0]">Every dollar captured.</span>
             </h2>
-            <p className="text-sm text-gray-400 font-medium mb-6 leading-relaxed">
-              Contracts, e-signatures, invoicing, expense tracking, and cash flow — so you can focus on the work, not the admin.
+            <p className="text-sm text-gray-400 font-medium mb-8 max-w-md leading-relaxed">
+              Invoices, contracts, time tracking, direct payments, and 90-day cash forecasting — all automated, all in one place.
             </p>
-            <div className="flex items-center gap-3 flex-wrap mb-6">
-              {['Contracts & E-sigs', 'AI Predictions', 'White label', 'Cash flow forecast'].map(f => (
+            <div className="flex flex-wrap gap-2 mb-8">
+              {['AI predictions', 'White label', 'Cash flow forecast', 'Client portal', 'Auto follow-ups'].map(f => (
                 <span key={f} className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/10 px-3 py-1.5 rounded-full">
-                  <Check className="w-3 h-3 text-teal-400" />{f}
+                  <Check className="w-3 h-3 text-[#00C4A0]" />{f}
                 </span>
               ))}
             </div>
-            <div className="flex items-center gap-3">
-              <a href="#available-plans"
-                className="inline-flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm">
-                Start Free Trial ↓
+            <div className="flex items-center gap-4 flex-wrap">
+              <a href="#available-plans" className="inline-flex items-center gap-2 btn-primary px-6 py-3 rounded-xl text-sm font-bold">
+                Start 14-day free trial <ArrowRight className="w-4 h-4" />
               </a>
-              <p className="text-xs text-gray-500 font-medium">14 days free · No card required</p>
+              <p className="text-xs text-gray-500 font-medium">No credit card required</p>
             </div>
           </div>
         </div>
@@ -241,157 +177,178 @@ export default async function BillingPage({
 
       {/* ── LAPSED USER ───────────────────────────────────────────────────── */}
       {!hasActiveSubscription && hasEverSubscribed && (
-        <div className="bg-white rounded-2xl border border-blue-100 p-6 flex items-center gap-5 inv-glow-blue">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0">
+        <div className="bg-white rounded-2xl border border-[#0055FF]/20 p-6 flex items-center gap-5 flex-wrap" style={{ boxShadow: '0 0 32px rgba(0,85,255,0.06)' }}>
+          <div className="w-10 h-10 rounded-xl bg-[#0055FF] flex items-center justify-center flex-shrink-0">
             <Zap className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-black text-gray-900">Welcome back</p>
-            <p className="text-xs text-gray-500 font-medium mt-0.5">
-              Your data is safe and waiting. Resubscribe to pick up right where you left off.
-            </p>
+            <p className="text-xs text-gray-500 font-medium mt-0.5">Your data is safe and waiting. Resubscribe to pick up right where you left off.</p>
           </div>
-          <a href="#available-plans"
-            className="inline-flex items-center gap-2 btn-primary px-4 py-2 rounded-xl text-sm flex-shrink-0">
-            View plans ↓
+          <a href="#available-plans" className="inline-flex items-center gap-2 btn-primary px-5 py-2.5 rounded-xl text-sm flex-shrink-0">
+            View plans
           </a>
         </div>
       )}
 
-      {/* ── CURRENT PLAN CARD ─────────────────────────────────────────────── */}
+      {/* ── CURRENT PLAN ──────────────────────────────────────────────────── */}
       {(hasActiveSubscription || hasEverSubscribed) && currentPlan && (
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          {/* Header */}
-          <div className="px-6 py-5 border-b border-gray-50 flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center">
-                <CreditCard className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Current plan</p>
-                <p className="text-sm font-black text-gray-900">{currentPlan.name} · ${currentPlan.monthlyPrice}/mo</p>
-              </div>
-            </div>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badge.cls}`}>{badge.label}</span>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-0">
-            {/* Left: features */}
-            <div className="p-6 border-b md:border-b-0 md:border-r border-gray-50">
-              {/* Trial banner */}
-              {isOnTrial && trialEndDate && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5 flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-xs font-black text-blue-900">
-                      {daysLeftInTrial} day{daysLeftInTrial !== 1 ? 's' : ''} left in your free trial
-                    </p>
-                    <p className="text-xs text-blue-700 font-medium mt-0.5">
-                      You'll be charged ${currentPlan.monthlyPrice}/mo starting{' '}
-                      {trialEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}.
-                      Cancel anytime before then.
-                    </p>
+          {/* Plan identity strip */}
+          <div className="px-6 pt-6 pb-5 border-b border-gray-50">
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-4">
+                {/* Color swatch */}
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{ background: planColor }}>
+                  <CreditCard className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h2 className="text-xl font-black text-gray-900" style={{ letterSpacing: '-.02em' }}>
+                      {currentPlan.name}
+                    </h2>
+                    <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                      subscriptionStatus === 'active'   ? 'bg-[#00C4A0]/10 text-[#00a889] border border-[#00C4A0]/30' :
+                      subscriptionStatus === 'trialing' ? 'bg-blue-50 text-blue-700 border border-blue-200'            :
+                      subscriptionStatus === 'past_due' ? 'bg-red-50 text-red-600 border border-red-200'              :
+                      'bg-gray-100 text-gray-500'}`}>
+                      {subscriptionStatus === 'active'   && 'Active'}
+                      {subscriptionStatus === 'trialing' && 'Trial'}
+                      {subscriptionStatus === 'past_due' && 'Past due'}
+                      {(subscriptionStatus === 'canceled' || subscriptionStatus === 'inactive') && 'Inactive'}
+                    </span>
                   </div>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">${currentPlan.monthlyPrice}/mo · {currentPlan.tagline}</p>
+                </div>
+              </div>
+              {/* Billing date */}
+              {nextBillingDate && subscriptionStatus === 'active' && (
+                <div className="text-right">
+                  <p className="text-xs text-gray-400 font-medium">Next billing</p>
+                  <p className="text-sm font-black text-gray-900 mt-0.5">
+                    {nextBillingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </p>
                 </div>
               )}
+            </div>
 
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Included features</p>
-              <ul className="space-y-2">
+            {/* Trial warning */}
+            {isOnTrial && trialEndDate && (
+              <div className="mt-4 bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start gap-3">
+                <Clock className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs font-medium text-blue-800">
+                  <span className="font-black">{daysLeftInTrial} day{daysLeftInTrial !== 1 ? 's' : ''} left in your trial.</span>{' '}
+                  You'll be charged ${currentPlan.monthlyPrice}/mo starting{' '}
+                  {trialEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}. Cancel anytime before then.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-50">
+
+            {/* Features column */}
+            <div className="p-6">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">What's included</p>
+              <ul className="space-y-2.5">
                 {currentPlan.features.map((f, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <Check className="w-4 h-4 text-teal-500 flex-shrink-0" />
+                  <li key={i} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: planColor }}>
+                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                    </div>
                     <span className="text-sm text-gray-700 font-medium">{f}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Right: actions + billing */}
-            <div className="p-6 space-y-5">
+            {/* Actions column */}
+            <div className="p-6 space-y-6">
+
               {/* Billing info */}
               {hasActiveSubscription && (
                 <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Billing information</p>
-                  <div className="space-y-2 text-xs">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Billing</p>
+                  <div className="space-y-0">
                     {nextBillingDate && subscriptionStatus === 'active' && (
-                      <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                        <span className="text-gray-500 font-medium">Next billing date</span>
-                        <span className="font-bold text-gray-900">
-                          {nextBillingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                      <div className="flex items-center justify-between py-2.5 border-b border-gray-50">
+                        <span className="text-xs text-gray-500 font-medium">Next charge</span>
+                        <span className="text-xs font-bold text-gray-900">
+                          ${currentPlan.monthlyPrice} on {nextBillingDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
                     )}
-                    <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                      <span className="text-gray-500 font-medium">Subscription ID</span>
-                      <span className="font-mono text-gray-700">{profile?.stripe_subscription_id?.slice(0, 18)}…</span>
+                    <div className="flex items-center justify-between py-2.5 border-b border-gray-50">
+                      <span className="text-xs text-gray-500 font-medium">Subscription</span>
+                      <span className="text-xs font-mono text-gray-600">{profile?.stripe_subscription_id?.slice(0, 20)}…</span>
                     </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-gray-500 font-medium">Customer ID</span>
-                      <span className="font-mono text-gray-700">{profile?.stripe_customer_id?.slice(0, 18)}…</span>
+                    <div className="flex items-center justify-between py-2.5">
+                      <span className="text-xs text-gray-500 font-medium">Customer</span>
+                      <span className="text-xs font-mono text-gray-600">{profile?.stripe_customer_id?.slice(0, 20)}…</span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Manage subscription */}
+              {/* Actions */}
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Manage subscription</p>
+                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Manage</p>
+                <div className="space-y-2">
 
-                {!hasActiveSubscription && (
-                  <Link href="/pricing"
-                    className="block w-full text-center btn-primary px-4 py-2.5 rounded-xl text-sm mb-2">
-                    {hasEverSubscribed ? 'Resubscribe' : 'View plans & start trial'}
-                  </Link>
-                )}
+                  {!hasActiveSubscription && (
+                    <Link href="/pricing"
+                      className="flex items-center justify-between px-4 py-3 rounded-xl btn-primary text-sm">
+                      <span>{hasEverSubscribed ? 'Resubscribe' : 'View plans & start trial'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                  )}
 
-                {hasActiveSubscription && !cancelAtPeriodEnd && (
-                  <div className="space-y-3">
-                    {/* Upgrade CTA — for non-business */}
-                    {currentTier !== 'business' && (
-                      <Link href="#available-plans"
-                        className="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors group">
-                        <div>
-                          <p className="text-xs font-black text-blue-900">
-                            Upgrade to {currentTier === 'starter' ? 'Professional' : 'Business'}
-                          </p>
-                          <p className="text-xs text-blue-600 font-medium mt-0.5">
-                            {currentTier === 'starter'
-                              ? 'Unlock white label, unlimited invoices, cash flow forecast'
-                              : 'Unlock budget tracking, overspend alerts, priority support'}
-                          </p>
-                        </div>
-                        <span className="text-blue-600 font-black text-sm group-hover:translate-x-0.5 transition-transform">→</span>
-                      </Link>
-                    )}
+                  {hasActiveSubscription && !cancelAtPeriodEnd && (
+                    <>
+                      {currentTier !== 'business' && (
+                        <a href="#available-plans"
+                          className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#F8FAFF] border border-[#0055FF]/15 hover:border-[#0055FF]/30 hover:bg-[#EFF4FF] transition-colors group">
+                          <div>
+                            <p className="text-xs font-black text-[#0055FF]">
+                              Upgrade to {currentTier === 'starter' ? 'Professional' : 'Business'}
+                            </p>
+                            <p className="text-xs text-[#0055FF]/60 font-medium mt-0.5">
+                              {currentTier === 'starter'
+                                ? 'Unlock white-label, unlimited invoices, cash flow forecast'
+                                : 'Unlock budget alerts, daily AI briefings, priority support'}
+                            </p>
+                          </div>
+                          <ArrowRight className="w-4 h-4 text-[#0055FF]/50 group-hover:translate-x-0.5 transition-transform flex-shrink-0" />
+                        </a>
+                      )}
 
-                    {/* Downgrade — for professional and business */}
-                    {currentTier === 'professional' && (
-                      <DowngradeConfirmButton
-                        currentTier={currentTier} targetTier="starter"
-                        buttonText="Downgrade to Starter"
-                        className="w-full px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
-                      />
-                    )}
-                    {currentTier === 'business' && (
-                      <DowngradeConfirmButton
-                        currentTier={currentTier} targetTier="professional"
-                        buttonText="Downgrade to Professional"
-                        className="w-full px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors"
-                      />
-                    )}
+                      {currentTier === 'professional' && (
+                        <DowngradeConfirmButton currentTier={currentTier} targetTier="starter"
+                          buttonText="Switch to Starter"
+                          className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-gray-500 bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-center" />
+                      )}
+                      {currentTier === 'business' && (
+                        <DowngradeConfirmButton currentTier={currentTier} targetTier="professional"
+                          buttonText="Switch to Professional"
+                          className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-gray-500 bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors text-center" />
+                      )}
 
-                    <CancelSubscriptionButton currentTier={currentTier} />
-                    <p className="text-xs text-gray-400 font-medium text-center">
-                      Canceling ends your subscription but keeps your data safe
-                    </p>
-                  </div>
-                )}
+                      <div className="pt-1">
+                        <CancelSubscriptionButton currentTier={currentTier} />
+                      </div>
+                      <p className="text-xs text-gray-400 font-medium text-center">
+                        Canceling ends your plan at the current billing period — your data stays safe.
+                      </p>
+                    </>
+                  )}
 
-                {cancelAtPeriodEnd && (
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-800 font-medium">
-                    Subscription set to cancel. Use "Reactivate" in the banner above to undo.
-                  </div>
-                )}
+                  {cancelAtPeriodEnd && (
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 text-xs text-amber-800 font-medium">
+                      Scheduled to switch at period end. Use "Reactivate" in the banner above to undo.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -400,56 +357,39 @@ export default async function BillingPage({
 
       {/* ── Available plans ───────────────────────────────────────────────── */}
       <BillingPlansSection
-        plans={plans}
+        plans={PLANS}
         currentTier={currentTier}
         hasActiveSubscription={hasActiveSubscription}
         hasEverSubscribed={hasEverSubscribed}
       />
 
       {/* ── Affiliate banner ──────────────────────────────────────────────── */}
-      <div style={{
-        background: 'linear-gradient(135deg, #002ECC 0%, #0044EE 40%, #0055FF 70%, #003DCC 100%)',
-        borderRadius: 16,
-        padding: '28px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 24,
-        flexWrap: 'wrap',
-        position: 'relative',
-        overflow: 'hidden',
+      <div className="relative overflow-hidden rounded-2xl p-7 md:p-8" style={{
+        background: 'linear-gradient(135deg, #002ECC 0%, #0044EE 50%, #0055FF 100%)',
       }}>
-        <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 60% 80% at 110% 50%,rgba(0,196,160,0.2) 0%,transparent 60%)',pointerEvents:'none'}}/>
-        <div style={{flex:1,minWidth:220,position:'relative'}}>
-          <p style={{fontSize:'.68rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.45)',marginBottom:6}}>Affiliate Programme</p>
-          <p style={{fontWeight:800,fontSize:'1rem',color:'#fff',marginBottom:4,letterSpacing:'-.01em'}}>
-            Earn 30% recurring — for every referral.
-          </p>
-          <p style={{fontSize:'.825rem',color:'rgba(255,255,255,0.55)',lineHeight:1.6}}>
-            Know a freelancer or small business? Share your link. Earn every month they stay subscribed.
-          </p>
+        <div className="absolute inset-0 pointer-events-none" style={{
+          background: 'radial-gradient(ellipse 60% 80% at 110% 50%, rgba(0,196,160,0.22) 0%, transparent 60%)',
+        }} />
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
+          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,1) 1px, transparent 1px)',
+          backgroundSize: '24px 24px',
+        }} />
+        <div className="relative flex items-center gap-6 flex-wrap">
+          <div className="flex-1 min-w-[200px]">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/40 mb-2">Affiliate Programme</p>
+            <p className="font-black text-white text-lg leading-tight mb-1" style={{ letterSpacing: '-.02em' }}>
+              Earn 30% recurring — for every referral.
+            </p>
+            <p className="text-sm text-white/50 font-medium">
+              Know a business that needs this? Share your link. Earn every month they stay subscribed.
+            </p>
+          </div>
+          <Link href="/dashboard/affiliate" className="flex-shrink-0 inline-flex items-center gap-2 px-5 py-2.5 bg-white text-[#0044EE] font-bold text-sm rounded-xl hover:bg-gray-50 transition-colors" style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}>
+            Get my referral link <Zap className="w-4 h-4" />
+          </Link>
         </div>
-        <Link
-          href="/dashboard/affiliate"
-          style={{
-            flexShrink: 0,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '11px 24px',
-            background: '#fff',
-            color: '#0044EE',
-            fontWeight: 800,
-            fontSize: '.875rem',
-            borderRadius: 10,
-            textDecoration: 'none',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            position: 'relative',
-          }}
-        >
-          Get my referral link
-          <Zap size={14}/>
-        </Link>
       </div>
+
     </div>
   )
 }
