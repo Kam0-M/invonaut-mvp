@@ -139,9 +139,9 @@ export default function ExpenseList({
           <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Receipt className="w-7 h-7 text-orange-400" />
           </div>
-          <h3 className="text-lg font-black text-gray-900 mb-2">No expenses recorded yet</h3>
+          <h3 className="text-lg font-black text-gray-900 mb-2">Log your first expense</h3>
           <p className="text-sm text-gray-500 font-medium mb-6 max-w-sm mx-auto">
-            Log your first expense and Invonaut will categorise it automatically — helping you understand where money is going.
+            Invonaut AI-categorizes expenses automatically and surfaces them in your P&amp;L, profit margin score, and monthly burn rate — all without manual work.
           </p>
           <Link
             href="/dashboard/expenses/new"

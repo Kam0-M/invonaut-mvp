@@ -71,9 +71,9 @@ export default async function ClientsPage() {
             <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
               <Users className="w-7 h-7 text-teal-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">No clients yet</h3>
+            <h3 className="text-lg font-black text-gray-900 mb-2">Add your first client</h3>
             <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
-              Every invoice, payment, and contract in Invonaut links back to a client. Add your first one to get started.
+              Every invoice, payment, and contract links to a client. Invonaut builds a risk profile for each one — tracking payment history, late patterns, and contract status automatically.
             </p>
             {hasActiveSubscription ? (
               <Link href="/dashboard/clients/new"

@@ -27,14 +27,15 @@ interface Props {
   lastRefreshed?: string | null
 }
 
-const URGENCY_CONFIG = {
-  critical:    { icon: AlertTriangle, bg: 'bg-red-50',    border: 'border-red-100',    icon_bg: 'bg-red-100',    icon_color: 'text-red-600',    badge: 'bg-red-100 text-red-700',    label: 'Critical'     },
-  warning:     { icon: AlertCircle,   bg: 'bg-amber-50',  border: 'border-amber-100',  icon_bg: 'bg-amber-100',  icon_color: 'text-amber-600',  badge: 'bg-amber-100 text-amber-700',  label: 'Warning'      },
-  opportunity: { icon: Lightbulb,     bg: 'bg-blue-50',   border: 'border-blue-100',   icon_bg: 'bg-blue-100',   icon_color: 'text-blue-600',   badge: 'bg-blue-100 text-blue-700',    label: 'Opportunity'  },
-  info:        { icon: Zap,           bg: 'bg-gray-50',   border: 'border-gray-100',   icon_bg: 'bg-gray-100',   icon_color: 'text-gray-500',   badge: 'bg-gray-100 text-gray-600',    label: 'Info'         },
-}
+// Terminal color map — signal-driven, not category-driven
+const URGENCY = {
+  critical:    { dot: '#f87171', label: 'CRITICAL',    filterBg: 'bg-red-500',    filterText: 'text-white',    inactiveBg: 'bg-red-950/40',  inactiveText: 'text-red-400'  },
+  warning:     { dot: '#FF6B35', label: 'WARNING',     filterBg: 'bg-orange-500', filterText: 'text-white',    inactiveBg: 'bg-orange-950/40',inactiveText: 'text-orange-400'},
+  opportunity: { dot: '#00C4A0', label: 'SIGNAL',      filterBg: 'bg-teal-500',   filterText: 'text-white',    inactiveBg: 'bg-teal-950/40',  inactiveText: 'text-teal-400' },
+  info:        { dot: '#64748B', label: 'INFO',         filterBg: 'bg-slate-600',  filterText: 'text-white',    inactiveBg: 'bg-slate-800/40', inactiveText: 'text-slate-400'},
+} as const
 
-const TYPE_ICON: Record<string, any> = {
+const TYPE_ICON: Record<string, React.ElementType> = {
   cash_dip:               TrendingDown,
   revenue_concentration:  Users,
   spending_spike:         DollarSign,
@@ -48,9 +49,19 @@ const TYPE_ICON: Record<string, any> = {
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime()
   const hrs  = Math.floor(diff / 3600000)
-  if (hrs < 1)  return 'Just now'
+  if (hrs < 1)  return 'just now'
   if (hrs < 24) return `${hrs}h ago`
   return `${Math.floor(hrs / 24)}d ago`
+}
+
+/** Wrap dollar figures in teal monospace spans for data-feed legibility */
+function highlightAmounts(text: string): React.ReactNode[] {
+  const parts = text.split(/(\$[\d,]+(?:\.\d{2})?(?:[KMB])?)/g)
+  return parts.map((part, i) =>
+    /^\$/.test(part)
+      ? <span key={i} className="inv-mono inv-terminal-signal font-bold">{part}</span>
+      : <span key={i}>{part}</span>
+  )
 }
 
 export default function IntelligenceFeed({ insights, isPro, lastRefreshed }: Props) {
@@ -90,148 +101,205 @@ export default function IntelligenceFeed({ insights, isPro, lastRefreshed }: Pro
     }
   }
 
+  /* ── Gated: starter tier ──────────────────────────────────────────────── */
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-blue-600" />
+      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        {/* Signal strip at top */}
+        <div className="inv-signal-strip" />
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="inv-live-dot" />
+            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest">Intelligence Feed</p>
           </div>
-          <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Financial Intelligence</p>
-        </div>
-        <div className="bg-gray-50 rounded-xl border border-dashed border-gray-200 p-6 text-center">
-          <p className="text-sm font-black text-gray-900 mb-1">Intelligence requires Professional</p>
-          <p className="text-xs text-gray-400 mb-4 max-w-xs mx-auto">
-            Upgrade to get AI-powered alerts, client risk profiles, and proactive cash flow warnings.
-          </p>
-          <Link href="/dashboard/billing" className="btn-primary px-4 py-2 rounded-xl text-sm inline-flex items-center gap-1.5">
-            Upgrade <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="inv-terminal p-5 text-center">
+            <Zap className="w-5 h-5 text-slate-500 mx-auto mb-3" />
+            <p className="text-sm font-black text-slate-200 mb-1">Intelligence requires Professional</p>
+            <p className="text-xs text-slate-500 mb-4 max-w-xs mx-auto leading-relaxed">
+              Upgrade to get AI-powered signals, client risk profiles, and proactive cash flow warnings.
+            </p>
+            <Link href="/dashboard/billing" className="btn-primary px-4 py-2 rounded-xl text-sm inline-flex items-center gap-1.5">
+              Upgrade <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-blue-600" />
+    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-200">
+      {/* Animated signal strip — communicates "live system" */}
+      <div className="inv-signal-strip" />
+
+      <div className="p-5">
+        {/* Header ──────────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="inv-live-dot" />
+            <div>
+              <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest leading-none">
+                Intelligence Feed
+              </p>
+              {lastRefreshed && (
+                <p className="text-[10px] text-gray-400 mt-0.5 inv-mono">
+                  Updated {timeAgo(lastRefreshed)}
+                </p>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-wider inv-overline">Financial Intelligence</p>
-            {lastRefreshed && (
-              <p className="text-[10px] text-gray-300 mt-0.5">Updated {timeAgo(lastRefreshed)}</p>
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-lg transition disabled:opacity-40 inv-mono"
+          >
+            <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Scanning…' : 'Refresh'}
+          </button>
+        </div>
+
+        {/* Filter pills ─────────────────────────────────────────────────── */}
+        {active.length > 0 && (
+          <div className="flex items-center gap-1.5 mb-4 flex-wrap">
+            <button
+              onClick={() => setFilter('all')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-black transition inv-mono ${
+                filter === 'all'
+                  ? 'bg-[#0055FF] text-white'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              ALL {active.length}
+            </button>
+            {criticalCount > 0 && (
+              <button onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black transition inv-mono ${
+                  filter === 'critical' ? 'bg-red-500 text-white' : 'bg-red-950/20 text-red-400 hover:bg-red-950/30 border border-red-900/30'
+                }`}>
+                ● {criticalCount} CRITICAL
+              </button>
+            )}
+            {warningCount > 0 && (
+              <button onClick={() => setFilter(filter === 'warning' ? 'all' : 'warning')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black transition inv-mono ${
+                  filter === 'warning' ? 'bg-orange-500 text-white' : 'bg-orange-950/20 text-orange-400 hover:bg-orange-950/30 border border-orange-900/30'
+                }`}>
+                ● {warningCount} WARNING
+              </button>
+            )}
+            {opportunityCount > 0 && (
+              <button onClick={() => setFilter(filter === 'opportunity' ? 'all' : 'opportunity')}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-black transition inv-mono ${
+                  filter === 'opportunity' ? 'bg-teal-500 text-white' : 'bg-teal-950/20 text-teal-400 hover:bg-teal-950/30 border border-teal-900/30'
+                }`}>
+                ● {opportunityCount} SIGNAL
+              </button>
             )}
           </div>
-        </div>
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Analysing…' : 'Refresh'}
-        </button>
-      </div>
+        )}
 
-      {/* Summary pills */}
-      {active.length > 0 && (
-        <div className="flex items-center gap-2 mb-4 flex-wrap">
-          {criticalCount > 0 && (
-            <button onClick={() => setFilter(filter === 'critical' ? 'all' : 'critical')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition ${filter === 'critical' ? 'bg-red-500 text-white' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}>
-              <AlertTriangle className="w-3 h-3" /> {criticalCount} Critical
-            </button>
-          )}
-          {warningCount > 0 && (
-            <button onClick={() => setFilter(filter === 'warning' ? 'all' : 'warning')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition ${filter === 'warning' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}>
-              <AlertCircle className="w-3 h-3" /> {warningCount} Warning
-            </button>
-          )}
-          {opportunityCount > 0 && (
-            <button onClick={() => setFilter(filter === 'opportunity' ? 'all' : 'opportunity')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-black transition ${filter === 'opportunity' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>
-              <Lightbulb className="w-3 h-3" /> {opportunityCount} Opportunity
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Insight cards */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-10">
-          <div className="w-10 h-10 bg-teal-50 rounded-xl flex items-center justify-center mx-auto mb-3">
-            <CheckCircle2 className="w-5 h-5 text-teal-500" />
-          </div>
-          <p className="text-sm font-black text-gray-900">
-            {active.length === 0 ? 'No insights yet' : 'All clear in this category'}
-          </p>
-          <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
-            {active.length === 0
-              ? 'Hit Refresh to run an analysis of your financial data.'
-              : 'Switch to All to see other insights.'}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map(insight => {
-            const cfg     = URGENCY_CONFIG[insight.urgency as keyof typeof URGENCY_CONFIG] ?? URGENCY_CONFIG.info
-            const Icon    = TYPE_ICON[insight.type] ?? cfg.icon
-            const CfgIcon = cfg.icon
-
-            return (
-              <div
-                key={insight.id}
-                className={`rounded-2xl border p-4 ${cfg.bg} ${cfg.border} transition-all duration-200`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 ${cfg.icon_bg} rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                    <Icon className={`w-4 h-4 ${cfg.icon_color}`} />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${cfg.badge}`}>
-                          {cfg.label}
-                        </span>
-                        <p className="text-sm font-black text-gray-900">{insight.title}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleDismiss(insight.id)}
-                        disabled={dismissing === insight.id}
-                        className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-white/60 transition disabled:opacity-50"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-
-                    <p className="text-xs text-gray-600 leading-relaxed mb-3">{insight.body}</p>
-
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {insight.action_label && insight.action_url && (
-                        <Link
-                          href={insight.action_url}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 hover:bg-gray-800 text-white text-xs font-black rounded-lg transition"
-                        >
-                          {insight.action_label} <ArrowRight className="w-3 h-3" />
-                        </Link>
-                      )}
-                      <span className="text-[10px] text-gray-300">{timeAgo(insight.created_at)}</span>
-                    </div>
-                  </div>
-                </div>
+        {/* Terminal feed panel ──────────────────────────────────────────── */}
+        <div className="inv-terminal">
+          {filtered.length === 0 ? (
+            /* Empty state — aspirational, not apologetic */
+            <div className="py-10 px-5 text-center">
+              <div className="flex items-center justify-center gap-1.5 mb-3">
+                <div className="inv-live-dot" style={{ background: '#334155' }} />
+                <span className="text-[10px] inv-mono text-slate-600 uppercase tracking-widest">
+                  {active.length === 0 ? 'Awaiting data' : 'No signals in this category'}
+                </span>
               </div>
-            )
-          })}
+              <p className="text-sm font-black text-slate-300 mb-2">
+                {active.length === 0 ? 'No signals detected' : 'All clear here'}
+              </p>
+              <p className="text-xs text-slate-600 leading-relaxed max-w-xs mx-auto">
+                {active.length === 0
+                  ? 'The feed will surface cash flow risks, high-risk clients, and payment anomalies as your business generates financial data. Run a refresh to scan now.'
+                  : 'Switch to All to see other active signals.'}
+              </p>
+              {active.length === 0 && (
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-teal-400 border border-teal-900/40 rounded-lg hover:bg-teal-950/20 transition inv-mono disabled:opacity-40"
+                >
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} />
+                  {refreshing ? 'Scanning…' : 'Run scan'}
+                </button>
+              )}
+            </div>
+          ) : (
+            /* Feed entries */
+            <div>
+              {filtered.map((insight, idx) => {
+                const urgencyCfg = URGENCY[insight.urgency as keyof typeof URGENCY] ?? URGENCY.info
+                const Icon = TYPE_ICON[insight.type] ?? Zap
+
+                return (
+                  <div
+                    key={insight.id}
+                    className="inv-intel-entry group"
+                  >
+                    {/* Urgency signal dot */}
+                    <div
+                      className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5"
+                      style={{ backgroundColor: urgencyCfg.dot }}
+                    />
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span
+                            className="text-[9px] font-black inv-mono px-1.5 py-0.5 rounded"
+                            style={{
+                              backgroundColor: `${urgencyCfg.dot}22`,
+                              color: urgencyCfg.dot,
+                              border: `1px solid ${urgencyCfg.dot}33`,
+                            }}
+                          >
+                            {urgencyCfg.label}
+                          </span>
+                          <p className="text-xs font-black text-slate-100 leading-tight">
+                            {insight.title}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDismiss(insight.id)}
+                          disabled={dismissing === insight.id}
+                          className="flex-shrink-0 w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-slate-300 hover:bg-white/5 transition disabled:opacity-40"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+
+                      <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
+                        {highlightAmounts(insight.body)}
+                      </p>
+
+                      <div className="flex items-center gap-3 flex-wrap">
+                        {insight.action_label && insight.action_url && (
+                          <Link
+                            href={insight.action_url}
+                            className="inline-flex items-center gap-1 text-[11px] font-black text-[#00C4A0] hover:text-teal-300 transition inv-mono"
+                          >
+                            {insight.action_label} <ArrowRight className="w-2.5 h-2.5" />
+                          </Link>
+                        )}
+                        <span className="text-[10px] text-slate-700 inv-mono ml-auto">
+                          {timeAgo(insight.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

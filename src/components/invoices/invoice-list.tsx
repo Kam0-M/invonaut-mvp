@@ -178,11 +178,27 @@ export function InvoiceList({
               dueDateColor = 'text-gray-400'
             }
 
+            // Risk indicator bar: 3px inset left-shadow signals payment risk
+            // at glance speed — no reading required
+            const riskColor = (() => {
+              if (ds === 'paid') return null
+              if (ds === 'overdue') return '#f87171'
+              const score = invoice.ai_risk_score
+              if (!score) return null
+              if (score >= 70) return '#f87171'   // high risk
+              if (score >= 40) return '#FF6B35'   // medium risk
+              return '#00C4A0'                     // low risk / on track
+            })()
+
+            const rowShadow = riskColor
+              ? `inset 3px 0 0 ${riskColor}, 0 1px 2px 0 rgba(0,0,0,0.05)`
+              : '0 1px 2px 0 rgba(0,0,0,0.05)'
+
             return (
               <div
                 key={invoice.id}
-                className="inv-row-in relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group"
-                style={{ animationDelay: `${idx * 30}ms` }}
+                className="inv-row-in relative bg-white rounded-2xl border border-gray-100 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 group overflow-hidden"
+                style={{ animationDelay: `${idx * 30}ms`, boxShadow: rowShadow }}
               >
                 <div className="flex items-center gap-4 px-5 py-4">
 
@@ -227,11 +243,11 @@ export function InvoiceList({
 
                   {/* Amount */}
                   <div className="flex-shrink-0 text-right min-w-[80px]">
-                    <span className="text-base font-black text-gray-900 group-hover:text-blue-600 transition-colors">
+                    <span className="text-base font-bold text-gray-900 group-hover:text-[var(--inv-blue)] transition-colors inv-mono">
                       {formatCompact(invoice.total_amount)}
                     </span>
                     {invoice.total_amount >= 10000 && (
-                      <p className="text-[10px] text-gray-300 mt-0.5">{fmt(invoice.total_amount)}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 inv-mono">{fmt(invoice.total_amount)}</p>
                     )}
                   </div>
 

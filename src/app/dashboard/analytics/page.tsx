@@ -340,66 +340,69 @@ export default async function AnalyticsPage({
 
           {/* ── Business Health Score ─────────────────────────────────────── */}
           <div
-            className={`relative overflow-hidden rounded-2xl border p-6 inv-fade-up inv-fade-up-1 ${health.border} ${health.bg}`}
+            className={`relative overflow-hidden rounded-2xl border inv-fade-up inv-fade-up-1 ${health.border} ${health.bg}`}
             style={{ boxShadow: health.glow }}
           >
-            <div className="flex items-center justify-between gap-6 flex-wrap">
-              <div className="flex items-center gap-5">
-                {/* Score circle */}
-                <div className="relative flex-shrink-0">
-                  <svg width="80" height="80" className="-rotate-90">
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="6" className="text-gray-200" />
-                    <circle cx="40" cy="40" r="32" fill="none" stroke="currentColor" strokeWidth="6"
-                      strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - health.score / 100)}`}
-                      strokeLinecap="round"
-                      className={health.color}
-                      style={{ transition: 'stroke-dashoffset 1s ease-out' }}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-2xl font-black ${health.color}`}>{health.grade}</span>
-                  </div>
-                </div>
+            {/* Animated signal strip — communicates live calculation */}
+            <div className="inv-signal-strip" />
+
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-6 flex-wrap">
+                {/* Score number — the visual anchor of the page */}
                 <div>
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Business Health Score</p>
-                  <h2 className={`text-2xl font-black ${health.color}`}>{health.label}</h2>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    BUSINESS HEALTH SCORE
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className={`inv-num-display text-7xl leading-none ${health.color}`}>
+                      {health.score}
+                    </span>
+                    <span className="text-xl text-gray-300 font-black leading-none">/100</span>
+                    <span className={`text-xl font-black ${health.color} leading-none ml-1`}>
+                      {health.grade}
+                    </span>
+                  </div>
+                  <p className={`text-base font-black mt-2 ${health.color}`}>{health.label}</p>
                   <p className="text-sm text-gray-500 font-medium mt-0.5">{health.sub}</p>
                 </div>
-              </div>
 
-              {/* Score breakdown pills */}
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { label: 'Collection',    value: collectionRate !== null ? `${collectionRate}%` : '—', good: (collectionRate ?? 0) >= 80 },
-                  { label: 'Profit margin', value: profitMargin !== null ? `${profitMargin}%` : '—',     good: (profitMargin ?? 0) > 0   },
-                  { label: 'Overdue risk',  value: `${overdueCount} inv.`,                              good: overdueCount === 0         },
-                  { label: 'MoM growth',    value: revenueGrowth !== null ? `${revenueGrowth > 0 ? '+' : ''}${revenueGrowth}%` : '—', good: (revenueGrowth ?? 0) >= 0 },
-                ].map(item => (
-                  <div key={item.label}
-                    className={`px-3 py-2 rounded-xl border text-center ${item.good ? 'bg-white/70 border-gray-200' : 'bg-red-50/70 border-red-200'}`}>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{item.label}</p>
-                    <p className={`text-sm font-black mt-0.5 ${item.good ? 'text-gray-900' : 'text-red-600'}`}>{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Score bar */}
-            <div className="mt-5">
-              <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Score {health.score}/100</p>
-                <div className="flex items-center gap-3 text-[10px] font-bold text-gray-300">
-                  <span>0</span><span>Critical</span><span className="text-gray-400">→</span><span>Excellent</span><span>100</span>
+                {/* Score breakdown pills */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: 'Collection',    value: collectionRate !== null ? `${collectionRate}%` : '—', good: (collectionRate ?? 0) >= 80 },
+                    { label: 'Profit margin', value: profitMargin !== null ? `${profitMargin}%` : '—',     good: (profitMargin ?? 0) > 0   },
+                    { label: 'Overdue risk',  value: `${overdueCount} inv.`,                              good: overdueCount === 0         },
+                    { label: 'MoM growth',    value: revenueGrowth !== null ? `${revenueGrowth > 0 ? '+' : ''}${revenueGrowth}%` : '—', good: (revenueGrowth ?? 0) >= 0 },
+                  ].map(item => (
+                    <div key={item.label}
+                      className={`px-3 py-2 rounded-xl border text-center ${item.good ? 'bg-white/70 border-gray-200' : 'bg-red-50/70 border-red-200'}`}>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">{item.label}</p>
+                      <p className={`text-sm font-black mt-0.5 inv-mono ${item.good ? 'text-gray-900' : 'text-red-600'}`}>{item.value}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full transition-all duration-1000 ${
-                  health.grade === 'A' ? 'bg-teal-500' :
-                  health.grade === 'B' ? 'bg-blue-500' :
-                  health.grade === 'C' ? 'bg-amber-500' :
-                  health.grade === 'D' ? 'bg-orange-500' : 'bg-red-500'
-                }`} style={{ width: `${health.score}%` }} />
+
+              {/* Score bar */}
+              <div className="mt-5">
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider inv-mono">
+                    Score {health.score}/100
+                  </p>
+                  <div className="flex items-center gap-3 text-[10px] font-bold text-gray-300 inv-mono">
+                    <span>0</span><span>Critical</span>
+                    <span className="text-gray-400">→</span>
+                    <span>Excellent</span><span>100</span>
+                  </div>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className={`h-full rounded-full transition-all duration-1000 ${
+                    health.grade === 'A' ? 'bg-teal-500' :
+                    health.grade === 'B' ? 'bg-blue-500' :
+                    health.grade === 'C' ? 'bg-amber-500' :
+                    health.grade === 'D' ? 'bg-orange-500' : 'bg-red-500'
+                  }`} style={{ width: `${health.score}%` }} />
+                </div>
               </div>
             </div>
           </div>
@@ -415,7 +418,7 @@ export default async function AnalyticsPage({
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-400 transition-colors" />
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(totalRevenue)}>{fmt(totalRevenue)}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmt(totalRevenue)}>{fmt(totalRevenue)}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
               {revenueGrowth !== null && (
                 <p className={`text-xs font-bold mt-1 ${revenueGrowth >= 0 ? 'text-teal-600' : 'text-red-500'}`}>
@@ -433,7 +436,7 @@ export default async function AnalyticsPage({
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors" />
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(totalExpenses)}>{fmt(totalExpenses)}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmt(totalExpenses)}>{fmt(totalExpenses)}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</p>
               {totalRevenue > 0 && (
                 <p className="text-xs font-bold mt-1 text-orange-500">
@@ -452,7 +455,7 @@ export default async function AnalyticsPage({
                   {isProfitable ? 'Profit' : 'Loss'}
                 </span>
               </div>
-              <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmt(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
+              <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmt(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net {isProfitable ? 'Profit' : 'Loss'}</p>
               {profitMargin !== null && (
                 <p className={`text-xs font-bold mt-1 ${isProfitable ? 'text-teal-600' : 'text-red-500'}`}>
@@ -569,7 +572,7 @@ export default async function AnalyticsPage({
                   ].map(s => (
                     <div key={s.label} className={`rounded-xl p-4 border ${s.cls}`}>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">{s.label}</p>
-                      <p className="text-xl font-black text-gray-900" title={fmt(s.value)}>{fmt(s.value)}</p>
+                      <p className="text-xl font-black text-gray-900 inv-mono" title={fmt(s.value)}>{fmt(s.value)}</p>
                       <p className="text-xs font-bold mt-1" style={{ color: s.color }}>{s.pct}% of total</p>
                     </div>
                   ))}
@@ -614,7 +617,7 @@ export default async function AnalyticsPage({
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <span className="text-sm font-bold text-gray-700 truncate">{cat.name}</span>
-                              <span className="text-sm font-black text-gray-900 flex-shrink-0" title={fmt(cat.total)}>{fmt(cat.total)}</span>
+                              <span className="text-sm font-black text-gray-900 flex-shrink-0 inv-mono" title={fmt(cat.total)}>{fmt(cat.total)}</span>
                             </div>
                             <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                               <div className="h-full rounded-full" style={{ width: `${totalRevenue > 0 ? (cat.total/totalRevenue)*100 : 0}%`, backgroundColor: cat.color }} />
@@ -652,7 +655,7 @@ export default async function AnalyticsPage({
                               style={{ width: `${totalRevenue > 0 ? (m.total/totalRevenue)*100 : 0}%` }} />
                           </div>
                         </div>
-                        <span className="text-sm font-black text-gray-900 flex-shrink-0 w-16 text-right" title={fmt(m.total)}>{fmt(m.total)}</span>
+                        <span className="text-sm font-black text-gray-900 flex-shrink-0 w-16 text-right inv-mono" title={fmt(m.total)}>{fmt(m.total)}</span>
                         <span className="text-xs font-bold text-gray-400 flex-shrink-0 w-9 text-right">
                           {totalRevenue > 0 ? Math.round((m.total/totalRevenue)*100) : 0}%
                         </span>

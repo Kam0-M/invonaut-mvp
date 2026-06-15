@@ -379,6 +379,88 @@ export default async function CashPage() {
         </Link>
       </div>
 
+      {/* ── Runway Command Center ─────────────────────────────────────────── */}
+      {(() => {
+        const runwayDays = latestBalance && avgMonthlyExp > 0
+          ? Math.floor(latestBalance / (avgMonthlyExp / 30))
+          : null
+        const status = runwayDays === null ? 'inactive'
+          : runwayDays >= 90 ? 'healthy'
+          : runwayDays >= 45 ? 'caution'
+          : 'critical'
+        const statusLabel  = status === 'healthy' ? 'HEALTHY'   : status === 'caution' ? 'CAUTION'   : status === 'critical' ? 'CRITICAL'  : 'INACTIVE'
+        const statusColor  = status === 'healthy' ? 'text-[var(--inv-teal)]' : status === 'caution' ? 'text-[var(--inv-orange)]' : status === 'critical' ? 'text-red-400' : 'text-gray-400'
+        const dotColor     = status === 'healthy' ? '#00C4A0'   : status === 'caution' ? '#FF6B35'   : status === 'critical' ? '#f87171'  : '#64748B'
+        const borderColor  = status === 'healthy' ? 'border-teal-100'   : status === 'caution' ? 'border-orange-100'   : status === 'critical' ? 'border-red-100'  : 'border-gray-100'
+        const glowStyle    = status === 'healthy'
+          ? { boxShadow: '0 0 32px rgba(0,196,160,0.12), 0 2px 12px rgba(0,0,0,0.04)' }
+          : status === 'caution'
+          ? { boxShadow: '0 0 32px rgba(255,107,53,0.12), 0 2px 12px rgba(0,0,0,0.04)' }
+          : status === 'critical'
+          ? { boxShadow: '0 0 32px rgba(248,113,113,0.15), 0 2px 12px rgba(0,0,0,0.04)' }
+          : {}
+
+        return (
+          <div className={`bg-white rounded-2xl border overflow-hidden ${borderColor}`} style={glowStyle}>
+            <div className="inv-signal-strip" />
+            <div className="p-5 flex items-center justify-between gap-6 flex-wrap">
+              {/* Runway number */}
+              <div className="flex items-baseline gap-3">
+                <div>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 inv-mono">CASH RUNWAY</p>
+                  {runwayDays !== null ? (
+                    <div className="flex items-baseline gap-2">
+                      <span className={`inv-num-display text-5xl leading-none font-bold ${statusColor}`}>
+                        {runwayDays}
+                      </span>
+                      <span className="text-lg text-gray-400 font-black leading-none">days</span>
+                    </div>
+                  ) : (
+                    <span className="text-2xl font-black text-gray-300">— days</span>
+                  )}
+                  {runwayDays === null && (
+                    <p className="text-xs text-gray-400 font-medium mt-1">
+                      Enter your cash balance in the runway calculator below to activate
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Status + right-side metrics */}
+              <div className="flex items-center gap-4 flex-wrap">
+                {/* Status badge */}
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: dotColor }} />
+                  <span className={`text-xs font-black inv-mono ${statusColor}`}>{statusLabel}</span>
+                </div>
+
+                {/* Context metrics */}
+                <div className="flex items-center gap-4">
+                  {latestBalance && latestBalance > 0 && (
+                    <div className="text-center">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Balance</p>
+                      <p className="text-sm font-black text-gray-900 inv-mono">{fmt(latestBalance)}</p>
+                    </div>
+                  )}
+                  {avgMonthlyExp > 0 && (
+                    <div className="text-center">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Monthly burn</p>
+                      <p className="text-sm font-black text-gray-900 inv-mono">{fmt(avgMonthlyExp)}</p>
+                    </div>
+                  )}
+                  {overdueTotal > 0 && (
+                    <div className="text-center">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Outstanding</p>
+                      <p className="text-sm font-black text-red-500 inv-mono">{fmt(overdueTotal)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
       {/* ── AI insight strip ─────────────────────────────────────────────── */}
       {cashInsights.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -407,7 +489,7 @@ export default async function CashPage() {
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-400 transition-colors" />
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(totalRevenue)}>{fmt(totalRevenue)}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(totalRevenue)}>{fmt(totalRevenue)}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
         </Link>
 
@@ -421,7 +503,7 @@ export default async function CashPage() {
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors" />
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(totalExpenses)}>{fmt(totalExpenses)}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(totalExpenses)}>{fmt(totalExpenses)}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</p>
         </Link>
 
@@ -442,7 +524,7 @@ export default async function CashPage() {
               {isProfitable ? 'Profitable' : 'Net loss'}
             </span>
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1" title={fmtFull(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Profit</p>
           {profitMargin !== null && (
             <p className={`text-xs font-bold mt-1 ${isProfitable ? 'text-teal-600' : 'text-red-500'}`}>
@@ -461,7 +543,7 @@ export default async function CashPage() {
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-red-400 transition-colors" />
           </div>
-          <p className={`text-2xl font-black leading-none mb-1 ${overdueCount > 0 ? 'text-red-600' : 'text-gray-900'}`} title={fmtFull(overdueTotal)}>
+          <p className={`text-2xl font-black leading-none mb-1 inv-mono ${overdueCount > 0 ? 'text-red-600' : 'text-gray-900'}`} title={fmtFull(overdueTotal)}>
             {overdueCount > 0 ? fmt(overdueTotal) : '$0'}
           </p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Overdue</p>

@@ -146,9 +146,9 @@ export default async function ContractsPage() {
             <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
               <FileCheck className="w-7 h-7 text-blue-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">No contracts yet</h3>
+            <h3 className="text-lg font-black text-gray-900 mb-2">Create your first contract</h3>
             <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
-              Create a contract from a template, send it with one link, and your client signs directly. Invonaut watches expiry dates and reminds both parties automatically.
+              Send contracts with a single link. Clients sign directly — no accounts, no PDFs back and forth. Invonaut monitors expiry dates and sends reminders automatically.
             </p>
             {!hasActiveSubscription ? (
               <Link href="/pricing"

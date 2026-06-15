@@ -1,5 +1,6 @@
-/* Fraunces — brand headlines: greeting, AI numbers, sidebar wordmark, report headers */
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..800&display=swap');
+/* Fraunces — brand headlines, hero numbers, report headers */
+/* JetBrains Mono — all financial figures, data feeds, terminal panels */
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -305,3 +306,105 @@ a:active { transform: scale(0.97); }
 .auth-orb-a { animation: auth-orb-drift   22s ease-in-out infinite; }
 .auth-orb-b { animation: auth-orb-drift-b 28s ease-in-out infinite; }
 .auth-orb-c { animation: auth-orb-drift   17s ease-in-out infinite reverse; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   FINANCIAL OPERATING SYSTEM — IDENTITY LAYER
+   These classes build the "financial instrument" aesthetic that separates
+   Invonaut from generic AI SaaS templates.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Financial terminal panel ───────────────────────────────────────────── */
+/* Dark card variant for Intelligence Feed and data-dense AI panels.
+   Used inside white cards to create a "data terminal" sub-section. */
+.inv-terminal {
+  background: #0F1117;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.inv-terminal-text   { color: #CBD5E1; }
+.inv-terminal-muted  { color: #475569; }
+.inv-terminal-signal { color: #00C4A0; } /* teal for key figures */
+.inv-terminal-alert  { color: #f87171; } /* red for risk signals */
+.inv-terminal-warn   { color: #FF6B35; } /* orange for cautions */
+
+/* ── Risk indicator system — invoice rows ───────────────────────────────── */
+/* 3px inset left-shadow creates a risk signal without breaking rounded-2xl.
+   Applied as inline style to preserve Tailwind's shadow utilities. */
+/* Usage: style={{ boxShadow: `inset 3px 0 0 ${riskColor}, 0 1px 2px 0 rgb(0 0 0 / 0.05)` }} */
+
+/* ── LIVE badge — pulsing indicator ─────────────────────────────────────── */
+@keyframes inv-live-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.3; transform: scale(0.85); }
+}
+.inv-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00C4A0;
+  animation: inv-live-pulse 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Runway status system ────────────────────────────────────────────────── */
+.inv-runway-healthy  { color: var(--inv-teal); }
+.inv-runway-caution  { color: var(--inv-orange); }
+.inv-runway-critical { color: #f87171; }
+
+.inv-runway-bar-healthy  { background: var(--inv-teal); }
+.inv-runway-bar-caution  { background: var(--inv-orange); }
+.inv-runway-bar-critical { background: #f87171; }
+
+/* ── Signal strip — animated top accent for command-center elements ──────── */
+@keyframes inv-signal-sweep {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+.inv-signal-strip {
+  height: 2px;
+  background: linear-gradient(90deg, var(--inv-blue) 0%, var(--inv-teal) 50%, var(--inv-blue) 100%);
+  background-size: 200% 100%;
+  animation: inv-signal-sweep 3s ease-in-out infinite;
+  border-radius: 2px 2px 0 0;
+}
+
+/* ── Fraunces display number — hero financial figures ───────────────────── */
+/* Use for: Business Health Score, runway days, revenue hero numbers */
+.inv-num-display {
+  font-family: 'Fraunces', serif;
+  font-optical-sizing: auto;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── JetBrains Mono — precision financial data ──────────────────────────── */
+/* Use for: invoice amounts, timestamps, data feed entries, account balances */
+.inv-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+/* ── Intelligence entry — single line in a data feed ───────────────────── */
+.inv-intel-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+.inv-intel-entry:last-child { border-bottom: none; }
+.inv-intel-entry:hover { background: rgba(255, 255, 255, 0.03); }
+
+/* ── Section overline — standardized across all pages ───────────────────── */
+/* Already have .inv-overline but aliasing here for clarity */
+.inv-section-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--inv-blue);
+  -webkit-font-smoothing: antialiased;
+}
