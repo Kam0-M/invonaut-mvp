@@ -110,9 +110,9 @@ export default async function PaymentsPage() {
             <div className="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mx-auto mb-4">
               <Banknote className="w-7 h-7 text-teal-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">No payments logged yet</h3>
+            <h3 className="text-lg font-black text-gray-900 mb-2">Log your first payment</h3>
             <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
-              Log cash, POS, bank transfers, and prepayments — income that doesn't need an invoice. Tag with a category to unlock analytics.
+              Cash, bank transfers, POS, prepayments — income that doesn't run through an invoice. All of it flows into your P&amp;L and revenue intelligence automatically.
             </p>
             <Link href="/dashboard/payments/new"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">

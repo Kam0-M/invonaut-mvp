@@ -134,11 +134,11 @@ export default function RevenueStorySection({
           <div className="grid grid-cols-3 gap-3">
             <div className="p-3 bg-white/70 rounded-xl border border-gray-200/70">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">This month</p>
-              <p className="text-lg font-black text-gray-900 mt-0.5">{fmt(currentMonth)}</p>
+              <p className="text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(currentMonth)}</p>
             </div>
             <div className="p-3 bg-white/70 rounded-xl border border-gray-200/70">
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Last month</p>
-              <p className="text-lg font-black text-gray-900 mt-0.5">{fmt(previousMonth)}</p>
+              <p className="text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(previousMonth)}</p>
             </div>
             <div className={`p-3 rounded-xl border ${
               trendPct > 0  ? 'bg-teal-50 border-teal-200' :

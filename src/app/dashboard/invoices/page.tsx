@@ -180,9 +180,9 @@ export default async function InvoicesPage() {
             <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
               <FileText className="w-7 h-7 text-blue-600" />
             </div>
-            <h3 className="text-lg font-black text-gray-900 mb-2">No invoices yet</h3>
-            <p className="text-sm text-gray-500 font-medium max-w-sm mx-auto mb-6">
-              Create your first invoice and Invonaut starts watching it immediately — AI scores payment risk, automated reminders fire when it goes overdue.
+            <h3 className="text-lg font-black text-gray-900 mb-2">Send your first invoice</h3>
+            <p className="text-sm text-gray-400 mb-6 max-w-xs leading-relaxed">
+              Invonaut tracks payment risk, sends automatic follow-ups, and updates your cash forecast as invoices move through their lifecycle.
             </p>
             {hasActiveSubscription ? (
               <Link href="/dashboard/invoices/new"
