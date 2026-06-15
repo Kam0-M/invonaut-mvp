@@ -1,186 +1,167 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, X } from 'lucide-react'
+import { AlertTriangle, X, ShieldCheck } from 'lucide-react'
 
-interface CancelSubscriptionButtonProps {
-  currentTier: string
-}
+interface Props { currentTier: string }
 
-export default function CancelSubscriptionButton({ currentTier }: CancelSubscriptionButtonProps) {
+export default function CancelSubscriptionButton({ currentTier }: Props) {
   const [showModal, setShowModal] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleConfirm = async () => {
     setIsLoading(true)
-    
     try {
-      const response = await fetch('/api/cancel-subscription', {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        window.location.reload()
-      } else {
-        console.error('Failed to cancel subscription')
-        setIsLoading(false)
-      }
-    } catch (error) {
-      console.error('Error canceling subscription:', error)
+      const res = await fetch('/api/cancel-subscription', { method: 'POST' })
+      if (res.ok) window.location.reload()
+      else { console.error('Failed to cancel'); setIsLoading(false) }
+    } catch (e) {
+      console.error('Error canceling:', e)
       setIsLoading(false)
     }
   }
 
-  const isStarter = currentTier === 'starter'
+  const isStarter      = currentTier === 'starter'
   const isProfessional = currentTier === 'professional'
+
+  const loseItems: string[] = isStarter ? [
+    'Creating new invoices and editing drafts',
+    'AI payment predictions and automated follow-ups',
+    'Expense tracking and contract management',
+    'Sending invoices to clients',
+  ] : isProfessional ? [
+    'Creating new invoices and editing drafts',
+    'White-label branding (logo and custom colours)',
+    'Cash flow forecast and revenue intelligence',
+    'AI predictions, contract review, and expense categorisation',
+  ] : [
+    'Budget tracking and daily AI financial briefings',
+    'All Professional features (invoices, contracts, cash flow)',
+    'Priority support and early feature access',
+    'White-label branding and client portal',
+  ]
 
   return (
     <>
+      {/* Trigger — subtle destructive, not a red rectangle */}
       <button
+        type="button"
         onClick={() => setShowModal(true)}
-        className="w-full bg-gradient-to-r bg-red-600 hover:bg-red-700 transition-all"
+        className="w-full px-4 py-2.5 rounded-xl text-xs font-bold text-red-500 bg-red-50 border border-red-100 hover:bg-red-100 hover:border-red-200 transition-colors text-center"
       >
-        Cancel Subscription
+        Cancel subscription
       </button>
 
+      {/* Confirmation modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full ">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-t-2xl">
-              <div className="flex items-start justify-between">
+        <div
+          className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false) }}
+        >
+          <div className="bg-white rounded-2xl max-w-md w-full border border-gray-100 overflow-hidden"
+            style={{ boxShadow: '0 24px 60px rgba(0,0,0,0.18)' }}>
+
+            {/* Header — no gradient, just a clean warning bar */}
+            <div className="px-6 pt-6 pb-4 border-b border-gray-100">
+              <div className="flex items-start justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-black">Cancel Subscription?</h2>
-                    <p className="text-red-100 text-sm mt-1">
-                      This takes effect immediately
+                    <h2 className="text-base font-black text-gray-900">Cancel subscription?</h2>
+                    <p className="text-xs text-gray-400 font-medium mt-0.5">
+                      Takes effect at the end of your billing period
                     </p>
                   </div>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setShowModal(false)}
-                  className="text-white/80 hover:text-white transition-colors"
+                  className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-6 space-y-5">
+
               {/* What you lose */}
-              <div className="mb-4">
-                <h3 className="text-sm font-bold text-red-700 uppercase tracking-wide mb-2">
-                  You will IMMEDIATELY lose access to:
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  {isStarter && (
-                    <>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Creating new invoices and editing drafts</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Adding and editing clients</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>AI payment predictions</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Sending invoices and automated follow-ups</span>
-                      </li>
-                    </>
-                  )}
-                  {isProfessional && (
-                    <>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Creating new invoices and editing drafts</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Adding and editing clients</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>White label branding (logo and custom colors)</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-red-500 font-bold mt-0.5">✕</span>
-                        <span>Advanced AI predictions and sending invoices</span>
-                      </li>
-                    </>
-                  )}
+              <div>
+                <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest mb-3">
+                  You will lose access to
+                </p>
+                <ul className="space-y-2">
+                  {loseItems.map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
+                      <span className="text-sm text-gray-600 font-medium leading-snug">{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
               {/* What you keep */}
-              <div className="mb-4">
-                <h3 className="text-sm font-bold text-green-700 uppercase tracking-wide mb-2">
-                  What stays safe:
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold mt-0.5">✓</span>
-                    <span>All your existing invoices and client data (view-only)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold mt-0.5">✓</span>
-                    <span>Dashboard analytics and revenue history</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-600 font-bold mt-0.5">✓</span>
-                    <span>Your account — resubscribe anytime to restore full access</span>
-                  </li>
+              <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[var(--inv-teal)]" />
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    Your data stays safe
+                  </p>
+                </div>
+                <ul className="space-y-1.5">
+                  {[
+                    'All existing invoices, clients, and payment history',
+                    'Dashboard analytics and revenue records',
+                    'Resubscribe anytime to restore full access instantly',
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--inv-teal)] flex-shrink-0 mt-1.5" />
+                      <span className="text-xs text-gray-500 font-medium leading-snug">{item}</span>
+                    </li>
+                  ))}
                 </ul>
               </div>
 
-              {/* Downgrade note for Professional users only */}
+              {/* Downgrade nudge for Professional */}
               {isProfessional && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
-                  <p className="text-sm text-blue-900 font-medium">
-                    <strong>Prefer a lower cost over no access?</strong> Use "Downgrade to Starter" ($30/mo) instead to keep creating invoices and managing clients without losing everything.
+                <div className="bg-[#EFF4FF] border border-[#0055FF]/15 rounded-xl p-4">
+                  <p className="text-xs text-[#0055FF] font-medium leading-relaxed">
+                    <span className="font-black">Prefer lower cost over no access?</span>{' '}
+                    Use &quot;Switch to Starter&quot; ($29/mo) to keep creating invoices and managing
+                    clients without losing everything.
                   </p>
                 </div>
               )}
 
-              {/* Confirmation note for Starter users */}
-              {isStarter && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
-                  <p className="text-sm text-gray-700">
-                    You won't be charged again. Your data will be waiting for you if you decide to come back.
-                  </p>
-                </div>
-              )}
-
-              <div className="flex gap-3">
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-1">
                 <button
+                  type="button"
                   onClick={() => setShowModal(false)}
                   disabled={isLoading}
-                  className="flex-1 bg-gray-200 text-gray-700 px-4 py-3 rounded-xl font-bold hover:bg-gray-300 transition-all disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 bg-gray-100 border border-gray-200 hover:bg-gray-200 transition-colors disabled:opacity-50"
                 >
-                  Keep Subscription
+                  Keep my plan
                 </button>
                 <button
+                  type="button"
                   onClick={handleConfirm}
                   disabled={isLoading}
-                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white px-4 py-3 rounded-xl font-bold hover:shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Cancelling...
+                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Canceling…
                     </>
                   ) : (
-                    'Yes, Cancel Subscription'
+                    'Yes, cancel'
                   )}
                 </button>
               </div>
+
             </div>
           </div>
         </div>
