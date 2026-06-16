@@ -22,11 +22,26 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const currency         = (profile as any)?.currency         || 'USD'
   const currencySymbol   = (profile as any)?.currency_symbol  || '$'
 
+  // Sidebar badge counts — computed server-side, passed as props
+  const today = new Date().toISOString().split('T')[0]
+  const [{ count: overdueCount }, { count: highRiskCount }] = await Promise.all([
+    // Overdue = sent invoices with past due_date
+    supabase.from('invoices').select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id).eq('status', 'sent').lt('due_date', today),
+    // High-risk = ai_risk_score >= 70, not yet paid
+    supabase.from('invoices').select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id).neq('status', 'paid').gte('ai_risk_score', 70),
+  ])
+
   return (
     <CurrencyProvider currency={currency} symbol={currencySymbol}>
     <div className="h-screen flex overflow-hidden bg-white">
       {/* Dark icon sidebar */}
-      <Sidebar subscriptionTier={subscriptionTier} />
+      <Sidebar
+        subscriptionTier={subscriptionTier}
+        overdueCount={overdueCount ?? 0}
+        highRiskCount={highRiskCount ?? 0}
+      />
 
       {/* Right column: top header + scrolling main */}
       <div className="flex flex-col flex-1 overflow-hidden">

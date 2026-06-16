@@ -164,7 +164,13 @@ export default async function DashboardPage() {
 
   const totalContractValue = activeContracts.reduce((s: number, c: any) => s + Number(c.total_value || 0), 0)
 
-  // ── Revenue chart data ────────────────────────────────────────────────────
+  // ── Business Health Score (preview — full version on Analytics) ───────────
+  const sentInvoiceCount = invoices.filter((i: any) => ['sent','paid','overdue'].includes(i.displayStatus)).length
+  const paidInvoiceCount = invoices.filter((i: any) => i.displayStatus === 'paid').length
+  const collectionRate   = sentInvoiceCount > 0 ? Math.round((paidInvoiceCount / sentInvoiceCount) * 100) : null
+  const overdueRatio     = invoices.length > 0 ? overdueCount / invoices.length : 0
+  const hasData          = invoices.length > 0 || directPayments.length > 0
+
   const revenueChartData = Array.from({ length: 6 }, (_, idx) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1)
     const y = d.getFullYear(), m = d.getMonth()
@@ -189,6 +195,28 @@ export default async function DashboardPage() {
   })
   const currentMonthRevenue  = revenueChartData[5]?.revenue ?? 0
   const previousMonthRevenue = revenueChartData[4]?.revenue ?? 0
+
+  // BHS revenue growth — computed after chart data
+  const bhsRevenueGrowth = previousMonthRevenue > 0
+    ? Math.round(((paidThisMonth - previousMonthRevenue) / previousMonthRevenue) * 100)
+    : null
+
+  // Compact BHS score (same algorithm as Analytics page)
+  const dashBHS = (() => {
+    if (!hasData) return { score: 0, grade: 'F', color: 'text-gray-400', label: 'No data yet', glow: 'none', border: 'border-gray-200', scoreColor: '#94A3B8' }
+    let s = 0
+    s += Math.round(((collectionRate ?? 50) / 100) * 35)
+    s += Math.round((Math.max(0, Math.min(100, profitMargin ?? 0)) / 100) * 30)
+    s += Math.max(0, 20 - Math.round(overdueRatio * 20))
+    const rg = bhsRevenueGrowth ?? 0
+    if (rg > 20) s += 15; else if (rg > 0) s += 8; else if (rg === 0) s += 4
+    s = Math.min(100, Math.max(0, s))
+    if (s >= 85) return { score: s, grade: 'A', color: 'text-teal-600',   label: 'Excellent', glow: '0 0 28px rgba(0,196,160,0.15)', border: 'border-teal-100',   scoreColor: '#00C4A0' }
+    if (s >= 70) return { score: s, grade: 'B', color: 'text-blue-600',   label: 'Good',      glow: '0 0 28px rgba(0,85,255,0.12)',  border: 'border-blue-100',   scoreColor: '#0055FF' }
+    if (s >= 55) return { score: s, grade: 'C', color: 'text-amber-600',  label: 'Fair',      glow: '0 0 28px rgba(217,119,6,0.12)', border: 'border-amber-100',  scoreColor: '#D97706' }
+    if (s >= 35) return { score: s, grade: 'D', color: 'text-orange-600', label: 'At risk',   glow: '0 0 28px rgba(255,107,53,0.12)',border: 'border-orange-100', scoreColor: '#FF6B35' }
+    return       { score: s, grade: 'F', color: 'text-red-600',   label: 'Critical',  glow: '0 0 28px rgba(239,68,68,0.14)',  border: 'border-red-100',    scoreColor: '#EF4444' }
+  })()
 
   // ── Activity feed ─────────────────────────────────────────────────────────
   const activity: ActivityItem[] = []
@@ -299,7 +327,73 @@ export default async function DashboardPage() {
 
       {!hasActiveSubscription && <ViewOnlyBanner />}
 
-      {/* ── AI Command Center ─────────────────────────────────────────────── */}
+      {/* ── Business Health Score — preview card (Pro+) ───────────────────── */}
+      {hasActiveSubscription && isPro && (
+        <div
+          className={`relative overflow-hidden bg-white rounded-2xl border ${dashBHS.border} inv-fade-up inv-fade-up-2`}
+          style={{ boxShadow: dashBHS.glow }}
+        >
+          <div className="inv-signal-strip" />
+          <div className="px-5 py-4 flex items-center gap-5 flex-wrap">
+            {/* Score */}
+            <div className="flex items-baseline gap-2 flex-shrink-0">
+              <span className={`inv-num-display text-5xl leading-none font-bold ${dashBHS.color}`}>
+                {dashBHS.score}
+              </span>
+              <span className="text-base text-gray-300 font-black leading-none">/100</span>
+              <span className={`text-base font-black ${dashBHS.color} leading-none ml-0.5`}>
+                {dashBHS.grade}
+              </span>
+            </div>
+
+            {/* Label + sub-metrics */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">BUSINESS HEALTH</p>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                  dashBHS.grade === 'A' ? 'bg-teal-50 text-teal-700' :
+                  dashBHS.grade === 'B' ? 'bg-blue-50 text-blue-700' :
+                  dashBHS.grade === 'C' ? 'bg-amber-50 text-amber-700' :
+                  dashBHS.grade === 'D' ? 'bg-orange-50 text-orange-700' :
+                  'bg-red-50 text-red-700'
+                }`}>{dashBHS.label}</span>
+              </div>
+              {/* Score bar */}
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{ width: `${dashBHS.score}%`, background: dashBHS.scoreColor }}
+                />
+              </div>
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                {collectionRate !== null && (
+                  <span className="text-[10px] font-bold text-gray-400 inv-mono">
+                    {collectionRate}% collected
+                  </span>
+                )}
+                {profitMargin !== null && (
+                  <span className="text-[10px] font-bold text-gray-400 inv-mono">
+                    {profitMargin}% margin
+                  </span>
+                )}
+                {overdueCount > 0 && (
+                  <span className="text-[10px] font-bold text-red-400 inv-mono">
+                    {overdueCount} overdue
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* CTA */}
+            <Link
+              href="/dashboard/analytics"
+              className="text-xs font-black text-blue-600 hover:text-blue-700 transition-colors flex-shrink-0 flex items-center gap-1"
+            >
+              Full analysis →
+            </Link>
+          </div>
+        </div>
+      )}
       {hasActiveSubscription && (
         <AICommandCenter
           totalRevenue={totalRevenue}
