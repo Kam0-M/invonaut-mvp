@@ -603,41 +603,46 @@ export default async function CashPage() {
       />
 
       {/* ── 90-Day Forecast ───────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-        <div className="flex items-center justify-between mb-1">
-          <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">90-Day Cash Forecast</p>
-            <p className="text-sm font-black text-gray-900 mt-0.5">
-              {hasForecastData
-                ? forecastDipsNegative
-                  ? 'Projected shortfall detected — review pipeline'
-                  : 'Cash flow looks healthy over the next 90 days'
-                : 'Enter your balance below to activate the forecast'}
-            </p>
+      <div className="inv-terminal rounded-2xl overflow-hidden">
+        <div className="inv-signal-strip" />
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-1">
+            <div>
+              <p className="text-xs font-bold inv-terminal-muted uppercase tracking-wider inv-mono">
+                90-Day Cash Forecast
+              </p>
+              <p className="text-sm font-black inv-terminal-text mt-0.5">
+                {hasForecastData
+                  ? forecastDipsNegative
+                    ? 'Projected shortfall detected — review pipeline'
+                    : 'Cash flow looks healthy over the next 90 days'
+                  : 'Enter your balance below to activate the forecast'}
+              </p>
+            </div>
+            {forecastDipsNegative && (
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl border border-red-800/50 bg-red-900/20 text-red-400 flex-shrink-0">
+                Shortfall risk
+              </span>
+            )}
           </div>
-          {forecastDipsNegative && (
-            <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-700 border border-red-200 flex-shrink-0">
-              Shortfall risk
-            </span>
+          {avgWeeklyExp > 0 && (
+            <p className="text-xs inv-terminal-muted font-medium mb-5 inv-mono">
+              Based on invoice due dates and {fmt(avgWeeklyExp)}/wk avg expenses
+            </p>
+          )}
+
+          {!hasForecastData ? (
+            <div className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="w-12 h-12 bg-white/[0.04] border border-white/[0.07] rounded-xl flex items-center justify-center mb-3">
+                <Clock className="w-6 h-6 text-slate-600" />
+              </div>
+              <p className="text-sm font-bold text-slate-500 mb-1">Enter your bank balance to activate the forecast</p>
+              <p className="text-xs text-slate-600 font-medium">Use the runway calculator above to save your current balance.</p>
+            </div>
+          ) : (
+            <ForecastChart data={forecastData} />
           )}
         </div>
-        {avgWeeklyExp > 0 && (
-          <p className="text-xs text-gray-400 font-medium mb-5">
-            Based on invoice due dates and {fmt(avgWeeklyExp)}/wk avg expenses
-          </p>
-        )}
-
-        {!hasForecastData ? (
-          <div className="flex flex-col items-center justify-center py-14 text-center">
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-3">
-              <Clock className="w-6 h-6 text-blue-400" />
-            </div>
-            <p className="text-sm font-bold text-gray-600 mb-1">Enter your bank balance to activate the forecast</p>
-            <p className="text-xs text-gray-400 font-medium">Use the runway calculator above to save your current balance.</p>
-          </div>
-        ) : (
-          <ForecastChart data={forecastData} />
-        )}
       </div>
 
       {/* ── Outstanding invoices + Tax reserve ───────────────────────────── */}

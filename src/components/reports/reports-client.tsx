@@ -85,9 +85,9 @@ const WORKFLOW_LABELS: Record<string,{label:string,color:string,bg:string}> = {
 
 // ─── CSS ──────────────────────────────────────────────────────────────────────
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=DM+Mono:ital,wght@0,400;0,500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500;700&display=swap');
   .f-display{font-family:'Fraunces',serif;font-optical-sizing:auto}
-  .f-mono{font-family:'DM Mono',monospace}
+  .f-mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-feature-settings:'tnum';letter-spacing:-0.01em}
   .rpt-tab{padding:9px 20px;border-radius:9px;font-size:.82rem;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:background .15s,color .15s;font-family:'DM Sans',sans-serif}
   .rpt-tab-active{background:#0A0A0A;color:#fff}
   .rpt-tab-inactive{background:transparent;color:#64748B}
@@ -103,7 +103,7 @@ const CSS = `
   .rpt-table th{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#94A3B8;padding:0 24px 12px;text-align:left;border-bottom:1px solid #E2E8F0}
   .rpt-table th:not(:first-child){text-align:right}
   .rpt-table td{font-size:.83rem;color:#374151;padding:13px 24px;border-bottom:1px solid #F8FAFC}
-  .rpt-table td:not(:first-child){text-align:right;font-family:'DM Mono',monospace;font-size:.79rem}
+  .rpt-table td:not(:first-child){text-align:right;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:.79rem;font-feature-settings:'tnum';letter-spacing:-0.01em}
   .rpt-table tr:last-child td{border-bottom:none}
   .rpt-table tbody tr:hover td{background:#F8FAFF}
   .rpt-total-row td{font-weight:800;border-top:2px solid #E2E8F0!important;border-bottom:none!important;padding-top:14px;background:#F8FAFF}
@@ -459,7 +459,7 @@ function BSRow({label,amount,indent=false,bold=false,total=false,color}:{label:s
       <td style={{paddingLeft:indent?48:24,fontWeight:bold||total?800:400,fontSize:total?'.88rem':'.83rem',color:total?'#0A0A0A':'#374151',borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none'}}>
         {label}
       </td>
-      <td style={{textAlign:'right',paddingRight:24,fontFamily:"'DM Mono',monospace",fontSize:total?'.88rem':'.79rem',fontWeight:bold||total?800:400,color:color||(total?'#0A0A0A':'#374151'),borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none'}}>
+      <td style={{textAlign:'right',paddingRight:24,fontFamily:"'JetBrains Mono',ui-monospace,monospace",fontSize:total?'.88rem':'.79rem',fontWeight:bold||total?800:400,color:color||(total?'#0A0A0A':'#374151'),borderBottom:total?'none':'1px solid #F8FAFC',paddingTop:total?14:13,paddingBottom:total?14:13,borderTop:total?'2px solid #E2E8F0':'none',fontFeatureSettings:"'tnum'",letterSpacing:'-0.01em'}}>
         {amount===null?'—':fmtC(amount)}
       </td>
     </tr>
@@ -782,7 +782,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 </tr>
                 <tr>
                   <td style={{paddingLeft:40,color:'#00C4A0',fontWeight:700,fontSize:'.83rem',paddingBottom:14}}>EBITDA</td>
-                  <td style={{textAlign:'right',paddingRight:24,color:'#00C4A0',fontWeight:800,fontFamily:"'DM Mono',monospace",fontSize:'.83rem',paddingBottom:14}}>{fmtC(ebitda)}</td>
+                  <td style={{textAlign:'right',paddingRight:24,color:'#00C4A0',fontWeight:800,fontFamily:"'JetBrains Mono',ui-monospace,monospace",fontSize:'.83rem',paddingBottom:14,fontFeatureSettings:"'tnum'",letterSpacing:'-0.01em'}}>{fmtC(ebitda)}</td>
                 </tr>
               </tfoot>
             </table>
