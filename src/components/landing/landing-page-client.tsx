@@ -13,7 +13,7 @@ import LandingPricingSection from '@/components/landing-pricing-section'
 // ─── Global styles ────────────────────────────────────────────────────────────
 const CSS = `
   .f-display { font-family:'Fraunces',serif; font-optical-sizing:auto; }
-  .f-mono    { font-family:'DM Mono',monospace; }
+  .f-mono    { font-family:'JetBrains Mono',monospace; font-feature-settings:'tnum'; }
   :root {
     --ink:   #07070F;
     --blue:  #0055FF;
@@ -59,6 +59,7 @@ const CSS = `
     .footer-grid   { grid-template-columns:1fr 1fr !important; }
     .cta-grid      { grid-template-columns:1fr !important; }
     .demo-tabs     { overflow-x:auto; }
+    .price-justify-grid { grid-template-columns:1fr !important; }
   }
   @media(max-width:600px){
     .steps-grid  { grid-template-columns:1fr !important; }
@@ -405,6 +406,226 @@ const AUTOMATIONS = [
   { s:'On open',          n:'90-day cash forecast refresh',  d:"Your cash position is recalculated every time you open the cash flow page — always based on current data." },
 ]
 
+// ─── Persona data ─────────────────────────────────────────────────────────────
+const PERSONAS = [
+  {
+    type:      'The freelancer',
+    color:     '#0055FF',
+    bg:        'rgba(0,85,255,0.06)',
+    headline:  'Invoice sent. Client gone quiet. Follow-up sent — automatically.',
+    context:   'Eight active clients. Invoicing per project. No bandwidth to chase.',
+    scenario:  'On Tuesday at 9:00am, INV-0015 was 8 days past due with a 52% payment risk score. An automated follow-up went out. Another went out on day 14. No reminder set. No login required.',
+    features:  ['AI payment risk scoring', 'Automated follow-up emails', 'Invoice status tracking'],
+  },
+  {
+    type:      'The service business',
+    color:     '#00C4A0',
+    bg:        'rgba(0,196,160,0.06)',
+    headline:  'Three ways clients pay. One place it all shows up.',
+    context:   'Six clients. One invoiced monthly. Two pay bank transfer. Two pay cash. One pays via POS.',
+    scenario:  'Cash and transfer payments were invisible before — only invoiced revenue was tracked. Now all six income streams appear in one dashboard. Real revenue. Not just invoiced revenue.',
+    features:  ['Direct payment logging', 'Revenue categories', 'Unified income view'],
+  },
+  {
+    type:      'The contractor',
+    color:     '#FF6B35',
+    bg:        'rgba(255,107,53,0.06)',
+    headline:  'Contract expiring in 12 days. Already renewed.',
+    context:   'Three active service contracts. Government and NGO clients. Terms matter.',
+    scenario:  'A 30-day reminder went out. Then a 15-day. Then a 7-day. The contract was renewed three weeks before expiry — not three days after. The system watched it so you didn\'t have to.',
+    features:  ['Contract management', 'Auto expiry reminders at 30/15/7/1d', 'Digital signatures'],
+  },
+]
+
+// ─── Persona section ───────────────────────────────────────────────────────────
+function PersonaSection() {
+  return (
+    <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+      <div style={{maxWidth:1160,margin:'0 auto'}}>
+        <Reveal>
+          <motion.div variants={fadeUp} style={{marginBottom:64}}>
+            <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>Who it's built for</p>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:20}}>
+              <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)'}}>
+                The same problem.<br/>Three different businesses.
+              </h2>
+              <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
+                Invonaut is built for any business where money comes in on terms — and where financial admin currently requires too much of your attention.
+              </p>
+            </div>
+          </motion.div>
+        </Reveal>
+
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:1,background:'var(--rule)',borderRadius:16,overflow:'hidden'}} className="persona-grid">
+          {PERSONAS.map((p,i)=>(
+            <Reveal key={i}>
+              <motion.div variants={fadeUp} style={{background:'#fff',padding:'36px 32px',height:'100%',display:'flex',flexDirection:'column',gap:0}}>
+                {/* Type badge */}
+                <div style={{display:'inline-flex',alignItems:'center',gap:8,marginBottom:24}}>
+                  <span style={{width:8,height:8,borderRadius:'50%',background:p.color,flexShrink:0,display:'inline-block'}}/>
+                  <span style={{fontSize:'.68rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:p.color}}>{p.type}</span>
+                </div>
+
+                {/* Headline */}
+                <p className="f-display" style={{fontSize:'clamp(1.05rem,1.8vw,1.3rem)',fontWeight:700,color:'var(--ink)',lineHeight:1.3,marginBottom:20,letterSpacing:'-.015em'}}>{p.headline}</p>
+
+                {/* Context */}
+                <p style={{fontSize:'.8rem',color:'var(--faint)',lineHeight:1.7,marginBottom:20,fontStyle:'italic'}}>{p.context}</p>
+
+                {/* Scenario */}
+                <div style={{padding:'16px 18px',borderRadius:10,background:p.bg,marginBottom:24,flex:1}}>
+                  <p style={{fontSize:'.825rem',color:'var(--ink)',lineHeight:1.8}}>{p.scenario}</p>
+                </div>
+
+                {/* Features */}
+                <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:8}}>
+                  {p.features.map(f=>(
+                    <li key={f} style={{display:'flex',alignItems:'center',gap:10}}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{flexShrink:0}}>
+                        <circle cx="7" cy="7" r="7" fill={p.color} fillOpacity=".12"/>
+                        <path d="M4.5 7l1.8 1.8L9.5 5.5" stroke={p.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      <span style={{fontSize:'.78rem',color:'var(--mid)',fontWeight:500}}>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+      <style jsx global>{`
+        @media(max-width:860px){ .persona-grid{ grid-template-columns:1fr !important; } }
+      `}</style>
+    </section>
+  )
+}
+
+// ─── Screenshot showcase ───────────────────────────────────────────────────────
+// When real screenshots are ready: replace placeholder divs with <Image> tags
+// File slots: /public/screenshots/{dashboard,invoices,cash-forecast,analytics,intelligence}.png
+function ScreenshotShowcase() {
+  return (
+    <section style={{padding:'100px 24px',background:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
+      <div style={{maxWidth:1160,margin:'0 auto'}}>
+        <Reveal>
+          <motion.div variants={fadeUp} style={{marginBottom:56}}>
+            <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>
+              Product screenshots
+            </p>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:20}}>
+              <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)'}}>
+                The actual product.
+              </h2>
+              <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
+                Real screens from the live product — no mock-ups, no simplified diagrams.
+              </p>
+            </div>
+          </motion.div>
+        </Reveal>
+
+        {/* Main screenshot — dashboard overview */}
+        <Reveal>
+          <motion.div variants={fadeUp} style={{marginBottom:16}}>
+            <ScreenFrame label="Dashboard · Business Health Score + AI Command Center" accent="var(--blue)">
+              <img src="/screenshots/dashboard.png" alt="Invonaut dashboard — Business Health Score and AI Command Center"
+                style={{width:'100%',height:'auto',display:'block',borderRadius:'0 0 12px 12px'}}/>
+            </ScreenFrame>
+          </motion.div>
+        </Reveal>
+
+        {/* Secondary row — 3 screenshots */}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:16}} className="screenshot-row">
+          <Reveal>
+            <motion.div variants={fadeUp}>
+              <ScreenFrame label="Intelligence Feed · Live autonomous signals" accent="var(--teal)">
+                <img src="/screenshots/intelligence.png" alt="Invonaut intelligence feed"
+                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
+              </ScreenFrame>
+            </motion.div>
+          </Reveal>
+          <Reveal>
+            <motion.div variants={fadeUp}>
+              <ScreenFrame label="Invoices · AI risk scores per invoice" accent="var(--orange)">
+                <img src="/screenshots/invoices.png" alt="Invonaut invoices with AI risk scoring"
+                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
+              </ScreenFrame>
+            </motion.div>
+          </Reveal>
+          <Reveal>
+            <motion.div variants={fadeUp}>
+              <ScreenFrame label="Cash Flow · 90-day forecast" accent="var(--teal)" dark>
+                <img src="/screenshots/cash-forecast.png" alt="Invonaut 90-day cash flow forecast"
+                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
+              </ScreenFrame>
+            </motion.div>
+          </Reveal>
+        </div>
+
+        {/* Analytics — full width */}
+        <Reveal>
+          <motion.div variants={fadeUp}>
+            <ScreenFrame label="Analytics · Business Health Score — AI-powered" accent="var(--blue)">
+              <img src="/screenshots/analytics.png" alt="Invonaut analytics — Business Health Score"
+                style={{width:'100%',height:'auto',display:'block',borderRadius:'0 0 12px 12px'}}/>
+            </ScreenFrame>
+          </motion.div>
+        </Reveal>
+      </div>
+      <style jsx global>{`
+        @media(max-width:860px){ .screenshot-row{ grid-template-columns:1fr !important; } }
+      `}</style>
+    </section>
+  )
+}
+
+function ScreenFrame({ children, label, accent='var(--blue)', dark=false }: {
+  children: React.ReactNode
+  label: string
+  accent?: string
+  dark?: boolean
+}) {
+  return (
+    <div style={{
+      borderRadius:14,
+      overflow:'hidden',
+      border:`1px solid ${dark ? 'rgba(0,196,160,0.2)' : 'var(--rule)'}`,
+      boxShadow:`0 12px 40px rgba(0,0,0,${dark?'0.18':'0.08'})`,
+    }}>
+      {/* Browser chrome bar */}
+      <div style={{
+        display:'flex',alignItems:'center',gap:8,
+        padding:'10px 16px',
+        background: dark ? '#0F1117' : '#F8FAFF',
+        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.07)' : 'var(--rule)'}`,
+      }}>
+        {/* Traffic light dots */}
+        {['#FF5F56','#FFBD2E','#27C93F'].map((c,i)=>(
+          <div key={i} style={{width:10,height:10,borderRadius:'50%',background:c,opacity:.7,flexShrink:0}}/>
+        ))}
+        {/* URL bar */}
+        <div style={{
+          flex:1,marginLeft:8,padding:'4px 12px',
+          borderRadius:6,
+          background: dark ? 'rgba(255,255,255,0.06)' : '#fff',
+          border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'var(--rule)'}`,
+          display:'flex',alignItems:'center',gap:7,
+        }}>
+          <div style={{width:6,height:6,borderRadius:'50%',background:accent,opacity:.8,flexShrink:0}}/>
+          <span className="f-mono" style={{
+            fontSize:'.65rem',
+            color: dark ? 'rgba(255,255,255,0.35)' : 'var(--faint)',
+            letterSpacing:'.01em',lineHeight:1,
+          }}>
+            invonaut-mvp.vercel.app · {label}
+          </span>
+        </div>
+      </div>
+      {children}
+    </div>
+  )
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function LandingPageClient() {
   const [scrolled,setScrolled]=useState(false)
@@ -457,14 +678,14 @@ export default function LandingPageClient() {
             {/* Left */}
             <motion.div variants={stagger(.1)} initial="hidden" animate="show">
               <motion.p variants={fadeUp} style={{fontSize:'.76rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--faint)',marginBottom:24}}>
-                The business operations platform
+                Autonomous Finance OS
               </motion.p>
               <motion.h1 variants={fadeUp} className="f-display" style={{fontSize:'clamp(2.6rem,5.5vw,4.6rem)',fontWeight:800,lineHeight:1.03,letterSpacing:'-.025em',marginBottom:20}}>
                 You built a business,<br/>not an{' '}
                 <span className="grad-text">admin<br/>department.</span>
               </motion.h1>
               <motion.p variants={fadeUp} style={{fontSize:'1.1rem',color:'var(--mid)',lineHeight:1.75,marginBottom:28,maxWidth:490}}>
-                Invonaut tracks every dollar, follows up every invoice, manages every contract, and forecasts your cash — automatically. Eight processes run every day without you logging in.
+                At 9:00 this morning, Invonaut sent a follow-up to a client 8 days late, flagged a contract expiring in 6 days, and refreshed your 90-day cash position — all without a single login. That's not a setting you configure. That's how it runs every day.
               </motion.p>
               <motion.div variants={fadeUp} style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center',marginBottom:20}}>
                 <Link href="/signup" style={{background:'linear-gradient(135deg,#0044EE,#0066FF)',color:'#fff',padding:'14px 30px',borderRadius:10,fontWeight:700,fontSize:'.95rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:'0 4px 20px rgba(0,85,255,0.35)'}}>
@@ -534,6 +755,9 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+      {/* ── PERSONA SCENARIOS ────────────────────────────────────────────── */}
+      <PersonaSection/>
+
       {/* ── DEMO ─────────────────────────────────────────────────────────── */}
       <section id="demo" style={{padding:'100px 24px',background:'#fff',borderBottom:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1000,margin:'0 auto'}}>
@@ -557,6 +781,9 @@ export default function LandingPageClient() {
           </Reveal>
         </div>
       </section>
+
+      {/* ── SCREENSHOT SHOWCASE ──────────────────────────────────────────── */}
+      <ScreenshotShowcase/>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
       <section id="how-it-works" style={{padding:'100px 24px',background:'var(--surf)'}}>
@@ -843,9 +1070,82 @@ export default function LandingPageClient() {
             </motion.div>
           </Reveal>
           <Reveal><motion.div variants={fadeUp}><LandingPricingSection/></motion.div></Reveal>
+
+          {/* Price justification block */}
           <Reveal>
-            <motion.p variants={fadeUp} style={{fontSize:'.825rem',color:'var(--faint)',marginTop:36,textAlign:'center'}}>
-              A bookkeeper charges $300–500/month. A fractional CFO charges more. Invonaut does what both do — automatically — starting at $29.
+            <motion.div variants={fadeUp} style={{marginTop:48,padding:'32px 36px',borderRadius:16,background:'#fff',border:'1px solid var(--rule)'}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:40,alignItems:'center'}} className="price-justify-grid">
+                {/* Piecemeal tools */}
+                <div>
+                  <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>
+                    What you'd stitch together instead
+                  </p>
+                  <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                    {[
+                      {name:'FreshBooks',    what:'Invoicing + accounting',    price:'$55/mo'},
+                      {name:'DocuSign',      what:'E-signatures',               price:'$25/mo'},
+                      {name:'Float',         what:'Cash flow forecasting',      price:'$59/mo'},
+                      {name:'Harvest',       what:'Time tracking',              price:'$14/mo'},
+                    ].map(t=>(
+                      <div key={t.name} style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',paddingBottom:10,borderBottom:'1px solid var(--rule)'}}>
+                        <div>
+                          <span style={{fontSize:'.85rem',fontWeight:600,color:'var(--ink)'}}>{t.name}</span>
+                          <span style={{fontSize:'.78rem',color:'var(--faint)',marginLeft:10}}>{t.what}</span>
+                        </div>
+                        <span className="f-mono" style={{fontSize:'.85rem',color:'var(--mid)',fontWeight:500}}>{t.price}</span>
+                      </div>
+                    ))}
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',paddingTop:4}}>
+                      <span style={{fontSize:'.85rem',fontWeight:700,color:'var(--ink)'}}>Total — 4 logins, no AI</span>
+                      <span className="f-mono" style={{fontSize:'1.05rem',fontWeight:700,color:'#EF4444'}}>$153/mo</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* VS divider */}
+                <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:8}}>
+                  <div style={{width:1,height:40,background:'var(--rule)'}}/>
+                  <span style={{fontSize:'.75rem',fontWeight:700,letterSpacing:'.08em',color:'var(--faint)',textTransform:'uppercase'}}>vs</span>
+                  <div style={{width:1,height:40,background:'var(--rule)'}}/>
+                </div>
+
+                {/* Invonaut */}
+                <div>
+                  <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--blue)',marginBottom:20}}>
+                    Invonaut Professional
+                  </p>
+                  <div style={{display:'flex',flexDirection:'column',gap:10,marginBottom:20}}>
+                    {[
+                      'Invoicing + AI risk scoring',
+                      'Contracts + e-signatures',
+                      '90-day cash forecasting',
+                      'Time tracking → invoicing',
+                      'Automated follow-ups, daily',
+                      'Business Health Score',
+                    ].map(f=>(
+                      <div key={f} style={{display:'flex',alignItems:'center',gap:10}}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{flexShrink:0}}>
+                          <circle cx="7" cy="7" r="7" fill="rgba(0,85,255,0.1)"/>
+                          <path d="M4.5 7l1.8 1.8L9.5 5.5" stroke="#0055FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span style={{fontSize:'.82rem',color:'var(--mid)'}}>{f}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{display:'flex',alignItems:'baseline',gap:10}}>
+                    <span className="f-mono" style={{fontSize:'1.6rem',fontWeight:700,color:'var(--blue)',letterSpacing:'-.02em'}}>$59<span style={{fontSize:'1rem',fontWeight:500,color:'var(--mid)'}}>/mo</span></span>
+                    <span style={{fontSize:'.8rem',color:'var(--faint)'}}>or $49/mo annual</span>
+                  </div>
+                  <p style={{fontSize:'.75rem',color:'var(--teal)',fontWeight:600,marginTop:8}}>
+                    Save $94/mo vs piecemeal tools
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          </Reveal>
+          <Reveal>
+            <motion.p variants={fadeUp} style={{fontSize:'.8rem',color:'var(--faint)',marginTop:20,textAlign:'center'}}>
+              A bookkeeper charges $300–500/month. A fractional CFO charges more. Invonaut automates what both do — starting at $29.
             </motion.p>
           </Reveal>
         </div>
@@ -910,7 +1210,7 @@ export default function LandingPageClient() {
       {/* ── FOOTER ───────────────────────────────────────────────────────── */}
       <footer style={{background:'#030712',padding:'64px 24px 40px'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
-          <div className="footer-grid" style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:48,marginBottom:52}}>
+          <div className="footer-grid" style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr 1fr',gap:48,marginBottom:52}}>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
                 <img src="/naut-white.svg" alt="" aria-hidden="true" style={{width:28,height:28,objectFit:'contain',flexShrink:0,opacity:.9}} />
@@ -920,6 +1220,7 @@ export default function LandingPageClient() {
             </div>
             {[
               {head:'Product',links:[{href:'#demo',l:'Demo'},{href:'#platform',l:'Platform'},{href:'#how-it-works',l:'How it works'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate',earn:true}]},
+              {head:'Compare',links:[{href:'/vs/wave',l:'vs Wave'},{href:'/vs/freshbooks',l:'vs FreshBooks'},{href:'/vs/bonsai',l:'vs Bonsai'}]},
               {head:'Account',links:[{href:'/signup',l:'Sign up'},{href:'/login',l:'Sign in'},{href:'/help',l:'Help'}]},
               {head:'Legal',  links:[{href:'/privacy',l:'Privacy Policy'},{href:'/terms',l:'Terms of Service'}]},
             ].map(col=>(
