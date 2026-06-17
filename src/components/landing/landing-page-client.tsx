@@ -501,128 +501,131 @@ function PersonaSection() {
   )
 }
 
-// ─── Screenshot showcase ───────────────────────────────────────────────────────
-// When real screenshots are ready: replace placeholder divs with <Image> tags
-// File slots: /public/screenshots/{dashboard,invoices,cash-forecast,analytics,intelligence}.png
-function ScreenshotShowcase() {
+// ─── Product gallery ────────────────────────────────────────────────────────
+// Real screenshots from the live product, sharpened + upscaled.
+// Files: /public/screenshots/{dashboard,intelligence,invoices-pipeline,invoices-risk,cash-forecast,analytics-bhs,analytics-clients}.webp
+const GALLERY = [
+  { src:'/screenshots/dashboard.webp',         tag:'Dashboard',  title:'Business Health Score',        sub:'Computed live — every page load',         accent:'#0055FF' },
+  { src:'/screenshots/intelligence.webp',      tag:'Dashboard',  title:'Intelligence Feed',             sub:'8 signals, ranked by urgency',             accent:'#00C4A0' },
+  { src:'/screenshots/invoices-risk.webp',     tag:'Invoices',   title:'AI payment risk, per invoice',  sub:'Recalculated daily, not on request',       accent:'#FF6B35' },
+  { src:'/screenshots/invoices-pipeline.webp', tag:'Invoices',   title:'Unbilled time → invoice draft', sub:'One click from hours to invoice',          accent:'#0055FF' },
+  { src:'/screenshots/cash-forecast.webp',     tag:'Cash Flow',  title:'90-day forecast',                sub:'Projected from invoices + expense run rate', accent:'#00C4A0' },
+  { src:'/screenshots/analytics-bhs.webp',     tag:'Analytics',  title:'Collection rate, margin, growth', sub:'One score, four inputs',                   accent:'#0055FF' },
+  { src:'/screenshots/analytics-clients.webp', tag:'Analytics',  title:'Client revenue concentration',   sub:'See who your business depends on',         accent:'#FF6B35' },
+]
+
+function GalleryCard({ item, size='md' }: { item: typeof GALLERY[0]; size?: 'lg' | 'md' }) {
   return (
-    <section style={{padding:'100px 24px',background:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
+    <div className="gallery-card" style={{
+      position:'relative',
+      borderRadius:16,
+      overflow:'hidden',
+      background:'#0A0C12',
+      boxShadow:'0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)',
+      border:'1px solid rgba(10,12,18,0.06)',
+      height:'100%',
+      transition:'transform .25s ease, box-shadow .25s ease',
+    }}
+    onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 24px 56px -12px rgba(10,12,18,0.26)' }}
+    onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)' }}
+    >
+      <img src={item.src} alt={item.title}
+        style={{width:'100%',height:'100%',display:'block',objectFit:'cover',objectPosition:'top'}}/>
+      {/* Gradient overlay for label legibility */}
+      <div style={{
+        position:'absolute',inset:0,
+        background:'linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(5,7,12,0.78) 100%)',
+        pointerEvents:'none',
+      }}/>
+      {/* Accent corner dot */}
+      <div style={{
+        position:'absolute',top:16,left:16,
+        display:'inline-flex',alignItems:'center',gap:7,
+        padding:'5px 11px',borderRadius:7,
+        background:'rgba(5,7,12,0.55)',backdropFilter:'blur(6px)',
+        border:'1px solid rgba(255,255,255,0.1)',
+      }}>
+        <span style={{width:6,height:6,borderRadius:'50%',background:item.accent,flexShrink:0,display:'inline-block'}}/>
+        <span className="f-mono" style={{fontSize:'.66rem',color:'rgba(255,255,255,0.85)',letterSpacing:'.04em',fontWeight:500}}>{item.tag}</span>
+      </div>
+      {/* Bottom label */}
+      <div style={{position:'absolute',bottom:0,left:0,right:0,padding: size==='lg' ? '28px 28px 24px' : '18px 18px 16px'}}>
+        <p className="f-display" style={{
+          fontSize: size==='lg' ? 'clamp(1.15rem,2vw,1.5rem)' : '.95rem',
+          fontWeight:700,color:'#fff',letterSpacing:'-.015em',lineHeight:1.25,marginBottom:5,
+        }}>
+          {item.title}
+        </p>
+        <p style={{fontSize: size==='lg' ? '.82rem' : '.74rem',color:'rgba(255,255,255,0.62)',lineHeight:1.5}}>
+          {item.sub}
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function ScreenshotShowcase() {
+  const [big, ...rest] = GALLERY
+  const grid2 = rest.slice(0, 2)
+  const grid4 = rest.slice(2)
+
+  return (
+    <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <Reveal>
           <motion.div variants={fadeUp} style={{marginBottom:56}}>
             <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>
-              Product screenshots
+              Inside Invonaut
             </p>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:20}}>
               <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)'}}>
                 The actual product.
               </h2>
               <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
-                Real screens from the live product — no mock-ups, no simplified diagrams.
+                Real screens, pulled live from a running account. Nothing here is a mock-up.
               </p>
             </div>
           </motion.div>
         </Reveal>
 
-        {/* Main screenshot — dashboard overview */}
-        <Reveal>
-          <motion.div variants={fadeUp} style={{marginBottom:16}}>
-            <ScreenFrame label="Dashboard · Business Health Score + AI Command Center" accent="var(--blue)">
-              <img src="/screenshots/dashboard.png" alt="Invonaut dashboard — Business Health Score and AI Command Center"
-                style={{width:'100%',height:'auto',display:'block',borderRadius:'0 0 12px 12px'}}/>
-            </ScreenFrame>
-          </motion.div>
-        </Reveal>
-
-        {/* Secondary row — 3 screenshots */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:16}} className="screenshot-row">
+        {/* Gallery grid: 1 large left + 2 stacked right, then a 4-up row below */}
+        <div className="gallery-top" style={{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:14,marginBottom:14}}>
           <Reveal>
-            <motion.div variants={fadeUp}>
-              <ScreenFrame label="Intelligence Feed · Live autonomous signals" accent="var(--teal)">
-                <img src="/screenshots/intelligence.png" alt="Invonaut intelligence feed"
-                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
-              </ScreenFrame>
+            <motion.div variants={fadeUp} style={{height:'100%',minHeight:360}}>
+              <GalleryCard item={big} size="lg"/>
             </motion.div>
           </Reveal>
-          <Reveal>
-            <motion.div variants={fadeUp}>
-              <ScreenFrame label="Invoices · AI risk scores per invoice" accent="var(--orange)">
-                <img src="/screenshots/invoices.png" alt="Invonaut invoices with AI risk scoring"
-                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
-              </ScreenFrame>
-            </motion.div>
-          </Reveal>
-          <Reveal>
-            <motion.div variants={fadeUp}>
-              <ScreenFrame label="Cash Flow · 90-day forecast" accent="var(--teal)" dark>
-                <img src="/screenshots/cash-forecast.png" alt="Invonaut 90-day cash flow forecast"
-                  style={{width:'100%',height:'auto',display:'block',maxHeight:240,objectFit:'cover',objectPosition:'top',borderRadius:'0 0 12px 12px'}}/>
-              </ScreenFrame>
-            </motion.div>
-          </Reveal>
+          <div style={{display:'grid',gridTemplateRows:'1fr 1fr',gap:14}}>
+            {grid2.map((item,i)=>(
+              <Reveal key={item.title}>
+                <motion.div variants={fadeUp} style={{height:'100%',minHeight:170}}>
+                  <GalleryCard item={item}/>
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
         </div>
 
-        {/* Analytics — full width */}
-        <Reveal>
-          <motion.div variants={fadeUp}>
-            <ScreenFrame label="Analytics · Business Health Score — AI-powered" accent="var(--blue)">
-              <img src="/screenshots/analytics.png" alt="Invonaut analytics — Business Health Score"
-                style={{width:'100%',height:'auto',display:'block',borderRadius:'0 0 12px 12px'}}/>
-            </ScreenFrame>
-          </motion.div>
-        </Reveal>
+        <div className="gallery-bottom" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
+          {grid4.map(item=>(
+            <Reveal key={item.title}>
+              <motion.div variants={fadeUp} style={{height:'100%',minHeight:200}}>
+                <GalleryCard item={item}/>
+              </motion.div>
+            </Reveal>
+          ))}
+        </div>
       </div>
       <style jsx global>{`
-        @media(max-width:860px){ .screenshot-row{ grid-template-columns:1fr !important; } }
+        @media(max-width:900px){
+          .gallery-top{ grid-template-columns:1fr !important; }
+          .gallery-bottom{ grid-template-columns:1fr 1fr !important; }
+        }
+        @media(max-width:560px){
+          .gallery-bottom{ grid-template-columns:1fr !important; }
+        }
       `}</style>
     </section>
-  )
-}
-
-function ScreenFrame({ children, label, accent='var(--blue)', dark=false }: {
-  children: React.ReactNode
-  label: string
-  accent?: string
-  dark?: boolean
-}) {
-  return (
-    <div style={{
-      borderRadius:14,
-      overflow:'hidden',
-      border:`1px solid ${dark ? 'rgba(0,196,160,0.2)' : 'var(--rule)'}`,
-      boxShadow:`0 12px 40px rgba(0,0,0,${dark?'0.18':'0.08'})`,
-    }}>
-      {/* Browser chrome bar */}
-      <div style={{
-        display:'flex',alignItems:'center',gap:8,
-        padding:'10px 16px',
-        background: dark ? '#0F1117' : '#F8FAFF',
-        borderBottom: `1px solid ${dark ? 'rgba(255,255,255,0.07)' : 'var(--rule)'}`,
-      }}>
-        {/* Traffic light dots */}
-        {['#FF5F56','#FFBD2E','#27C93F'].map((c,i)=>(
-          <div key={i} style={{width:10,height:10,borderRadius:'50%',background:c,opacity:.7,flexShrink:0}}/>
-        ))}
-        {/* URL bar */}
-        <div style={{
-          flex:1,marginLeft:8,padding:'4px 12px',
-          borderRadius:6,
-          background: dark ? 'rgba(255,255,255,0.06)' : '#fff',
-          border: `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'var(--rule)'}`,
-          display:'flex',alignItems:'center',gap:7,
-        }}>
-          <div style={{width:6,height:6,borderRadius:'50%',background:accent,opacity:.8,flexShrink:0}}/>
-          <span className="f-mono" style={{
-            fontSize:'.65rem',
-            color: dark ? 'rgba(255,255,255,0.35)' : 'var(--faint)',
-            letterSpacing:'.01em',lineHeight:1,
-          }}>
-            invonaut-mvp.vercel.app · {label}
-          </span>
-        </div>
-      </div>
-      {children}
-    </div>
   )
 }
 
