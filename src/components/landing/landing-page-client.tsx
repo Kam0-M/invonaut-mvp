@@ -7,7 +7,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield } from 'lucide-react'
+import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield, X } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
 
 // ─── Global styles ────────────────────────────────────────────────────────────
@@ -512,22 +512,30 @@ const GALLERY = [
   { src:'/screenshots/cash-forecast.webp',     tag:'Cash Flow',  title:'90-day forecast',                sub:'Projected from invoices + expense run rate', accent:'#00C4A0' },
   { src:'/screenshots/analytics-bhs.webp',     tag:'Analytics',  title:'Collection rate, margin, growth', sub:'One score, four inputs',                   accent:'#0055FF' },
   { src:'/screenshots/analytics-clients.webp', tag:'Analytics',  title:'Client revenue concentration',   sub:'See who your business depends on',         accent:'#FF6B35' },
+  { src:'/screenshots/reports-pnl.webp',       tag:'Reports',    title:'Profit & Loss statement',        sub:'Real financial statements, not a summary', accent:'#00C4A0' },
 ]
 
-function GalleryCard({ item, size='md' }: { item: typeof GALLERY[0]; size?: 'lg' | 'md' }) {
+function GalleryCard({ item, size='md', onOpen }: { item: typeof GALLERY[0]; size?: 'lg' | 'md'; onOpen: () => void }) {
   return (
-    <div className="gallery-card" style={{
-      position:'relative',
-      borderRadius:16,
-      overflow:'hidden',
-      background:'#0A0C12',
-      boxShadow:'0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)',
-      border:'1px solid rgba(10,12,18,0.06)',
-      height:'100%',
-      transition:'transform .25s ease, box-shadow .25s ease',
-    }}
-    onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 24px 56px -12px rgba(10,12,18,0.26)' }}
-    onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)' }}
+    <div
+      className="gallery-card"
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={e=>{ if(e.key==='Enter'||e.key===' ') onOpen() }}
+      style={{
+        position:'relative',
+        borderRadius:16,
+        overflow:'hidden',
+        background:'#0A0C12',
+        boxShadow:'0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)',
+        border:'1px solid rgba(10,12,18,0.06)',
+        height:'100%',
+        cursor:'pointer',
+        transition:'transform .25s ease, box-shadow .25s ease',
+      }}
+      onMouseEnter={e=>{ e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 24px 56px -12px rgba(10,12,18,0.26)' }}
+      onMouseLeave={e=>{ e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='0 1px 2px rgba(0,0,0,0.04), 0 16px 48px -12px rgba(10,12,18,0.18)' }}
     >
       <img src={item.src} alt={item.title}
         style={{width:'100%',height:'100%',display:'block',objectFit:'cover',objectPosition:'top'}}/>
@@ -548,6 +556,19 @@ function GalleryCard({ item, size='md' }: { item: typeof GALLERY[0]; size?: 'lg'
         <span style={{width:6,height:6,borderRadius:'50%',background:item.accent,flexShrink:0,display:'inline-block'}}/>
         <span className="f-mono" style={{fontSize:'.66rem',color:'rgba(255,255,255,0.85)',letterSpacing:'.04em',fontWeight:500}}>{item.tag}</span>
       </div>
+      {/* Expand hint — top right */}
+      <div className="gallery-expand-hint" style={{
+        position:'absolute',top:16,right:16,
+        width:30,height:30,borderRadius:8,
+        background:'rgba(5,7,12,0.55)',backdropFilter:'blur(6px)',
+        border:'1px solid rgba(255,255,255,0.1)',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        opacity:0,transition:'opacity .2s ease',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+        </svg>
+      </div>
       {/* Bottom label */}
       <div style={{position:'absolute',bottom:0,left:0,right:0,padding: size==='lg' ? '28px 28px 24px' : '18px 18px 16px'}}>
         <p className="f-display" style={{
@@ -564,10 +585,90 @@ function GalleryCard({ item, size='md' }: { item: typeof GALLERY[0]; size?: 'lg'
   )
 }
 
+// ─── Lightbox ───────────────────────────────────────────────────────────────
+function GalleryLightbox({ item, onClose }: { item: typeof GALLERY[0] | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!item) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [item, onClose])
+
+  return (
+    <AnimatePresence>
+      {item && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          onClick={onClose}
+          style={{
+            position:'fixed',inset:0,zIndex:999,
+            background:'rgba(5,7,12,0.92)',backdropFilter:'blur(4px)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            padding:'5vh 5vw',
+          }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 8 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            onClick={e => e.stopPropagation()}
+            style={{ position:'relative', maxWidth:'min(1180px, 92vw)', maxHeight:'88vh', width:'100%' }}
+          >
+            <div style={{
+              borderRadius:16,overflow:'hidden',
+              boxShadow:'0 24px 80px -16px rgba(0,0,0,0.5)',
+              border:'1px solid rgba(255,255,255,0.08)',
+              maxHeight:'88vh',
+              display:'flex',flexDirection:'column',
+              background:'#0A0C12',
+            }}>
+              <img src={item.src} alt={item.title}
+                style={{ width:'100%', height:'auto', maxHeight:'calc(88vh - 72px)', objectFit:'contain', display:'block' }}/>
+              {/* Caption bar */}
+              <div style={{
+                padding:'16px 22px',
+                display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,
+                borderTop:'1px solid rgba(255,255,255,0.08)',
+                background:'#0A0C12',
+              }}>
+                <div style={{display:'flex',alignItems:'center',gap:12,minWidth:0}}>
+                  <span style={{width:7,height:7,borderRadius:'50%',background:item.accent,flexShrink:0}}/>
+                  <div style={{minWidth:0}}>
+                    <p className="f-display" style={{fontSize:'.95rem',fontWeight:700,color:'#fff',letterSpacing:'-.01em',marginBottom:2}}>{item.title}</p>
+                    <p style={{fontSize:'.76rem',color:'rgba(255,255,255,0.5)'}}>{item.sub}</p>
+                  </div>
+                </div>
+                <span className="f-mono" style={{fontSize:'.68rem',color:'rgba(255,255,255,0.3)',flexShrink:0,letterSpacing:'.03em'}}>{item.tag.toUpperCase()}</span>
+              </div>
+            </div>
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              style={{
+                position:'absolute',top:-44,right:0,
+                width:34,height:34,borderRadius:8,
+                background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.14)',
+                display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',
+              }}
+            >
+              <X size={16} style={{color:'#fff'}}/>
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
+
 function ScreenshotShowcase() {
+  const [openItem, setOpenItem] = useState<typeof GALLERY[0] | null>(null)
   const [big, ...rest] = GALLERY
   const grid2 = rest.slice(0, 2)
-  const grid4 = rest.slice(2)
+  const gridRest = rest.slice(2)
 
   return (
     <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
@@ -582,7 +683,7 @@ function ScreenshotShowcase() {
                 The actual product.
               </h2>
               <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
-                Real screens, pulled live from a running account. Nothing here is a mock-up.
+                Real screens, pulled live from a running account. Click any shot to see it in full.
               </p>
             </div>
           </motion.div>
@@ -592,31 +693,37 @@ function ScreenshotShowcase() {
         <div className="gallery-top" style={{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:14,marginBottom:14}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{height:'100%',minHeight:360}}>
-              <GalleryCard item={big} size="lg"/>
+              <GalleryCard item={big} size="lg" onOpen={() => setOpenItem(big)}/>
             </motion.div>
           </Reveal>
           <div style={{display:'grid',gridTemplateRows:'1fr 1fr',gap:14}}>
             {grid2.map((item,i)=>(
               <Reveal key={item.title}>
                 <motion.div variants={fadeUp} style={{height:'100%',minHeight:170}}>
-                  <GalleryCard item={item}/>
+                  <GalleryCard item={item} onOpen={() => setOpenItem(item)}/>
                 </motion.div>
               </Reveal>
             ))}
           </div>
         </div>
 
-        <div className="gallery-bottom" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14}}>
-          {grid4.map(item=>(
+        <div className="gallery-bottom" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:14}}>
+          {gridRest.map(item=>(
             <Reveal key={item.title}>
               <motion.div variants={fadeUp} style={{height:'100%',minHeight:200}}>
-                <GalleryCard item={item}/>
+                <GalleryCard item={item} onOpen={() => setOpenItem(item)}/>
               </motion.div>
             </Reveal>
           ))}
         </div>
       </div>
+
+      <GalleryLightbox item={openItem} onClose={() => setOpenItem(null)}/>
+
       <style jsx global>{`
+        @media(max-width:1100px){
+          .gallery-bottom{ grid-template-columns:repeat(3,1fr) !important; }
+        }
         @media(max-width:900px){
           .gallery-top{ grid-template-columns:1fr !important; }
           .gallery-bottom{ grid-template-columns:1fr 1fr !important; }
@@ -624,6 +731,7 @@ function ScreenshotShowcase() {
         @media(max-width:560px){
           .gallery-bottom{ grid-template-columns:1fr !important; }
         }
+        .gallery-card:hover .gallery-expand-hint{ opacity:1 !important; }
       `}</style>
     </section>
   )
