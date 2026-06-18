@@ -443,6 +443,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
             <p style={{fontSize:'.8rem',color:'#C4CBDA'}}>Share your link above to start earning.</p>
           </div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="aff-table" style={{width:'100%',borderCollapse:'collapse'}}>
             <thead>
               <tr>
@@ -461,6 +462,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
 
@@ -481,6 +483,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
             {(data.commissions || []).length === 0 ? (
               <p style={{fontSize:'.875rem',color:'#94A3B8',textAlign:'center',padding:'20px 0'}}>No commissions yet.</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="aff-table" style={{width:'100%',borderCollapse:'collapse'}}>
                 <thead>
                   <tr>
@@ -503,6 +506,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </div>
         )}
@@ -511,6 +515,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
         {(data.payouts || []).length > 0 && showHistory && (
           <div style={{marginTop:28,paddingTop:24,borderTop:'1px solid #F1F5F9'}}>
             <p style={{fontWeight:700,fontSize:'.82rem',color:'#374151',marginBottom:14,letterSpacing:'-.01em'}}>Payout requests</p>
+            <div className="overflow-x-auto">
             <table className="aff-table" style={{width:'100%',borderCollapse:'collapse'}}>
               <thead>
                 <tr>
@@ -531,6 +536,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

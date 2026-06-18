@@ -109,9 +109,9 @@ export default async function InvoicesPage() {
       <CoreTabBar />
 
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline">Invoice pipeline</p>
             {invoices.length > 0 && (
               <div className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
@@ -120,7 +120,7 @@ export default async function InvoicesPage() {
             )}
           </div>
           {invoices.length > 0 && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {[
                 { label: 'Total',    value: formatCompact(totalValue), color: 'text-gray-900' },
                 { label: 'Paid',     value: formatCompact(paidValue),  color: 'text-emerald-600' },
@@ -135,7 +135,7 @@ export default async function InvoicesPage() {
             </div>
           )}
         </div>
-        <div>
+        <div className="flex-shrink-0">
           {!hasActiveSubscription ? (
             <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed">
               <Lock className="w-4 h-4" />New Invoice

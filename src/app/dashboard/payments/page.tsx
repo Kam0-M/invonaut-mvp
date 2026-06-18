@@ -77,11 +77,11 @@ export default async function PaymentsPage() {
       <CoreTabBar />
 
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">All income sources</p>
           {payments.length > 0 && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {[
                 { label: 'Total',      value: formatCompact(totalIncome),     color: 'text-teal-600'   },
                 { label: 'This month', value: formatCompact(thisMonthIncome), color: 'text-blue-600'   },
@@ -98,7 +98,7 @@ export default async function PaymentsPage() {
           )}
         </div>
         <Link href="/dashboard/payments/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md flex-shrink-0">
           <Plus className="w-4 h-4" />Log Payment
         </Link>
       </div>

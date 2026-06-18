@@ -756,6 +756,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
               </div>
             )}
 
+            <div className="overflow-x-auto">
             <table className="rpt-table">
               <thead><tr><th style={{paddingTop:16}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
               <tbody>
@@ -786,6 +787,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
 
           {/* Category breakdowns */}
@@ -831,6 +833,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
           <div className="rpt-section"><div className="rpt-section-head"><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>12-month overview</p></div><PeriodChart rows={periodRows}/></div>
           <div className="rpt-section">
             <div className="rpt-section-head"><p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Month by month</p><p style={{fontWeight:800,fontSize:'.9rem',color:'#0A0A0A',letterSpacing:'-.01em'}}>Period statements</p></div>
+            <div className="overflow-x-auto">
             <table className="rpt-table">
               <thead><tr><th style={{paddingTop:16}}>Period</th><th style={{paddingTop:16}}>Revenue</th><th style={{paddingTop:16}}>Expenses</th><th style={{paddingTop:16}}>Net Profit</th><th style={{paddingTop:16}}>Margin</th></tr></thead>
               <tbody>
@@ -859,6 +862,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -900,6 +904,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
               <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Side-by-side comparison</p>
               <p className="f-display" style={{fontSize:'1.1rem',fontWeight:800,color:'#0A0A0A',letterSpacing:'-.02em'}}>{compData.labelA} vs {compData.labelB}</p>
             </div>
+            <div className="overflow-x-auto">
             <table className="rpt-table">
               <thead>
                 <tr>
@@ -935,6 +940,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 })}
               </tbody>
             </table>
+            </div>
           </div>
 
           {/* Visual comparison bars */}
@@ -1036,6 +1042,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 <p style={{fontSize:'.8rem',color:'#C4CBDA'}}>Add your first asset below — computers, equipment, vehicles, furniture, software licences.</p>
               </div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="rpt-table">
                 <thead>
                   <tr>
@@ -1088,6 +1095,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                   </tr>
                 </tfoot>
               </table>
+              </div>
             )}
             <AddAssetForm onAdd={a=>setAssets(p=>[a,...p])}/>
           </div>
@@ -1109,6 +1117,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 <p style={{fontSize:'.8rem',color:'#C4CBDA'}}>Add loans, credit card balances, or any outstanding obligations below.</p>
               </div>
             ) : (
+              <div className="overflow-x-auto">
               <table className="rpt-table">
                 <thead><tr><th style={{paddingTop:16,textAlign:'left'}}>Name</th><th style={{paddingTop:16,textAlign:'left'}}>Type</th><th style={{paddingTop:16}}>Amount</th><th style={{paddingTop:16}}/></tr></thead>
                 <tbody>
@@ -1134,6 +1143,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                   </tr>
                 </tfoot>
               </table>
+              </div>
             )}
             <AddLiabilityForm onAdd={l=>setLiabilities(p=>[l,...p])}/>
           </div>
@@ -1165,6 +1175,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
               <p style={{fontSize:'.68rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.1em',color:'#94A3B8',marginBottom:4}}>Statement of Financial Position</p>
               <p className="f-display" style={{fontSize:'1.1rem',fontWeight:800,color:'#0A0A0A',letterSpacing:'-.02em'}}>Balance Sheet — {new Date().toLocaleDateString('en-US',{month:'long',year:'numeric'})}</p>
             </div>
+            <div className="overflow-x-auto">
             <table className="rpt-table">
               <thead><tr><th style={{paddingTop:16,textAlign:'left'}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
               <tbody>
@@ -1185,8 +1196,10 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
           <div className="rpt-section">
+            <div className="overflow-x-auto">
             <table className="rpt-table">
               <thead><tr><th style={{paddingTop:16,textAlign:'left'}}>Item</th><th style={{paddingTop:16}}>Amount</th></tr></thead>
               <tbody>
@@ -1207,6 +1220,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                 </tr>
               </tfoot>
             </table>
+            </div>
           </div>
           {balanceSheet.cashBalance===null && (
             <div style={{background:'#FFF8F5',border:'1px solid rgba(255,107,53,0.15)',borderRadius:12,padding:'14px 18px',display:'flex',alignItems:'center',gap:10}}>

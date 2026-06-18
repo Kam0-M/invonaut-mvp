@@ -350,7 +350,7 @@ export default async function PortalInvoicePage({
           <div className="border-t border-gray-100" />
 
           {/* Line items */}
-          <div>
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50">

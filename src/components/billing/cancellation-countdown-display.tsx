@@ -61,22 +61,22 @@ export default function CancellationCountdownDisplay({ cancelAt, currentTier }: 
       </h2>
       
       {/* Countdown Timer */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="text-5xl font-black mb-2">{timeRemaining.days}</div>
-          <div className="text-sm font-medium uppercase tracking-wide">Days</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-3 sm:p-6 text-white">
+          <div className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 tabular-nums">{timeRemaining.days}</div>
+          <div className="text-xs sm:text-sm font-medium uppercase tracking-wide">Days</div>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="text-5xl font-black mb-2">{timeRemaining.hours}</div>
-          <div className="text-sm font-medium uppercase tracking-wide">Hours</div>
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-3 sm:p-6 text-white">
+          <div className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 tabular-nums">{timeRemaining.hours}</div>
+          <div className="text-xs sm:text-sm font-medium uppercase tracking-wide">Hours</div>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="text-5xl font-black mb-2">{timeRemaining.minutes}</div>
-          <div className="text-sm font-medium uppercase tracking-wide">Minutes</div>
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-3 sm:p-6 text-white">
+          <div className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 tabular-nums">{timeRemaining.minutes}</div>
+          <div className="text-xs sm:text-sm font-medium uppercase tracking-wide">Minutes</div>
         </div>
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
-          <div className="text-5xl font-black mb-2">{timeRemaining.seconds}</div>
-          <div className="text-sm font-medium uppercase tracking-wide">Seconds</div>
+        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-3 sm:p-6 text-white">
+          <div className="text-3xl sm:text-5xl font-black mb-1 sm:mb-2 tabular-nums">{timeRemaining.seconds}</div>
+          <div className="text-xs sm:text-sm font-medium uppercase tracking-wide">Seconds</div>
         </div>
       </div>
 

@@ -7,7 +7,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield, X } from 'lucide-react'
+import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield, X, Menu } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
 
 // ─── Global styles ────────────────────────────────────────────────────────────
@@ -740,11 +740,24 @@ function ScreenshotShowcase() {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function LandingPageClient() {
   const [scrolled,setScrolled]=useState(false)
+  const [mobileNavOpen,setMobileNavOpen]=useState(false)
   useEffect(()=>{
     const fn=()=>setScrolled(window.scrollY>20)
     window.addEventListener('scroll',fn,{passive:true})
     return()=>window.removeEventListener('scroll',fn)
   },[])
+  useEffect(()=>{
+    document.body.style.overflow = mobileNavOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  },[mobileNavOpen])
+  useEffect(()=>{
+    if(!mobileNavOpen) return
+    const onKey=(e:KeyboardEvent)=>{ if(e.key==='Escape') setMobileNavOpen(false) }
+    window.addEventListener('keydown',onKey)
+    return()=>window.removeEventListener('keydown',onKey)
+  },[mobileNavOpen])
+
+  const NAV_LINKS=[{href:'#demo',l:'Demo'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate'}]
 
   return (
     <div style={{fontFamily:"'DM Sans',sans-serif",color:'var(--ink)',background:'#fff',overflowX:'clip'}}>
@@ -765,7 +778,7 @@ export default function LandingPageClient() {
             <span className="f-display" style={{fontSize:'1.25rem',fontWeight:700,color:'var(--ink)',letterSpacing:'-.02em'}}>Invonaut</span>
           </Link>
           <div style={{display:'flex',gap:2,alignItems:'center'}} className="hidden md:flex">
-            {[{href:'#demo',l:'Demo'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate'}].map(lk=>(
+            {NAV_LINKS.map(lk=>(
               <Link key={lk.href} href={lk.href} style={{color:'var(--mid)',fontWeight:500,fontSize:'.875rem',padding:'7px 14px',borderRadius:8,textDecoration:'none',transition:'color .15s'}}
                 onMouseEnter={e=>(e.currentTarget.style.color='var(--ink)')}
                 onMouseLeave={e=>(e.currentTarget.style.color='var(--mid)')}>
@@ -773,14 +786,54 @@ export default function LandingPageClient() {
               </Link>
             ))}
           </div>
-          <div style={{display:'flex',gap:12,alignItems:'center'}}>
+          <div style={{display:'flex',alignItems:'center'}} className="gap-2 sm:gap-3">
             <Link href="/login" style={{color:'var(--mid)',fontWeight:500,fontSize:'.875rem',textDecoration:'none'}} className="hidden sm:block">Sign in</Link>
-            <Link href="/signup" style={{background:'var(--ink)',color:'#fff',padding:'9px 20px',borderRadius:9,fontWeight:700,fontSize:'.875rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:7,lineHeight:1,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-              Start free <span style={{opacity:.45,fontWeight:400,fontSize:'.75rem'}}>14 days</span>
+            <Link href="/signup" className="px-3.5 sm:px-5 py-2 sm:py-[10px] text-[.8rem] sm:text-[.875rem]" style={{background:'var(--ink)',color:'#fff',borderRadius:9,fontWeight:700,textDecoration:'none',display:'inline-flex',alignItems:'center',gap:7,lineHeight:1,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+              Start free <span className="hidden xs:inline" style={{opacity:.45,fontWeight:400,fontSize:'.75rem'}}>14 days</span>
             </Link>
+            <button
+              onClick={()=>setMobileNavOpen(o=>!o)}
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileNavOpen}
+              className="md:hidden"
+              style={{display:'flex',alignItems:'center',justifyContent:'center',width:38,height:38,borderRadius:9,border:'1px solid var(--rule)',background:'#fff',flexShrink:0}}
+            >
+              {mobileNavOpen ? <X size={18} style={{color:'var(--ink)'}}/> : <Menu size={18} style={{color:'var(--ink)'}}/>}
+            </button>
           </div>
         </div>
       </nav>
+
+      {/* ── Mobile nav drawer ───────────────────────────────────────────── */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            className="md:hidden"
+            onClick={()=>setMobileNavOpen(false)}
+            style={{ position:'fixed', inset:0, top:58, zIndex:49, background:'rgba(7,7,15,0.4)' }}
+          >
+            <motion.div
+              initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }}
+              transition={{ duration:0.2, ease:[0.16,1,0.3,1] }}
+              onClick={e=>e.stopPropagation()}
+              style={{ background:'#fff', borderBottom:'1px solid var(--rule)', padding:'8px 24px 20px', boxShadow:'0 12px 32px -8px rgba(0,0,0,0.12)' }}
+            >
+              {NAV_LINKS.map(lk=>(
+                <Link key={lk.href} href={lk.href} onClick={()=>setMobileNavOpen(false)}
+                  style={{display:'block',color:'var(--ink)',fontWeight:600,fontSize:'1rem',padding:'13px 4px',borderBottom:'1px solid var(--rule)',textDecoration:'none'}}>
+                  {lk.l}
+                </Link>
+              ))}
+              <Link href="/login" onClick={()=>setMobileNavOpen(false)}
+                style={{display:'block',color:'var(--mid)',fontWeight:600,fontSize:'1rem',padding:'13px 4px',textDecoration:'none'}}>
+                Sign in
+              </Link>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section className="hero-mesh" style={{padding:'56px 24px 64px'}}>

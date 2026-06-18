@@ -131,22 +131,22 @@ export default function RevenueStorySection({
 
         {/* Quick stats — only show when there's something to compare */}
         {(currentMonth > 0 || previousMonth > 0) && (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 bg-white/70 rounded-xl border border-gray-200/70">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">This month</p>
-              <p className="text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(currentMonth)}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-3 bg-white/70 rounded-xl border border-gray-200/70">
+              <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">This month</p>
+              <p className="text-base sm:text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(currentMonth)}</p>
             </div>
-            <div className="p-3 bg-white/70 rounded-xl border border-gray-200/70">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Last month</p>
-              <p className="text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(previousMonth)}</p>
+            <div className="p-2 sm:p-3 bg-white/70 rounded-xl border border-gray-200/70">
+              <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Last month</p>
+              <p className="text-base sm:text-lg font-black text-gray-900 mt-0.5 inv-mono">{fmt(previousMonth)}</p>
             </div>
             <div className={`p-3 rounded-xl border ${
               trendPct > 0  ? 'bg-teal-50 border-teal-200' :
               trendPct < 0  ? 'bg-red-50 border-red-200'   :
                               'bg-gray-50 border-gray-200'
             }`}>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Change</p>
-              <p className={`text-lg font-black mt-0.5 ${
+              <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider">Change</p>
+              <p className={`text-base sm:text-lg font-black mt-0.5 ${
                 trendPct > 0 ? 'text-teal-600' : trendPct < 0 ? 'text-red-600' : 'text-gray-500'
               }`}>
                 {trendPct > 0 ? '+' : ''}{previousMonth > 0 ? `${trendPct}%` : '—'}

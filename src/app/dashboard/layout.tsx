@@ -50,9 +50,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           logoUrl={logoUrl}
           subscriptionTier={subscriptionTier}
           businessName={businessName}
+          overdueCount={overdueCount ?? 0}
+          highRiskCount={highRiskCount ?? 0}
         />
         <main className="flex-1 overflow-y-auto" style={{background:'var(--inv-surf)'}}>
-          <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
             <PageAutoRefresh interval={30_000} />
             {children}
           </div>
