@@ -173,6 +173,15 @@ body {
   animation: inv-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Mobile nav drawer — slides in from the right edge */
+@keyframes inv-drawer-in {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+.inv-drawer-in {
+  animation: inv-drawer-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 /* Insight cycle — fade between AI insights */
 @keyframes inv-insight-in {
   from { opacity: 0; transform: translateY(8px); }

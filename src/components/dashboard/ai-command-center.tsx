@@ -139,7 +139,7 @@ export default function AICommandCenter({
       <div className="relative z-10 bg-[#F8FAFF]/80 p-6 sm:p-8">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-start justify-between mb-5 gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center shadow-md flex-shrink-0">
               <Zap className="w-5 h-5 text-white" />
@@ -153,7 +153,7 @@ export default function AICommandCenter({
             </div>
           </div>
           {hasActiveSubscription && (
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Link href="/dashboard/invoices/new"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg btn-primary text-xs transition-all hover:shadow-md active:scale-[0.98]">
                 <Plus className="w-3 h-3" />Invoice

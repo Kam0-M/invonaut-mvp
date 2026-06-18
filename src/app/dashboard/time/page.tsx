@@ -118,13 +118,13 @@ export default async function TimePage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Time Tracking</p>
           <p className="text-sm text-gray-500 font-medium">Track billable hours · convert to invoices with one click</p>
         </div>
         <Link href="/dashboard/time/new"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md">
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-primary rounded-xl text-sm transition-all hover:shadow-md flex-shrink-0">
           <Plus className="w-4 h-4" />Manual Entry
         </Link>
       </div>

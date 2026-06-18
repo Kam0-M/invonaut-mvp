@@ -33,11 +33,11 @@ export default async function ClientsPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline mb-1">Clients</p>
           {clients.length > 0 && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-black text-gray-900">{clients.length}</span>
                 <span className="text-xs text-gray-400 font-medium">Total</span>
@@ -53,11 +53,11 @@ export default async function ClientsPage() {
         </div>
         {hasActiveSubscription ? (
           <Link href="/dashboard/clients/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md">
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-secondary rounded-xl text-sm transition-all hover:shadow-md flex-shrink-0">
             <Plus className="w-4 h-4" />Add Client
           </Link>
         ) : (
-          <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed">
+          <button disabled className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-100 text-gray-400 font-bold text-sm cursor-not-allowed flex-shrink-0">
             <Lock className="w-4 h-4" />Add Client
           </button>
         )}

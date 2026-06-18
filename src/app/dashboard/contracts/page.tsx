@@ -75,9 +75,9 @@ export default async function ContractsPage() {
       <CoreTabBar />
 
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
             <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest inv-overline">Contract lifecycle</p>
             {totalValue > 0 && (
               <span className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
@@ -86,7 +86,7 @@ export default async function ContractsPage() {
             )}
           </div>
           {contracts.length > 0 && (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {[
                 { label: 'Active',   value: String(activeCount),      color: 'text-emerald-600' },
                 { label: 'Expiring', value: String(expiringCount),    color: expiringCount > 0 ? 'text-amber-600' : 'text-gray-400' },
@@ -101,7 +101,7 @@ export default async function ContractsPage() {
             </div>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap flex-shrink-0">
           {expiringCount > 0 && (
             <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200">
               <AlertTriangle className="w-3.5 h-3.5" />

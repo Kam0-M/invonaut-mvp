@@ -221,8 +221,8 @@ export default function AdminPayoutsPage() {
                     Payout History
                   </h2>
                 </div>
-                <div style={{background:'#fff',borderRadius:14,border:'1px solid #E2E8F0',overflow:'hidden'}}>
-                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.82rem'}}>
+                <div style={{background:'#fff',borderRadius:14,border:'1px solid #E2E8F0',overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'.82rem',minWidth:560}}>
                     <thead>
                       <tr style={{background:'#F8FAFF',borderBottom:'1px solid #E2E8F0'}}>
                         {['Affiliate','Method','Amount','Paid at','Ref'].map(h => (

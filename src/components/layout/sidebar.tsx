@@ -20,7 +20,7 @@ interface SidebarProps {
 }
 
 // Settings removed — lives in the header dropdown now
-const NAV = [
+export const NAV = [
   { name: 'Dashboard',     href: '/dashboard',           icon: LayoutDashboard },
   { name: 'Invoices',      href: '/dashboard/invoices',  icon: FileText        },
   { name: 'Payments',      href: '/dashboard/payments',  icon: Banknote        },
