@@ -777,7 +777,7 @@ export default function LandingPageClient() {
             <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{width:38,height:38,objectFit:'contain',flexShrink:0}} />
             <span className="f-display" style={{fontSize:'1.25rem',fontWeight:700,color:'var(--ink)',letterSpacing:'-.02em'}}>Invonaut</span>
           </Link>
-          <div style={{display:'flex',gap:2,alignItems:'center'}} className="hidden md:flex">
+          <div className="hidden md:flex items-center gap-0.5">
             {NAV_LINKS.map(lk=>(
               <Link key={lk.href} href={lk.href} style={{color:'var(--mid)',fontWeight:500,fontSize:'.875rem',padding:'7px 14px',borderRadius:8,textDecoration:'none',transition:'color .15s'}}
                 onMouseEnter={e=>(e.currentTarget.style.color='var(--ink)')}
@@ -795,8 +795,8 @@ export default function LandingPageClient() {
               onClick={()=>setMobileNavOpen(o=>!o)}
               aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileNavOpen}
-              className="md:hidden"
-              style={{display:'flex',alignItems:'center',justifyContent:'center',width:38,height:38,borderRadius:9,border:'1px solid var(--rule)',background:'#fff',flexShrink:0}}
+              className="md:hidden inline-flex items-center justify-center flex-shrink-0"
+              style={{width:38,height:38,borderRadius:9,border:'1px solid var(--rule)',background:'#fff'}}
             >
               {mobileNavOpen ? <X size={18} style={{color:'var(--ink)'}}/> : <Menu size={18} style={{color:'var(--ink)'}}/>}
             </button>
