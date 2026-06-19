@@ -86,7 +86,7 @@ export function RevenueVsExpenseChart({
       <div style={{ width: '100%', height: 280 }}>
         <ResponsiveContainer width="100%" height="100%">
           {/* @ts-ignore */}
-          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 56 }} barCategoryGap="28%" barGap={2}>
+          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }} barCategoryGap="28%" barGap={2}>
             {/* @ts-ignore */}
             <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" vertical={false} />
             {/* @ts-ignore */}

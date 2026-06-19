@@ -93,7 +93,7 @@ export function ForecastChart({ data }: { data: ForecastPoint[] }) {
     <div style={{ width: '100%', height: 280 }}>
       <ResponsiveContainer width="100%" height="100%">
         {/* @ts-ignore */}
-        <AreaChart data={data} margin={{ top: 12, right: 16, bottom: 0, left: 60 }}>
+        <AreaChart data={data} margin={{ top: 12, right: 16, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="forecastGradTeal" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%"  stopColor={TEAL} stopOpacity={0.18} />

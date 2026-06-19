@@ -215,18 +215,18 @@ export default function AICommandCenter({
         {/* Quick stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5 pt-5 border-t border-gray-200/60">
           {[
-            { label: 'Total Revenue',  value: fmt(totalRevenue),    color: 'text-gray-900'  },
-            { label: 'Pending',        value: fmt(pendingPayments), color: 'text-amber-600' },
-            { label: 'This Month',     value: fmt(paidThisMonth),   color: 'text-teal-600'  },
+            { label: 'Total Revenue',  value: fmt(totalRevenue,    { compact: true }), color: 'text-gray-900'  },
+            { label: 'Pending',        value: fmt(pendingPayments, { compact: true }), color: 'text-amber-600' },
+            { label: 'This Month',     value: fmt(paidThisMonth,   { compact: true }), color: 'text-teal-600'  },
             { label: 'Profit Margin',  value: profitMargin !== null ? `${profitMargin}%` : '—', color: 'text-blue-600' },
           ].map(stat => (
-            <div key={stat.label} className="text-center">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{stat.label}</p>
+            <div key={stat.label} className="text-center min-w-0">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 truncate">{stat.label}</p>
               <p
-                className={`inv-breath ${stat.color}`}
+                className={`inv-breath ${stat.color} truncate`}
                 style={{
                   fontFamily: '"JetBrains Mono", ui-monospace, monospace',
-                  fontSize: '1.5rem',
+                  fontSize: 'clamp(1.05rem, 4.5vw, 1.5rem)',
                   fontWeight: 700,
                   letterSpacing: '-.03em',
                   lineHeight: 1.1,
