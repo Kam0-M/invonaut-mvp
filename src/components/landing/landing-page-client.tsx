@@ -7,7 +7,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Check, Zap, FileText, TrendingUp, Users, Clock, Shield, X, Menu } from 'lucide-react'
+import { ArrowRight, Check, Zap, TrendingUp, Clock, Shield, X, Menu } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
 
 // ─── Global styles ────────────────────────────────────────────────────────────
@@ -53,18 +53,22 @@ const CSS = `
   @media(max-width:900px){
     .hero-grid     { grid-template-columns:1fr !important; }
     .steps-grid    { grid-template-columns:1fr 1fr !important; }
+    .auto-header   { grid-template-columns:1fr !important; gap:24px !important; }
+    .auto-stats    { grid-template-columns:1fr 1fr !important; }
     .auto-row      { grid-template-columns:1fr !important; gap:4px !important; }
     .auto-sched    { display:none !important; }
     .trust-grid    { grid-template-columns:1fr 1fr !important; }
     .footer-grid   { grid-template-columns:1fr 1fr !important; }
     .cta-grid      { grid-template-columns:1fr !important; }
-    .demo-tabs     { overflow-x:auto; }
+    .platform-items{ grid-template-columns:1fr 1fr !important; }
     .price-justify-grid { grid-template-columns:1fr !important; }
   }
   @media(max-width:600px){
-    .steps-grid  { grid-template-columns:1fr !important; }
-    .trust-grid  { grid-template-columns:1fr !important; }
-    .footer-grid { grid-template-columns:1fr !important; }
+    .steps-grid    { grid-template-columns:1fr !important; }
+    .auto-stats    { grid-template-columns:1fr !important; }
+    .trust-grid    { grid-template-columns:1fr !important; }
+    .footer-grid   { grid-template-columns:1fr !important; }
+    .platform-items{ grid-template-columns:1fr !important; }
   }
 `
 
@@ -121,239 +125,6 @@ function SystemLog() {
       </AnimatePresence>
       <div className="log-cursor" style={{color:'var(--teal)',fontSize:'.65rem',marginTop:8}}>
         running again tomorrow at 09:00
-      </div>
-    </div>
-  )
-}
-
-// ─── Product Demo ─────────────────────────────────────────────────────────────
-const INVOICE_ROWS = [
-  { id:'INV-00089', client:'Acme Corp',       amount:'$4,200', status:'overdue',  days:'8 days late', risk:91 },
-  { id:'INV-00088', client:'Northside Media', amount:'$2,800', status:'sent',     days:'Due Jun 28',  risk:34 },
-  { id:'INV-00087', client:'Riverstone Inc',  amount:'$6,500', status:'paid',     days:'Paid Jun 14', risk:null },
-  { id:'INV-00086', client:'Blue Studios',    amount:'$1,400', status:'draft',    days:'Not sent',    risk:null },
-  { id:'INV-00085', client:'TechStart LLC',   amount:'$3,900', status:'sent',     days:'Due Jul 5',   risk:58 },
-]
-const STATUS_STYLE: Record<string,{bg:string,color:string,label:string}> = {
-  overdue: {bg:'#FEF2F2',color:'#DC2626',label:'Overdue'},
-  sent:    {bg:'#EFF6FF',color:'#2563EB',label:'Sent'},
-  paid:    {bg:'#F0FDF4',color:'#16A34A',label:'Paid'},
-  draft:   {bg:'#F9FAFB',color:'#6B7280',label:'Draft'},
-}
-
-function InvoiceDemo() {
-  return (
-    <div style={{padding:'0 4px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <p style={{fontWeight:800,fontSize:'.9rem',color:'var(--ink)'}}>Invoices</p>
-        <div style={{display:'flex',gap:8}}>
-          <span style={{padding:'5px 12px',borderRadius:6,background:'var(--surf)',border:'1px solid var(--rule)',fontSize:'.72rem',fontWeight:600,color:'var(--mid)'}}>Filter</span>
-          <span style={{padding:'5px 14px',borderRadius:6,background:'var(--blue)',fontSize:'.72rem',fontWeight:700,color:'#fff'}}>+ New</span>
-        </div>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        {INVOICE_ROWS.map(r=>{
-          const s=STATUS_STYLE[r.status]
-          return (
-            <div key={r.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'#fff',borderRadius:10,border:'1px solid var(--rule)',fontSize:'.78rem'}}>
-              <span style={{fontWeight:700,color:'var(--mid)',minWidth:68,flexShrink:0}} className="f-mono">{r.id}</span>
-              <span style={{flex:1,fontWeight:600,color:'var(--ink)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.client}</span>
-              <span style={{fontWeight:800,color:'var(--ink)',minWidth:52,textAlign:'right'}}>{r.amount}</span>
-              <span style={{padding:'3px 9px',borderRadius:100,fontSize:'.67rem',fontWeight:700,background:s.bg,color:s.color,flexShrink:0}}>{s.label}</span>
-              <span style={{color:'var(--faint)',fontSize:'.7rem',minWidth:76,textAlign:'right',flexShrink:0}}>{r.days}</span>
-              {r.risk !== null && (
-                <span style={{padding:'3px 8px',borderRadius:6,fontSize:'.67rem',fontWeight:700,background:r.risk>70?'#FEF2F2':'#EFF6FF',color:r.risk>70?'#DC2626':'#2563EB',flexShrink:0}}>
-                  {r.risk}% risk
-                </span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <div style={{marginTop:12,padding:'10px 14px',background:'var(--surf2)',borderRadius:10,fontSize:'.75rem',color:'var(--mid)',display:'flex',alignItems:'center',gap:8}}>
-        <Zap size={13} style={{color:'var(--blue)',flexShrink:0}}/>
-        2 invoices flagged for follow-up · AI running automatically tonight at 9:00am
-      </div>
-    </div>
-  )
-}
-
-const CONTRACT_ROWS = [
-  { name:'Web Design Agreement',  client:'Acme Corp',       status:'active',   note:'Expires Aug 30',  signed:true  },
-  { name:'Brand Retainer',        client:'Northside Media', status:'active',   note:'Expires Sep 15',  signed:true  },
-  { name:'Dev Contract',          client:'Blue Studios',    status:'expiring', note:'Expires in 7 days', signed:true },
-  { name:'NDA',                   client:'TechStart LLC',   status:'draft',    note:'Awaiting signature',signed:false},
-]
-function ContractsDemo() {
-  return (
-    <div style={{padding:'0 4px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <p style={{fontWeight:800,fontSize:'.9rem',color:'var(--ink)'}}>Contracts</p>
-        <span style={{padding:'5px 14px',borderRadius:6,background:'var(--blue)',fontSize:'.72rem',fontWeight:700,color:'#fff'}}>+ New</span>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        {CONTRACT_ROWS.map(r=>{
-          const colors = r.status==='active'?{bg:'#F0FDF4',c:'#16A34A'} : r.status==='expiring'?{bg:'#FFFBEB',c:'#D97706'} : {bg:'#F9FAFB',c:'#6B7280'}
-          return (
-            <div key={r.name} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'#fff',borderRadius:10,border:`1px solid ${r.status==='expiring'?'#FDE68A':'var(--rule)'}`,fontSize:'.78rem'}}>
-              <div style={{flex:1,minWidth:0}}>
-                <p style={{fontWeight:700,color:'var(--ink)',marginBottom:2}}>{r.name}</p>
-                <p style={{color:'var(--faint)',fontSize:'.7rem'}}>{r.client}</p>
-              </div>
-              <span style={{padding:'3px 9px',borderRadius:100,fontSize:'.67rem',fontWeight:700,background:colors.bg,color:colors.c,flexShrink:0,textTransform:'capitalize'}}>{r.status}</span>
-              <span style={{color:'var(--mid)',fontSize:'.7rem',minWidth:100,textAlign:'right',flexShrink:0}}>{r.note}</span>
-              {!r.signed && (
-                <span style={{padding:'3px 10px',borderRadius:6,background:'var(--blue)',color:'#fff',fontSize:'.67rem',fontWeight:700,flexShrink:0,cursor:'pointer'}}>Sign</span>
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <div style={{marginTop:12,padding:'10px 14px',background:'#FFFBEB',borderRadius:10,fontSize:'.75rem',color:'#92400E',display:'flex',alignItems:'center',gap:8,border:'1px solid #FDE68A'}}>
-        <Shield size={13} style={{flexShrink:0}}/>
-        Dev Contract with Blue Studios expires in 7 days — reminder sent automatically
-      </div>
-    </div>
-  )
-}
-
-function CashFlowDemo() {
-  const BAR_DATA = [
-    {m:'Feb',v:6200,proj:false},{m:'Mar',v:8400,proj:false},{m:'Apr',v:5100,proj:false},
-    {m:'May',v:9200,proj:true}, {m:'Jun',v:7800,proj:true}, {m:'Jul',v:11400,proj:true},
-  ]
-  const MAX=12000
-  return (
-    <div style={{padding:'0 4px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
-        <div>
-          <p style={{fontWeight:800,fontSize:'.9rem',color:'var(--ink)',marginBottom:4}}>Cash Flow — 90-Day Forecast</p>
-          <p style={{fontSize:'.75rem',color:'var(--mid)'}}>AI-projected based on outstanding invoices and expense patterns</p>
-        </div>
-        <div style={{textAlign:'right'}}>
-          <p style={{fontWeight:800,fontSize:'1.4rem',color:'var(--ink)',letterSpacing:'-.02em',lineHeight:1}}>$12,400</p>
-          <p style={{fontSize:'.7rem',color:'var(--teal)',fontWeight:700}}>in pipeline</p>
-        </div>
-      </div>
-      {/* Bar chart */}
-      <div style={{display:'flex',alignItems:'flex-end',gap:8,height:110,padding:'0 4px',marginBottom:10}}>
-        {BAR_DATA.map(b=>(
-          <div key={b.m} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-            <div style={{
-              width:'100%',
-              height:Math.round((b.v/MAX)*100),
-              background:b.proj ? 'repeating-linear-gradient(135deg,rgba(0,85,255,.12) 0,rgba(0,85,255,.12) 4px,transparent 4px,transparent 8px)' : 'linear-gradient(180deg,#0066FF,#0044CC)',
-              borderRadius:'4px 4px 0 0',
-              border:b.proj ? '1.5px dashed rgba(0,85,255,.4)' : 'none',
-              position:'relative',
-            }}>
-              {!b.proj && <div style={{position:'absolute',bottom:'100%',left:'50%',transform:'translateX(-50%)',fontSize:'.62rem',fontWeight:700,color:'var(--blue)',whiteSpace:'nowrap',paddingBottom:3}}>${(b.v/1000).toFixed(1)}k</div>}
-            </div>
-            <span style={{fontSize:'.67rem',color:'var(--mid)',fontWeight:500}}>{b.m}</span>
-          </div>
-        ))}
-      </div>
-      {/* Legend */}
-      <div style={{display:'flex',gap:16,fontSize:'.7rem',color:'var(--mid)',marginBottom:14}}>
-        <span style={{display:'flex',alignItems:'center',gap:5}}>
-          <span style={{width:12,height:8,borderRadius:2,background:'linear-gradient(#0066FF,#0044CC)',flexShrink:0}}/>Actual
-        </span>
-        <span style={{display:'flex',alignItems:'center',gap:5}}>
-          <span style={{width:12,height:8,borderRadius:2,border:'1.5px dashed rgba(0,85,255,.5)',flexShrink:0}}/>Projected
-        </span>
-      </div>
-      {/* Key stats */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8}}>
-        {[{l:'Runway',v:'4.2 months',c:'var(--teal)'},{l:'Avg monthly',v:'$7,483',c:'var(--ink)'},{l:'Risk exposure',v:'$6,000',c:'#DC2626'}].map(s=>(
-          <div key={s.l} style={{padding:'10px 12px',background:'var(--surf)',borderRadius:8,border:'1px solid var(--rule)'}}>
-            <p style={{fontSize:'.65rem',color:'var(--faint)',marginBottom:4,textTransform:'uppercase',letterSpacing:'.06em',fontWeight:700}}>{s.l}</p>
-            <p style={{fontSize:'.88rem',fontWeight:800,color:s.c,letterSpacing:'-.01em'}}>{s.v}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function PortalDemo() {
-  return (
-    <div style={{padding:'0 4px'}}>
-      <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:20,padding:'10px 14px',background:'#EFF4FF',borderRadius:10,border:'1px solid #C7D9FF'}}>
-        <div style={{width:28,height:28,borderRadius:6,background:'linear-gradient(135deg,var(--blue),var(--teal))',flexShrink:0}}/>
-        <div>
-          <p style={{fontWeight:800,fontSize:'.8rem',color:'var(--ink)'}}>Acme Corp Client Portal</p>
-          <p style={{fontSize:'.68rem',color:'var(--mid)'}}>Accessed via magic link · acme@acmecorp.com</p>
-        </div>
-        <span style={{marginLeft:'auto',padding:'3px 9px',borderRadius:100,background:'#F0FDF4',color:'#16A34A',fontSize:'.67rem',fontWeight:700,flexShrink:0}}>Active</span>
-      </div>
-      <div style={{display:'flex',flexDirection:'column',gap:8}}>
-        <div style={{padding:'14px 16px',background:'#fff',borderRadius:10,border:'1px solid var(--rule)'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-            <div>
-              <p style={{fontWeight:700,fontSize:'.82rem',color:'var(--ink)'}}>Invoice INV-00089</p>
-              <p style={{fontSize:'.7rem',color:'var(--mid)'}}>Web Design Project — Phase 2</p>
-            </div>
-            <span style={{padding:'4px 10px',borderRadius:100,background:'#FEF2F2',color:'#DC2626',fontSize:'.67rem',fontWeight:700}}>Overdue</span>
-          </div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:8,borderTop:'1px solid var(--rule)'}}>
-            <p style={{fontSize:'1.2rem',fontWeight:900,color:'var(--ink)',letterSpacing:'-.02em'}}>$4,200.00</p>
-            <span style={{padding:'8px 20px',borderRadius:8,background:'var(--blue)',color:'#fff',fontSize:'.78rem',fontWeight:700,cursor:'pointer'}}>
-              View & Download PDF
-            </span>
-          </div>
-        </div>
-        <div style={{padding:'12px 16px',background:'var(--surf)',borderRadius:10,border:'1px solid var(--rule)',fontSize:'.75rem',color:'var(--mid)',display:'flex',alignItems:'center',gap:8}}>
-          <Shield size={13} style={{color:'var(--blue)',flexShrink:0}}/>
-          Your branding appears here. Clients never see Invonaut.
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const DEMO_TABS = [
-  { id:'invoices',   label:'Invoices',       icon:FileText   },
-  { id:'contracts',  label:'Contracts',      icon:Shield     },
-  { id:'cashflow',   label:'Cash Flow',      icon:TrendingUp },
-  { id:'portal',     label:'Client Portal',  icon:Users      },
-]
-
-function ProductDemo() {
-  const [active, setActive] = useState('invoices')
-  const CONTENT: Record<string,React.ReactNode> = {
-    invoices:  <InvoiceDemo/>,
-    contracts: <ContractsDemo/>,
-    cashflow:  <CashFlowDemo/>,
-    portal:    <PortalDemo/>,
-  }
-  return (
-    <div>
-      {/* Tabs */}
-      <div className="demo-tabs" style={{display:'flex',gap:4,marginBottom:20,padding:'4px',background:'var(--surf)',borderRadius:12,width:'fit-content',flexShrink:0}}>
-        {DEMO_TABS.map(t=>{
-          const on=active===t.id
-          const Icon=t.icon
-          return (
-            <button key={t.id} onClick={()=>setActive(t.id)} style={{
-              display:'flex',alignItems:'center',gap:7,padding:'8px 16px',borderRadius:9,border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",
-              fontSize:'.8rem',fontWeight:on?700:500,
-              background:on?'#fff':'transparent',
-              color:on?'var(--blue)':'var(--mid)',
-              boxShadow:on?'0 1px 4px rgba(0,0,0,0.1)':'none',
-              transition:'all .15s',whiteSpace:'nowrap',flexShrink:0,
-            }}>
-              <Icon size={13}/>{t.label}
-            </button>
-          )
-        })}
-      </div>
-      {/* Content */}
-      <div className="demo-tab-content" style={{background:'var(--surf)',borderRadius:16,padding:'24px',border:'1px solid var(--rule)',minHeight:280}}>
-        <AnimatePresence mode="wait">
-          <motion.div key={active} initial={{opacity:0,y:6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}} transition={{duration:.2,ease:E}}>
-            {CONTENT[active]}
-          </motion.div>
-        </AnimatePresence>
       </div>
     </div>
   )
@@ -757,7 +528,7 @@ export default function LandingPageClient() {
     return()=>window.removeEventListener('keydown',onKey)
   },[mobileNavOpen])
 
-  const NAV_LINKS=[{href:'#demo',l:'Demo'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate'}]
+  const NAV_LINKS=[{href:'#screenshots',l:'Screenshots'},{href:'#how-it-works',l:'How it works'},{href:'#platform',l:'Platform'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate'}]
 
   return (
     <div style={{fontFamily:"'DM Sans',sans-serif",color:'var(--ink)',background:'#fff',overflowX:'clip'}}>
@@ -855,7 +626,7 @@ export default function LandingPageClient() {
                 <Link href="/signup" style={{background:'linear-gradient(135deg,#0044EE,#0066FF)',color:'#fff',padding:'14px 30px',borderRadius:10,fontWeight:700,fontSize:'.95rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:'0 4px 20px rgba(0,85,255,0.35)'}}>
                   Start free — 14 days <ArrowRight size={16} strokeWidth={2.5}/>
                 </Link>
-                <Link href="#demo" style={{color:'var(--blue)',fontWeight:600,fontSize:'.875rem',textDecoration:'none',display:'flex',alignItems:'center',gap:5}}>
+                <Link href="#screenshots" style={{color:'var(--blue)',fontWeight:600,fontSize:'.875rem',textDecoration:'none',display:'flex',alignItems:'center',gap:5}}>
                   See the product <ArrowRight size={14}/>
                 </Link>
               </motion.div>
@@ -922,32 +693,8 @@ export default function LandingPageClient() {
       {/* ── PERSONA SCENARIOS ────────────────────────────────────────────── */}
       <PersonaSection/>
 
-      {/* ── DEMO ─────────────────────────────────────────────────────────── */}
-      <section id="demo" style={{padding:'100px 24px',background:'#fff',borderBottom:'1px solid var(--rule)'}}>
-        <div style={{maxWidth:1000,margin:'0 auto'}}>
-          <Reveal>
-            <motion.div variants={fadeUp} style={{marginBottom:52}}>
-              <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>Product demo</p>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:20}}>
-                <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)'}}>
-                  This is what it<br/>looks like inside.
-                </h2>
-                <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:320,lineHeight:1.75}}>
-                  Real UI. Real data structure. Every feature you see is live in the product right now.
-                </p>
-              </div>
-            </motion.div>
-          </Reveal>
-          <Reveal>
-            <motion.div variants={fadeUp}>
-              <ProductDemo/>
-            </motion.div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* ── SCREENSHOT SHOWCASE ──────────────────────────────────────────── */}
-      <ScreenshotShowcase/>
+      <div id="screenshots"><ScreenshotShowcase/></div>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
       <section id="how-it-works" style={{padding:'100px 24px',background:'var(--surf)'}}>
@@ -1003,7 +750,7 @@ export default function LandingPageClient() {
                   <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:g.color}}>{g.group}</p>
                 </motion.div>
               </Reveal>
-              <div style={{display:'grid',gridTemplateColumns:`repeat(${g.items.length},1fr)`,gap:1,background:'var(--rule)',borderRadius:12,overflow:'hidden'}}>
+              <div className="platform-items" style={{display:'grid',gridTemplateColumns:`repeat(${g.items.length},1fr)`,gap:1,background:'var(--rule)',borderRadius:12,overflow:'hidden'}}>
                 {g.items.map((f,fi)=>(
                   <Reveal key={fi}>
                     <motion.div variants={fadeUp} style={{background:'#fff',padding:'26px 28px',transition:'background .15s'}}
@@ -1048,7 +795,7 @@ export default function LandingPageClient() {
             ))}
           </div>
           <Reveal>
-            <motion.div variants={fadeUp} style={{marginTop:32,display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
+            <motion.div variants={fadeUp} className="auto-stats" style={{marginTop:32,display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
               {[{v:'8',l:'Automated processes'},{v:'24/7',l:'Runs while you sleep'},{v:'0',l:'Manual triggers needed'}].map((s,i)=>(
                 <div key={i} style={{padding:'24px',background:'#fff',borderRadius:12,border:'1px solid var(--rule)',textAlign:'center'}}>
                   <p className="f-display" style={{fontSize:'2.2rem',fontWeight:800,letterSpacing:'-.03em',marginBottom:6,
@@ -1383,7 +1130,7 @@ export default function LandingPageClient() {
               <p style={{fontSize:'.85rem',color:'rgba(255,255,255,0.3)',lineHeight:1.75,maxWidth:240}}>From Contract to Cash. Automated.</p>
             </div>
             {[
-              {head:'Product',links:[{href:'#demo',l:'Demo'},{href:'#platform',l:'Platform'},{href:'#how-it-works',l:'How it works'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate',earn:true}]},
+              {head:'Product',links:[{href:'#screenshots',l:'Screenshots'},{href:'#platform',l:'Platform'},{href:'#how-it-works',l:'How it works'},{href:'#pricing',l:'Pricing'},{href:'/affiliate',l:'Affiliate',earn:true}]},
               {head:'Compare',links:[{href:'/vs/wave',l:'vs Wave'},{href:'/vs/freshbooks',l:'vs FreshBooks'},{href:'/vs/bonsai',l:'vs Bonsai'}]},
               {head:'Account',links:[{href:'/signup',l:'Sign up'},{href:'/login',l:'Sign in'},{href:'/help',l:'Help'}]},
               {head:'Legal',  links:[{href:'/privacy',l:'Privacy Policy'},{href:'/terms',l:'Terms of Service'}]},

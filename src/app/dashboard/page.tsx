@@ -18,7 +18,7 @@ import OpportunityPanel            from '@/components/dashboard/opportunity-pane
 import ActivityFeedLive, { ActivityItem } from '@/components/dashboard/activity-feed-live'
 import IntelligenceFeed            from '@/components/intelligence/intelligence-feed'
 import WelcomeModal               from '@/components/dashboard/welcome-modal'
-import { makeCurrencyFormatter }  from '@/lib/utils/currency'
+import { makeCurrencyFormatter, makeCompactFormatter }  from '@/lib/utils/currency'
 
 
 export default async function DashboardPage() {
@@ -37,6 +37,7 @@ export default async function DashboardPage() {
 
   const tier = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
+  const fmtCompact = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
   const isPro = tier === 'professional' || tier === 'business'
 
   // Intelligence insights (Pro+)
@@ -306,13 +307,13 @@ export default async function DashboardPage() {
           {hasActiveSubscription ? (
             <div className="flex gap-3 flex-wrap items-start">
               {[
-                { label: 'This month',  value: fmt(paidThisMonth),    accent: 'border-blue-100 text-blue-700 bg-blue-50/60'  },
-                { label: 'Outstanding', value: fmt(pendingPayments),  accent: overdueCount > 0 ? 'border-red-100 text-red-700 bg-red-50/60' : 'border-orange-100 text-orange-700 bg-orange-50/60' },
+                { label: 'This month',  value: fmtCompact(paidThisMonth),    accent: 'border-blue-100 text-blue-700 bg-blue-50/60'  },
+                { label: 'Outstanding', value: fmtCompact(pendingPayments),  accent: overdueCount > 0 ? 'border-red-100 text-red-700 bg-red-50/60' : 'border-orange-100 text-orange-700 bg-orange-50/60' },
                 { label: 'Net profit',  value: profitMargin !== null ? `${profitMargin}%` : '—', accent: netProfit >= 0 ? 'border-teal-100 text-teal-700 bg-teal-50/60' : 'border-red-100 text-red-700 bg-red-50/60' },
               ].map(s => (
-                <div key={s.label} className={`border rounded-xl px-4 py-2.5 min-w-[96px] ${s.accent}`}>
-                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-0.5">{s.label}</p>
-                  <p className="text-base font-black font-mono">{s.value}</p>
+                <div key={s.label} className={`border rounded-xl px-4 py-2.5 min-w-[96px] max-w-[140px] ${s.accent}`}>
+                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-60 mb-0.5 truncate">{s.label}</p>
+                  <p className="text-base font-black font-mono truncate">{s.value}</p>
                 </div>
               ))}
             </div>

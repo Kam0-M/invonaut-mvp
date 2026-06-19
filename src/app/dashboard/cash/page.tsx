@@ -22,7 +22,7 @@ import CoreTabBar                  from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import MarkCashFlowVisited from '@/components/cash/mark-cash-flow-visited'
 
-import { makeCurrencyFormatter } from '@/lib/utils/currency'
+import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 
 export default async function CashPage() {
   const supabase = await createClient()
@@ -40,8 +40,8 @@ export default async function CashPage() {
     (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
   const tier    = profile?.subscription_tier ?? 'starter'
-  const fmt     = makeCurrencyFormatter((profile as any)?.currency || 'USD')
-  const fmtFull = fmt
+  const fmtFull = makeCurrencyFormatter((profile as any)?.currency || 'USD')
+  const fmt     = makeCompactFormatter((profile as any)?.currency || 'USD')
   const isPro   = tier === 'professional' || tier === 'business'
 
   // ── Bank connections (all paid tiers) ────────────────────────────────────
@@ -435,23 +435,23 @@ export default async function CashPage() {
                 </div>
 
                 {/* Context metrics */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   {latestBalance && latestBalance > 0 && (
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Balance</p>
-                      <p className="text-sm font-black text-gray-900 inv-mono">{fmt(latestBalance)}</p>
+                    <div className="text-center min-w-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">Balance</p>
+                      <p className="text-sm font-black text-gray-900 inv-mono truncate" title={fmtFull(latestBalance)}>{fmt(latestBalance)}</p>
                     </div>
                   )}
                   {avgMonthlyExp > 0 && (
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Monthly burn</p>
-                      <p className="text-sm font-black text-gray-900 inv-mono">{fmt(avgMonthlyExp)}</p>
+                    <div className="text-center min-w-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">Monthly burn</p>
+                      <p className="text-sm font-black text-gray-900 inv-mono truncate" title={fmtFull(avgMonthlyExp)}>{fmt(avgMonthlyExp)}</p>
                     </div>
                   )}
                   {overdueTotal > 0 && (
-                    <div className="text-center">
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Outstanding</p>
-                      <p className="text-sm font-black text-red-500 inv-mono">{fmt(overdueTotal)}</p>
+                    <div className="text-center min-w-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider truncate">Outstanding</p>
+                      <p className="text-sm font-black text-red-500 inv-mono truncate" title={fmtFull(overdueTotal)}>{fmt(overdueTotal)}</p>
                     </div>
                   )}
                 </div>
@@ -489,7 +489,7 @@ export default async function CashPage() {
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-blue-400 transition-colors" />
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(totalRevenue)}>{fmt(totalRevenue)}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono truncate" title={fmtFull(totalRevenue)}>{fmt(totalRevenue)}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</p>
         </Link>
 
@@ -503,7 +503,7 @@ export default async function CashPage() {
             </div>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 group-hover:text-orange-400 transition-colors" />
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(totalExpenses)}>{fmt(totalExpenses)}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono truncate" title={fmtFull(totalExpenses)}>{fmt(totalExpenses)}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</p>
         </Link>
 
@@ -524,7 +524,7 @@ export default async function CashPage() {
               {isProfitable ? 'Profitable' : 'Net loss'}
             </span>
           </div>
-          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono" title={fmtFull(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
+          <p className="text-2xl font-black text-gray-900 leading-none mb-1 inv-mono truncate" title={fmtFull(Math.abs(netProfit))}>{fmt(Math.abs(netProfit))}</p>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Profit</p>
           {profitMargin !== null && (
             <p className={`text-xs font-bold mt-1 ${isProfitable ? 'text-teal-600' : 'text-red-500'}`}>

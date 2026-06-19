@@ -56,6 +56,12 @@ const CSS = `
     .vs-hero-grid  { grid-template-columns:1fr !important; }
     .vs-pros-grid  { grid-template-columns:1fr !important; }
     .vs-footer-grid { grid-template-columns:1fr 1fr !important; }
+    .vs-nav-back-text { display:none !important; }
+    .vs-nav-cta { padding:8px 14px !important; font-size:.8rem !important; }
+    .vs-nav-right { gap:8px !important; }
+  }
+  @media(max-width:480px) {
+    .vs-nav-back-icon { display:none !important; }
   }
 `
 
@@ -97,9 +103,12 @@ export default function ComparisonPage({ config }: { config: ComparisonConfig })
             <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{ width: 32, height: 32, objectFit: 'contain', flexShrink: 0 }} />
             <span className="vs-display" style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--ink)', letterSpacing: '-.02em' }}>Invonaut</span>
           </Link>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-            <Link href="/" style={{ color: 'var(--mid)', fontWeight: 500, fontSize: '.85rem', textDecoration: 'none' }}>← Back to home</Link>
-            <Link href="/signup" style={{ background: 'var(--blue)', color: '#fff', padding: '9px 20px', borderRadius: 9, fontWeight: 700, fontSize: '.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+          <div className="vs-nav-right" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <Link href="/" style={{ color: 'var(--mid)', fontWeight: 500, fontSize: '.85rem', textDecoration: 'none', display:'inline-flex', alignItems:'center', gap:4 }}>
+              <span className="vs-nav-back-icon">←</span>
+              <span className="vs-nav-back-text">Back to home</span>
+            </Link>
+            <Link href="/signup" className="vs-nav-cta" style={{ background: 'var(--blue)', color: '#fff', padding: '9px 20px', borderRadius: 9, fontWeight: 700, fontSize: '.875rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
               Start free <ArrowRight size={14} />
             </Link>
           </div>
