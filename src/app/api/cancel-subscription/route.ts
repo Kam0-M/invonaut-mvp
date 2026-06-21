@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import Stripe from 'stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
@@ -37,7 +38,10 @@ export async function POST() {
     // Update DB immediately so locked gates activate on reload.
     // DO NOT reset subscription_tier — keep whatever tier they were on
     // so the billing page shows "Professional - Inactive" or "Starter - Inactive" correctly.
-    await supabase
+    // NOTE: billing columns are no longer writable by the authenticated role directly
+    // (see Checklist #1 fix) — this write must go through the service-role client.
+    // Ownership is already verified above via session-bound auth.getUser() + .eq('id', user.id).
+    await createServiceClient()
       .from('user_profiles')
       .update({
         stripe_subscription_id: null,
