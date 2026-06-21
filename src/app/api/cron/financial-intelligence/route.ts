@@ -30,12 +30,16 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // Fetch all active Pro/Business subscribers
+  // Fetch all Pro/Business subscribers who should get intelligence features —
+  // includes trialing, not just active. Previously this only matched 'active',
+  // which silently skipped every real user still in their 14-day trial (6 of 9
+  // real Pro/Business signups at time of audit) — compounding the ai_risk_score
+  // gap (Checklist #3), since the cron that computes it never ran for them at all.
   const { data: profiles } = await supabase
     .from('user_profiles')
     .select('id, subscription_tier')
     .in('subscription_tier', ['professional', 'business'])
-    .eq('subscription_status', 'active')
+    .in('subscription_status', ['active', 'trialing'])
 
   if (!profiles?.length) return NextResponse.json({ processed: 0 })
 
@@ -256,6 +260,36 @@ async function computeClientRiskProfiles(supabase: any, userId: string, invoices
       payment_terms_rec: termsRec,
       last_computed_at:  now.toISOString(),
     }, { onConflict: 'user_id,client_id' })
+
+    // ── Checklist #3 fix: write invoices.ai_risk_score per invoice ───────────
+    // Previously this column was read in 6 places and written in 0 — every
+    // real user's invoices had ai_risk_score = null forever, silently killing
+    // the sidebar high-risk badge, this cron's own high_risk_invoice_count
+    // metric, and the follow-up cron's risk-based early-intervention branch.
+    // Deterministic, zero-OpenAI-cost, same approach already proven out above
+    // for client_risk_profiles. Score (0-100) combines:
+    //   - this client's overall payment history (onTimeRate, computed above)
+    //   - how many days overdue THIS invoice specifically is
+    //   - how large THIS invoice is relative to this client's typical invoice
+    const avgInvoiceAmount = allInv.reduce((s: any, i: any) => s + Number(i.total_amount), 0) / allInv.length
+
+    await Promise.all(allInv.map((inv: any) => {
+      const historyRisk = (1 - onTimeRate) * 50  // 0–50
+
+      let daysOverdue = 0
+      if (inv.status === 'sent') {
+        const due = new Date(inv.due_date + 'T12:00:00')
+        daysOverdue = Math.max(0, Math.floor((now.getTime() - due.getTime()) / 86400000))
+      }
+      const overdueRisk = Math.min(40, daysOverdue * 2)  // 0–40, 2pts/day, caps at 20 days late
+
+      const sizeRatio = avgInvoiceAmount > 0 ? Number(inv.total_amount) / avgInvoiceAmount : 1
+      const sizeRisk  = Math.min(10, Math.max(0, (sizeRatio - 1) * 10))  // 0–10, unusually large for this client
+
+      const aiRiskScore = Math.round(Math.min(100, Math.max(0, historyRisk + overdueRisk + sizeRisk)))
+
+      return supabase.from('invoices').update({ ai_risk_score: aiRiskScore }).eq('id', inv.id)
+    }))
   }
 }
 
