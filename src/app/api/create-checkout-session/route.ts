@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
+import { derivePlanFromPriceId } from '@/lib/stripe/stripe'
 import Stripe from 'stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
@@ -17,6 +18,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ 
         error: 'Price ID and Plan ID are required' 
       }, { status: 400 })
+    }
+
+    // Checklist #2 fix: never trust the client-submitted (priceId, planId) pair
+    // as a unit. Derive the real plan from the real priceId — the only thing
+    // Stripe will actually charge — and reject the request outright if it
+    // doesn't match what the client claims, rather than silently believing
+    // whichever tier the client says it wants.
+    const derivedPlanId = derivePlanFromPriceId(priceId)
+
+    if (!derivedPlanId) {
+      console.error('create-checkout-session: priceId does not match any known plan', { priceId, planId })
+      return NextResponse.json({ error: 'Invalid price selection' }, { status: 400 })
+    }
+
+    if (derivedPlanId !== planId) {
+      console.error('create-checkout-session: planId/priceId MISMATCH — rejecting request', {
+        priceId, clientSubmittedPlanId: planId, derivedPlanId,
+      })
+      return NextResponse.json({ error: 'Plan and price selection do not match' }, { status: 400 })
     }
 
     const supabase = await createClient()
@@ -48,7 +68,7 @@ export async function POST(request: Request) {
       (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
 
     // UPGRADE/DOWNGRADE EXISTING SUBSCRIPTION
-    if (hasActiveSubscription && profile.subscription_tier !== planId) {
+    if (hasActiveSubscription && profile.subscription_tier !== derivedPlanId) {
       console.log('🔄 Upgrading/downgrading existing subscription')
       
       const subscription = await getStripe().subscriptions.update(
@@ -70,12 +90,12 @@ export async function POST(request: Request) {
       await createServiceClient()
         .from('user_profiles')
         .update({ 
-          subscription_tier: planId,
+          subscription_tier: derivedPlanId,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id)
 
-      console.log('✅ Database updated to:', planId)
+      console.log('✅ Database updated to:', derivedPlanId)
 
       // ✅ Return redirect URL instead of redirecting
       return NextResponse.json({ 
@@ -109,12 +129,12 @@ export async function POST(request: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/pricing`,
       metadata: {
         userId: user.id,
-        planId: planId,
+        planId: derivedPlanId,
       },
       subscription_data: {
         metadata: {
           userId: user.id,
-          planId: planId,
+          planId: derivedPlanId,
         },
       },
     }
