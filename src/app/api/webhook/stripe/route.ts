@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { derivePlanFromPriceId } from '@/lib/stripe/stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
@@ -124,7 +125,34 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   })
 
   const subscription = await getStripe().subscriptions.retrieve(subscriptionId)
-  
+
+  // Checklist #2 fix: never trust session.metadata.planId on its own — it
+  // round-tripped through client-controlled form data into Stripe metadata,
+  // so a tampered request could mismatch it against the real priceId charged.
+  // Re-derive the actual plan from the real price on the real subscription.
+  const realPriceId = subscription.items.data[0]?.price.id
+  const derivedPlanId = derivePlanFromPriceId(realPriceId)
+
+  if (!derivedPlanId) {
+    console.error('handleCheckoutCompleted: unrecognized price ID on subscription — refusing to guess a tier', {
+      userId,
+      subscriptionId,
+      realPriceId,
+      clientSubmittedPlanId: planId,
+    })
+    return
+  }
+
+  if (derivedPlanId !== planId) {
+    console.error('handleCheckoutCompleted: planId/priceId MISMATCH — client-submitted planId ignored, using price-derived plan', {
+      userId,
+      subscriptionId,
+      realPriceId,
+      clientSubmittedPlanId: planId,
+      derivedPlanId,
+    })
+  }
+
   let trialEndDate = null
   let subscriptionStatus = 'active'
   
@@ -144,17 +172,17 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     .update({
       stripe_customer_id: session.customer as string,   // ← persist so hasEverSubscribed is reliable
       stripe_subscription_id: subscriptionId,
-      subscription_tier: planId,
+      subscription_tier: derivedPlanId,
       subscription_status: subscriptionStatus,
       trial_end_date: trialEndDate,
-      trial_plan: planId,
+      trial_plan: derivedPlanId,
     })
     .eq('id', userId)
 
   if (error) {
     console.error('Error updating user profile:', error)
   } else {
-    console.log(`User ${userId} ${subscriptionStatus === 'trialing' ? 'started trial for' : 'upgraded to'} ${planId}`)
+    console.log(`User ${userId} ${subscriptionStatus === 'trialing' ? 'started trial for' : 'upgraded to'} ${derivedPlanId}`)
   }
 }
 
@@ -169,24 +197,14 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const supabase = createAdminClient()
 
   const priceId = subscription.items.data[0]?.price.id
-  let newPlan = 'starter'
+  const derivedFromPrice = derivePlanFromPriceId(priceId)
+  const newPlan = derivedFromPrice ?? 'starter'
 
-  // Check both monthly and annual price IDs for each plan
-  if (
-    priceId === process.env.STRIPE_PRICE_ID_PROFESSIONAL ||
-    priceId === process.env.STRIPE_PRICE_ID_PROFESSIONAL_ANNUAL
-  ) {
-    newPlan = 'professional'
-  } else if (
-    priceId === process.env.STRIPE_PRICE_ID_BUSINESS ||
-    priceId === process.env.STRIPE_PRICE_ID_BUSINESS_ANNUAL
-  ) {
-    newPlan = 'business'
-  } else if (
-    priceId === process.env.STRIPE_PRICE_ID_STARTER ||
-    priceId === process.env.STRIPE_PRICE_ID_STARTER_ANNUAL
-  ) {
-    newPlan = 'starter'
+  if (!derivedFromPrice) {
+    console.error('handleSubscriptionUpdated: unrecognized price ID — defaulting to starter, check Stripe price config', {
+      userId,
+      priceId,
+    })
   }
 
   let status = 'active'
