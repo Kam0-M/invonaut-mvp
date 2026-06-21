@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import Stripe from 'stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
@@ -63,7 +64,10 @@ export async function POST(request: Request) {
 
       console.log('✅ Subscription updated in Stripe:', subscription.id)
 
-      await supabase
+      // NOTE: billing columns are no longer writable by the authenticated role directly
+      // (see Checklist #1 fix). This write happens AFTER the real Stripe price swap above,
+      // so it's safe to elevate — ownership was verified via session-bound auth.getUser().
+      await createServiceClient()
         .from('user_profiles')
         .update({ 
           subscription_tier: planId,
