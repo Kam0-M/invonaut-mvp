@@ -3,6 +3,7 @@ import { redirect }           from 'next/navigation'
 import EditInvoiceForm        from '@/components/invoices/edit-invoice-form'
 import Link                   from 'next/link'
 import SubscriptionRequired   from '@/components/subscription-required'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 import { FileText }           from 'lucide-react'
 
 export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
@@ -12,11 +13,10 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('user_profiles').select('stripe_subscription_id, subscription_status')
+    .from('user_profiles').select('stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id).single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
   if (!hasActiveSubscription) return <SubscriptionRequired />
 
   const { data: invoiceData, error } = await supabase
