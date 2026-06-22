@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 import { FileText, Users, TrendingUp, Lock } from 'lucide-react'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { getContextualMessage } from '@/lib/utils/get-welcome-message'
@@ -28,12 +29,11 @@ export default async function DashboardPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, business_name, full_name, logo_url, currency, currency_symbol')
+    .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, trial_end_date, business_name, full_name, logo_url, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const tier = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
