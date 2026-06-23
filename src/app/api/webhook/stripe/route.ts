@@ -187,7 +187,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata?.user_id
+  const userId = subscription.metadata?.userId
 
   if (!userId) {
     console.error('Missing user_id in subscription metadata')
@@ -259,7 +259,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 // We deliberately do NOT reset subscription_tier here so the billing page
 // correctly shows "Professional - Inactive" or "Starter - Inactive".
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-  const userId = subscription.metadata?.user_id
+  const userId = subscription.metadata?.userId
 
   if (!userId) {
     console.error('Missing user_id in subscription metadata')
@@ -383,7 +383,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   try {
     const subscription = await getStripe().subscriptions.retrieve(subscriptionId)
-    const userId = subscription.metadata?.user_id
+    const userId = subscription.metadata?.userId
 
     if (!userId) return
 
@@ -437,7 +437,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   try {
     const subscription = await getStripe().subscriptions.retrieve(subscriptionId)
-    const userId = subscription.metadata?.user_id
+    const userId = subscription.metadata?.userId
 
     if (!userId) return
 
