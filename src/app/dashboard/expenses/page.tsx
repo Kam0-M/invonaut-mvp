@@ -9,6 +9,7 @@ import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categoriz
 import BackToTop from '@/components/ui/back-to-top'
 import SubscriptionTracker from '@/components/intelligence/subscription-tracker'
 import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -22,12 +23,11 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('subscription_tier, stripe_subscription_id, subscription_status, currency, currency_symbol')
+    .select('subscription_tier, stripe_subscription_id, subscription_status, trial_end_date, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const tier       = profile?.subscription_tier ?? 'starter'
   const fmt = makeCurrencyFormatter((profile as any)?.currency || 'USD')

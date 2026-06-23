@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import SubscriptionRequired from '@/components/subscription-required'
 import UnbilledEntriesPicker, { type PickedLineItem } from '@/components/time/unbilled-entries-picker'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 type Client = {
   id: string
@@ -101,12 +102,11 @@ export default function NewInvoicePage() {
 
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('stripe_subscription_id, subscription_status, subscription_tier')
+          .select('stripe_subscription_id, subscription_status, subscription_tier, trial_end_date')
           .eq('id', user.id)
           .single()
 
-        const isSubscribed = !!profile?.stripe_subscription_id &&
-          (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+        const isSubscribed = isSubscriptionActive(profile)
 
         setHasActiveSubscription(isSubscribed)
 

@@ -7,6 +7,7 @@ import DowngradeConfirmButton       from '@/components/billing/downgrade-confirm
 import CancellationCountdownBanner  from '@/components/billing/cancellation-countdown-banner'
 import SuccessReload                from '@/components/billing/success-reload'
 import BillingPlansSection          from '@/components/billing/billing-plans-section'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,8 +56,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
 
   const currentTier           = profile?.subscription_tier   || 'starter'
   const subscriptionStatus    = profile?.subscription_status || 'inactive'
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (subscriptionStatus === 'active' || subscriptionStatus === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
   const hasEverSubscribed     = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
   const isOnTrial             = subscriptionStatus === 'trialing'
   const trialEndDate          = profile?.trial_end_date ? new Date(profile.trial_end_date) : null

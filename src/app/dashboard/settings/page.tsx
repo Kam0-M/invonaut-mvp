@@ -5,6 +5,7 @@ import type { ColorScheme } from '@/components/settings/settings-form'
 import RevenueCategoryManager from '@/components/settings/revenue-category-manager'
 import Link from 'next/link'
 import { Tag, Users2 } from 'lucide-react'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,7 +16,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('logo_url, brand_color, secondary_brand_color, invoice_color_scheme, subscription_tier, full_name, email, business_name, address, stripe_subscription_id, stripe_customer_id, subscription_status, currency, currency_symbol, tax_label, tax_number, country')
+    .select('logo_url, brand_color, secondary_brand_color, invoice_color_scheme, subscription_tier, full_name, email, business_name, address, stripe_subscription_id, stripe_customer_id, subscription_status, trial_end_date, currency, currency_symbol, tax_label, tax_number, country')
     .eq('id', user.id)
     .single()
 
@@ -25,8 +26,7 @@ export default async function SettingsPage() {
     .eq('user_id', user.id)
     .order('name', { ascending: true })
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
   const hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
 
   return (

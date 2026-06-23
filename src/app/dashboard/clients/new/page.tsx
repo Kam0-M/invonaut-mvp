@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, UserPlus, AlertCircle, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import SubscriptionRequired from '@/components/subscription-required'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default function NewClientPage() {
   const router = useRouter()
@@ -39,12 +40,11 @@ export default function NewClientPage() {
         // Check subscription status
         const { data: profile } = await supabase
           .from('user_profiles')
-          .select('stripe_subscription_id, subscription_status')
+          .select('stripe_subscription_id, subscription_status, trial_end_date')
           .eq('id', user.id)
           .single()
 
-        const isSubscribed = !!profile?.stripe_subscription_id && 
-          (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+        const isSubscribed = isSubscriptionActive(profile)
         
         setHasActiveSubscription(isSubscribed)
       } catch (err) {

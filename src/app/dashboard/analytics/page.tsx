@@ -20,6 +20,7 @@ import ClientIntelligencePanel     from '@/components/analytics/client-intellige
 import type { ClientStat }         from '@/components/analytics/client-intelligence-panel'
 import BackToTop from '@/components/ui/back-to-top'
 import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -110,13 +111,12 @@ export default async function AnalyticsPage({
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, trial_end_date, currency, currency_symbol')
     .eq('id', user.id).single()
 
   const fmtFull = makeCurrencyFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')
   const fmt     = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol || '$')
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const tier  = profile?.subscription_tier ?? 'starter'
   const isPro = tier === 'professional' || tier === 'business'

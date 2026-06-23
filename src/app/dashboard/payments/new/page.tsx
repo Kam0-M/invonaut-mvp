@@ -13,6 +13,7 @@ import {
   Paperclip, Plus, Banknote, Zap,
 } from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 type Client   = { id: string; name: string; company: string | null }
 type Category = { id: string; name: string; color: string }
@@ -80,14 +81,11 @@ export default function NewPaymentPage() {
 
       const { data: profile } = await supabase
         .from('user_profiles')
-        .select('stripe_subscription_id, subscription_status')
+        .select('stripe_subscription_id, subscription_status, trial_end_date')
         .eq('id', user.id)
         .single()
 
-      setHasActiveSubscription(
-        !!profile?.stripe_subscription_id &&
-        (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
-      )
+      setHasActiveSubscription(isSubscriptionActive(profile))
 
       const [{ data: clientData }, { data: catData }] = await Promise.all([
         supabase.from('clients').select('id, name, company').eq('user_id', user.id).order('name'),

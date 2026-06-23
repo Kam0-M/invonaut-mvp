@@ -22,6 +22,7 @@
 //   Does NOT send if client email is missing.
 
 import { NextRequest, NextResponse } from 'next/server'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 
@@ -135,7 +136,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, invoice_number, due_date, total_amount, ai_risk_score, last_followed_up,
         clients!inner(id, name, email),
-        user_profiles!inner(id, business_name, email, subscription_status, stripe_subscription_id)
+        user_profiles!inner(id, business_name, email, subscription_status, stripe_subscription_id, trial_end_date)
       `)
       .eq('status', 'sent')
       .lt('due_date', todayStr)  // due_date < today = overdue
@@ -153,8 +154,7 @@ export async function GET(request: NextRequest) {
         if (!client?.email) { skipped++; continue }
 
         // Skip if user doesn't have an active subscription
-        const isActive = !!profile?.stripe_subscription_id &&
-          (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+        const isActive = isSubscriptionActive(profile)
         if (!isActive) { skipped++; continue }
 
         // Calculate days overdue

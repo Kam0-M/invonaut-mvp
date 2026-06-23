@@ -22,6 +22,7 @@ import TimeTracker from '@/components/time/time-tracker'
 import TimeEntryList from '@/components/time/time-entry-list'
 import WeeklySummary from '@/components/time/weekly-summary'
 import BackToTop from '@/components/ui/back-to-top'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 type Client = {
   id:           string
@@ -50,13 +51,11 @@ export default async function TimePage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription =
-    !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   // Clients for the timer dropdown — include hourly_rate so the live amount preview works
   const { data: clientsData } = await supabase

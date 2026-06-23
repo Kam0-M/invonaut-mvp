@@ -22,6 +22,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 import {
   generateWeeklyTimeSummaryHTML,
   generateWeeklyTimeSummaryText,
@@ -77,17 +78,14 @@ export async function GET(request: NextRequest) {
     // ── 1. Fetch all Pro/Business users with their profile info ──────────────
     const { data: profiles, error: profilesError } = await supabase
       .from('user_profiles')
-      .select('id, full_name, email, subscription_tier, subscription_status, stripe_subscription_id')
+      .select('id, full_name, email, subscription_tier, subscription_status, stripe_subscription_id, trial_end_date')
       .in('subscription_tier', ['professional', 'business'])
 
     if (profilesError) {
       return NextResponse.json({ success: false, error: profilesError.message }, { status: 500 })
     }
 
-    const eligibleProfiles = (profiles ?? []).filter(p =>
-      p.stripe_subscription_id &&
-      (p.subscription_status === 'active' || p.subscription_status === 'trialing')
-    )
+    const eligibleProfiles = (profiles ?? []).filter(p => isSubscriptionActive(p))
 
     // ── 2. For each eligible user, fetch their time entries for last week ────
     for (const profile of eligibleProfiles) {

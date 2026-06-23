@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import PortalSettingsForm from '@/components/portal/portal-settings-form'
 import { ExternalLink, Users, Zap, Lock, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default async function PortalPage() {
   const supabase = await createClient()
@@ -11,7 +12,7 @@ export default async function PortalPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('business_name, logo_url, brand_color, subscription_tier, stripe_subscription_id, subscription_status')
+    .select('business_name, logo_url, brand_color, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id).single()
 
   const { data: portalSettingsRow } = await supabase
@@ -20,8 +21,7 @@ export default async function PortalPage() {
   const { data: clientsCount } = await supabase
     .from('clients').select('id', { count: 'exact', head: true }).eq('user_id', user.id)
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const portalSettings = portalSettingsRow?.id && typeof portalSettingsRow.slug === 'string'
     ? {

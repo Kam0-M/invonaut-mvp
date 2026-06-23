@@ -4,6 +4,7 @@ import EditClientForm       from '@/components/clients/edit-client-form'
 import Link                 from 'next/link'
 import { Users }            from 'lucide-react'
 import SubscriptionRequired from '@/components/subscription-required'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default async function EditClientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id }   = await params
@@ -12,11 +13,10 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
-    .from('user_profiles').select('stripe_subscription_id, subscription_status')
+    .from('user_profiles').select('stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id).single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
   if (!hasActiveSubscription) return <SubscriptionRequired />
 
   const { data: client, error } = await supabase

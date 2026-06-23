@@ -5,6 +5,7 @@ import { Plus, Users, Lock, Building2 } from 'lucide-react'
 import ClientsTable from '@/components/clients/clients-table'
 import ViewOnlyBanner from '@/components/view-only-banner'
 import BackToTop from '@/components/ui/back-to-top'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default async function ClientsPage() {
   const supabase = await createClient()
@@ -13,12 +14,11 @@ export default async function ClientsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status')
+    .select('stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const { data } = await supabase
     .from('clients')
