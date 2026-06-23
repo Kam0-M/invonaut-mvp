@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import ExpenseForm from '@/components/expenses/expense-form'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default async function NewExpensePage() {
   const supabase = await createClient()
@@ -11,12 +12,11 @@ export default async function NewExpensePage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('subscription_tier, stripe_subscription_id, subscription_status')
+    .select('subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   if (!hasActiveSubscription) redirect('/dashboard/expenses')
 

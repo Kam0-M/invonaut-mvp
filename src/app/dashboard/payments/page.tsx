@@ -7,6 +7,7 @@ import DirectPaymentList    from '@/components/payments/direct-payment-list'
 import CoreTabBar           from '@/components/layout/core-tab-bar'
 import BackToTop from '@/components/ui/back-to-top'
 import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 
 export default async function PaymentsPage() {
@@ -16,12 +17,11 @@ export default async function PaymentsPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, trial_end_date, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription = !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   if (!hasActiveSubscription) return <SubscriptionRequired />
 

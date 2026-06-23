@@ -23,6 +23,7 @@ import BackToTop from '@/components/ui/back-to-top'
 import MarkCashFlowVisited from '@/components/cash/mark-cash-flow-visited'
 
 import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export default async function CashPage() {
   const supabase = await createClient()
@@ -31,13 +32,11 @@ export default async function CashPage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('stripe_subscription_id, subscription_status, subscription_tier, currency, currency_symbol')
+    .select('stripe_subscription_id, subscription_status, subscription_tier, trial_end_date, currency, currency_symbol')
     .eq('id', user.id)
     .single()
 
-  const hasActiveSubscription =
-    !!profile?.stripe_subscription_id &&
-    (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+  const hasActiveSubscription = isSubscriptionActive(profile)
 
   const tier    = profile?.subscription_tier ?? 'starter'
   const fmtFull = makeCurrencyFormatter((profile as any)?.currency || 'USD')

@@ -2,6 +2,7 @@
 import PricingClientWrapper from '@/components/pricing/pricing-client-wrapper'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,13 +23,12 @@ export default async function PricingPage({
     isLoggedIn = true
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier')
+      .select('stripe_customer_id, stripe_subscription_id, subscription_status, subscription_tier, trial_end_date')
       .eq('id', user.id)
       .single()
 
     hasEverSubscribed = !!profile?.stripe_customer_id || !!profile?.stripe_subscription_id
-    hasActiveSubscription = !!profile?.stripe_subscription_id && 
-      (profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing')
+    hasActiveSubscription = isSubscriptionActive(profile)
     currentTier = profile?.subscription_tier || 'starter'
   }
 

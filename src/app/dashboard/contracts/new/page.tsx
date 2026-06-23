@@ -17,6 +17,7 @@ const TEMPLATE_ICONS: Record<string, React.ComponentType<LucideProps>> = {
 }
 import { toast } from 'sonner'
 import { CONTRACT_TEMPLATES, type ClauseBlock } from '@/lib/contracts/templates'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 type Client = { id: string; name: string; company: string | null }
 type SystemClause = { id: string; title: string; category: string; content: string }
@@ -534,7 +535,7 @@ export default function NewContractPage() {
 
       const [profileRes, clientsRes, clausesRes] = await Promise.all([
         supabase.from('user_profiles')
-          .select('stripe_subscription_id, subscription_status, subscription_tier')
+          .select('stripe_subscription_id, subscription_status, subscription_tier, trial_end_date')
           .eq('id', user.id).single(),
         supabase.from('clients')
           .select('id, name, company')
@@ -546,10 +547,7 @@ export default function NewContractPage() {
           .order('category', { ascending: true }),
       ])
 
-      const isSubscribed =
-        !!profileRes.data?.stripe_subscription_id &&
-        (profileRes.data?.subscription_status === 'active' ||
-          profileRes.data?.subscription_status === 'trialing')
+      const isSubscribed = isSubscriptionActive(profileRes.data)
 
       setHasActiveSubscription(isSubscribed)
 
