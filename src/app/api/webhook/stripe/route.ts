@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
-import { derivePlanFromPriceId } from '@/lib/stripe/stripe'
+import { derivePlanFromPriceId, PLANS, PlanId } from '@/lib/stripe/stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
 
@@ -256,8 +256,17 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 // NOTE: The cancel route already updates the DB immediately when the user cancels.
 // This handler is a safety net for cases where Stripe fires the deleted event
 // without a matching cancel route call (e.g. canceled from Stripe dashboard).
-// We deliberately do NOT reset subscription_tier here so the billing page
-// correctly shows "Professional - Inactive" or "Starter - Inactive".
+//
+// Checklist #33 fix: this event ALSO fires at the end of a scheduled downgrade
+// (downgrade-subscription/route.ts sets cancel_at_period_end: true and writes
+// target_tier, then this handler runs when that period actually ends). Previously
+// target_tier was written but never read here — every scheduled downgrade silently
+// resolved as a full cancellation instead of moving the user to the lower tier the
+// confirmation page (cancellation-pending/page.tsx) explicitly promised them. If
+// target_tier is set, we now create a brand-new subscription at that tier (same
+// billing interval the old subscription was on) instead of just canceling. If that
+// fails (e.g. no valid payment method left), we fall back to plain cancellation
+// rather than leaving the user in a broken half-state.
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.userId
 
@@ -268,29 +277,101 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   const supabase = createAdminClient()
 
-  // Only update status and clear subscription ID — preserve the tier
-  const { error } = await supabase
+  const { data: profile, error: profileFetchError } = await supabase
     .from('user_profiles')
-    .update({
-      subscription_status: 'canceled',
-      stripe_subscription_id: null,
-      trial_end_date: null,
-      trial_plan: null,
-    })
+    .select('target_tier, stripe_customer_id')
     .eq('id', userId)
+    .single()
 
-  if (error) {
-    console.error('Error handling subscription deleted:', error)
-  } else {
-    console.log(`User ${userId} subscription canceled (tier preserved)`)
+  if (profileFetchError) {
+    console.error('handleSubscriptionDeleted: failed to fetch profile, falling back to plain cancellation', profileFetchError)
   }
 
-  // ── Mark affiliate referral as churned ───────────────────────────────
-  await supabase
-    .from('affiliate_referrals')
-    .update({ status: 'churned' })
-    .eq('referred_user_id', userId)
-    .eq('status', 'active')
+  const targetTier = profile?.target_tier as PlanId | null | undefined
+  const customerId = profile?.stripe_customer_id || (subscription.customer as string)
+
+  let downgradeCompleted = false
+
+  if (targetTier && PLANS[targetTier] && customerId) {
+    try {
+      const interval = subscription.items.data[0]?.price?.recurring?.interval // 'month' | 'year'
+      const plan = PLANS[targetTier]
+      const newPriceId = interval === 'year' ? plan.annualPriceId : plan.monthlyPriceId
+
+      console.log('handleSubscriptionDeleted: scheduled downgrade detected, creating new subscription', {
+        userId, targetTier, interval, newPriceId,
+      })
+
+      const newSubscription = await getStripe().subscriptions.create({
+        customer: customerId,
+        items: [{ price: newPriceId }],
+        // Fail loudly and synchronously (throws) instead of creating a zombie
+        // 'incomplete' subscription if the customer's saved card fails — we want
+        // the catch block below to handle that case explicitly.
+        payment_behavior: 'error_if_incomplete',
+        metadata: { userId },
+      })
+
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({
+          stripe_subscription_id: newSubscription.id,
+          subscription_tier: targetTier,
+          subscription_status: 'active',
+          target_tier: null,
+          trial_end_date: null,
+          trial_plan: null,
+        })
+        .eq('id', userId)
+
+      if (updateError) {
+        console.error('handleSubscriptionDeleted: new subscription created in Stripe but DB update failed — manual reconciliation needed', {
+          userId, newSubscriptionId: newSubscription.id, updateError,
+        })
+      } else {
+        downgradeCompleted = true
+        console.log(`✅ User ${userId} downgraded to ${targetTier} via new subscription ${newSubscription.id}`)
+      }
+    } catch (err: any) {
+      console.error('handleSubscriptionDeleted: failed to create downgrade subscription — falling back to plain cancellation', {
+        userId, targetTier, error: err.message,
+      })
+    }
+  }
+
+  if (!downgradeCompleted) {
+    // Plain cancellation (no scheduled downgrade was pending, or the downgrade
+    // attempt above failed). Only update status and clear subscription ID —
+    // preserve the tier so the billing page correctly shows "Professional - Inactive"
+    // or "Starter - Inactive".
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({
+        subscription_status: 'canceled',
+        stripe_subscription_id: null,
+        trial_end_date: null,
+        trial_plan: null,
+        target_tier: null, // clear regardless — a failed downgrade attempt is resolved, not still pending
+      })
+      .eq('id', userId)
+
+    if (error) {
+      console.error('Error handling subscription deleted:', error)
+    } else {
+      console.log(`User ${userId} subscription canceled (tier preserved)`)
+    }
+
+    // ── Mark affiliate referral as churned ───────────────────────────────
+    // Only runs on a real cancellation. A completed downgrade (above) keeps the
+    // referred user as an active, still-paying customer — reporting that as
+    // churn on the affiliate dashboard would be inaccurate and would unfairly
+    // cut off the affiliate's ongoing (now smaller) commission going forward.
+    await supabase
+      .from('affiliate_referrals')
+      .update({ status: 'churned' })
+      .eq('referred_user_id', userId)
+      .eq('status', 'active')
+  }
 }
 
 // ── Affiliate commission helper ──────────────────────────────────────────────

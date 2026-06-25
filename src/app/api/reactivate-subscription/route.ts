@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServerClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 
 function getStripe() { return new Stripe(process.env.STRIPE_SECRET_KEY!) }
+
+// Admin client — needed because target_tier is a billing column (writes via the
+// authenticated/session client go through the same RLS surface tightened for the
+// other billing columns in the Checklist #1 fix). Matches the pattern already used
+// in downgrade-subscription/route.ts and the Stripe webhook handler.
+function createAdminClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 export async function POST() {
   try {
@@ -56,6 +74,19 @@ export async function POST() {
     console.log('After update - cancel_at:', updated.cancel_at)
     console.log('After update - status:', updated.status)
     console.log(`✅ Subscription ${subscription.id} reactivated`)
+
+    // Checklist #33 companion fix: a reactivation cancels whatever downgrade was
+    // pending too — clear target_tier so it can't resurface and misfire on some
+    // unrelated, genuine cancellation much later (handleSubscriptionDeleted now
+    // reads this column to decide whether a cancellation is actually a downgrade).
+    const { error: clearTargetTierError } = await createAdminClient()
+      .from('user_profiles')
+      .update({ target_tier: null })
+      .eq('id', user.id)
+
+    if (clearTargetTierError) {
+      console.error('Failed to clear target_tier on reactivation:', clearTargetTierError)
+    }
 
     return NextResponse.json({
       message: 'Subscription reactivated successfully',
