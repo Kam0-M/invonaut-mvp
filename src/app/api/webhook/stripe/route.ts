@@ -413,8 +413,14 @@ async function creditAffiliateCommission({
     const COMMISSION_RATE = 0.30
     const commissionAmount = Math.round(amountPaidCents * COMMISSION_RATE) / 100
 
-    // Insert commission record
-    await supabase
+    // Insert commission record.
+    // Checklist #31: this is now guarded by a unique index on stripe_invoice_id
+    // (added in the same migration as this fix). If Stripe redelivers this exact
+    // invoice.payment_succeeded event — a normal occurrence, not an edge case —
+    // the insert below hits a 23505 unique-violation instead of silently creating
+    // a second commission row, and we skip the total_earned increment entirely
+    // rather than paying the affiliate twice for the same real payment.
+    const { error: insertError } = await supabase
       .from('affiliate_commissions')
       .insert({
         affiliate_id:              referral.affiliate_id,
@@ -426,6 +432,15 @@ async function creditAffiliateCommission({
         period_start:              periodStart ? periodStart.toISOString().split('T')[0] : null,
         period_end:                periodEnd   ? periodEnd.toISOString().split('T')[0]   : null,
       })
+
+    if (insertError) {
+      if (insertError.code === '23505') {
+        console.log(`Affiliate commission for invoice ${stripeInvoiceId} already credited — skipping duplicate (webhook redelivery)`)
+        return
+      }
+      console.error('Affiliate commission insert failed (non-fatal):', insertError)
+      return
+    }
 
     // Update total_earned on affiliate account
     await supabase.rpc('increment_affiliate_earned', {
