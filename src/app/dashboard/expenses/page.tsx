@@ -10,6 +10,7 @@ import BackToTop from '@/components/ui/back-to-top'
 import SubscriptionTracker from '@/components/intelligence/subscription-tracker'
 import { makeCurrencyFormatter, makeCompactFormatter } from '@/lib/utils/currency'
 import { isSubscriptionActive } from '@/lib/subscription-status'
+import { resolveSignedUrls } from '@/lib/storage/signed-url'
 
 type PageProps = {
   searchParams: Promise<{ category?: string; start?: string; end?: string }>
@@ -67,9 +68,23 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
   if (end)   query = query.lte('date', end)
 
   const { data: expensesRaw } = await query
-  const expenses = (expensesRaw ?? []).map((e: any) => ({
+  const expensesPreSign = (expensesRaw ?? []).map((e: any) => ({
     ...e,
     clients: Array.isArray(e.clients) ? e.clients[0] ?? null : e.clients ?? null,
+  }))
+
+  // Checklist #22: receipts is now a private bucket — resolve every stored
+  // receipt_url to a fresh signed URL before handing the list to the client
+  // component, which just renders whatever URL it's given. Capture the
+  // PDF/image distinction from the ORIGINAL url first — a signed URL has a
+  // query-string token appended, so an .endsWith('.pdf') check downstream
+  // would otherwise always fail once signed.
+  const receiptIsPdf = expensesPreSign.map((e: any) => !!e.receipt_url?.endsWith('.pdf'))
+  const receiptSignedUrls = await resolveSignedUrls(expensesPreSign.map((e: any) => e.receipt_url))
+  const expenses = expensesPreSign.map((e: any, i: number) => ({
+    ...e,
+    receipt_url: receiptSignedUrls[i],
+    receipt_is_pdf: receiptIsPdf[i],
   }))
 
   const totalAmount = expenses.reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0)

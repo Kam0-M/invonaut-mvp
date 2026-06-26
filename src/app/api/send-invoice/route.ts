@@ -3,6 +3,7 @@ import { Resend } from 'resend'
 import { createClient } from '@/lib/supabase/server'
 import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
 import { generateInvoiceEmailHTML, generateInvoiceEmailText } from '@/lib/email/invoice-email-template'
+import { resolveSignedUrl } from '@/lib/storage/signed-url'
 
 function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
@@ -131,14 +132,17 @@ export async function POST(request: NextRequest) {
     // If the invoice has an attachment_url, download it and include it as a
     // second email attachment alongside the PDF.
     let secondAttachment: { filename: string; content: Buffer } | null = null
-    const attachmentUrl = (invoice as any).attachment_url
+    const attachmentUrl = await resolveSignedUrl((invoice as any).attachment_url)
     if (attachmentUrl) {
       try {
         const attachmentResponse = await fetch(attachmentUrl)
         if (attachmentResponse.ok) {
           const attachmentBuffer = Buffer.from(await attachmentResponse.arrayBuffer())
           // Extract clean filename: strip leading {timestamp}- prefix if present
-          const rawName = decodeURIComponent(attachmentUrl.split('/').pop() || 'attachment')
+          // (use the original stored URL for naming — the signed URL's path segment
+          // is the same object path, but its query-string token would otherwise end
+          // up mixed into the decoded filename)
+          const rawName = decodeURIComponent(((invoice as any).attachment_url || '').split('/').pop()?.split('?')[0] || 'attachment')
           const cleanName = rawName.replace(/^\d{13}-/, '') || rawName
           secondAttachment = { filename: cleanName, content: attachmentBuffer }
         }

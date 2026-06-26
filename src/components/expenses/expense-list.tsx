@@ -17,6 +17,7 @@ type Expense = {
   vendor: string | null
   category: string
   receipt_url: string | null
+  receipt_is_pdf?: boolean
   notes: string | null
   is_cogs: boolean
   clients: { id: string; name: string } | null
@@ -230,7 +231,7 @@ export default function ExpenseList({
                     className="block w-10 h-10 rounded-xl overflow-hidden border border-gray-100 hover:border-orange-300 transition-colors"
                     title="View receipt"
                   >
-                    {expense.receipt_url.endsWith('.pdf') ? (
+                    {expense.receipt_is_pdf ? (
                       <div className="w-full h-full bg-red-50 flex items-center justify-center">
                         <FileImage className="w-5 h-5 text-red-400" />
                       </div>

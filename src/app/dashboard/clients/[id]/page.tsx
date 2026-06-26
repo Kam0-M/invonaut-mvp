@@ -8,6 +8,7 @@ import {
 import ClientFilesTab, { type ClientFile } from '@/components/clients/client-files-tab'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { makeCurrencyFormatter } from '@/lib/utils/currency'
+import { resolveSignedUrls } from '@/lib/storage/signed-url'
 
 const fmtDate = (s: string) =>
   new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
@@ -60,7 +61,11 @@ export default async function ClientDetailPage({
   const {data:filesRaw} = await supabase.from('client_files')
     .select('id,file_name,file_url,file_size,file_type,uploaded_at')
     .eq('client_id',id).eq('user_id',user.id).order('uploaded_at',{ascending:false})
-  const files = (filesRaw||[]) as ClientFile[]
+  // Checklist #22: client-files is now a private bucket — resolve every
+  // stored file_url to a fresh signed URL before handing it to the client tab.
+  const filesPreSign = (filesRaw||[]) as ClientFile[]
+  const fileSignedUrls = await resolveSignedUrls(filesPreSign.map(f => f.file_url))
+  const files = filesPreSign.map((f, i) => ({ ...f, file_url: fileSignedUrls[i] ?? f.file_url })) as ClientFile[]
 
   const {data:paymentsRaw} = await supabase.from('direct_payments')
     .select('id,amount,payment_type,payment_method,description,payment_date,revenue_categories(id,name,color)')
