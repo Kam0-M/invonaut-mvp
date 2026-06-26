@@ -15,7 +15,9 @@ import { useCurrency } from '@/lib/context/currency-context'
 //   server-rendered, so this is the only piece that re-renders on user interaction.
 //
 // PROPS FROM SERVER PAGE:
-//   avgMonthlyExpenses — computed from last 90 days of expenses / 3
+//   avgMonthlyExpenses — last 90 days of expenses, averaged over the actual
+//                         weeks of history available (capped at 13), not a flat
+//                         divisor — see cash/page.tsx (Checklist #7 fix)
 //   overdueTotal       — sum of all overdue invoice amounts
 //   initialBalance     — from latest cash_snapshot (null if none saved yet)
 //

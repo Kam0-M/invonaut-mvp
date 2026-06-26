@@ -200,7 +200,23 @@ export default async function CashPage() {
   const ninetyDaysAgo = new Date(now); ninetyDaysAgo.setDate(now.getDate() - 90)
   const expenses90    = expenses.filter(e => new Date(e.date + 'T12:00:00') >= ninetyDaysAgo)
   const total90       = expenses90.reduce((s, e) => s + Number(e.amount || 0), 0)
-  const avgWeeklyExp  = total90 / 13
+
+  // Checklist #7: previously this always divided by a fixed 13 weeks, regardless
+  // of how long the account/expense data has actually existed — falsely optimistic
+  // for essentially every real account during its first ~3 months (a brand-new
+  // signup with 10 days of $500 in expenses showed a ~$167/mo run rate instead of
+  // the real ~$1,500/mo). Now we divide by the actual span of history we have
+  // (earliest expense within the 90-day window, falling back to account creation
+  // date if there are no expenses yet), capped at 13 weeks so mature accounts with
+  // a full 90 days of data behave exactly as before — no regression there.
+  const earliestExpense90Ts = expenses90.length > 0
+    ? Math.min(...expenses90.map(e => new Date(e.date + 'T12:00:00').getTime()))
+    : null
+  const accountCreatedAt = user.created_at ? new Date(user.created_at).getTime() : now.getTime()
+  const historyStartTs   = earliestExpense90Ts ?? accountCreatedAt
+  const daysOfHistory    = Math.max(1, Math.round((now.getTime() - historyStartTs) / (24 * 60 * 60 * 1000)))
+  const weeksOfHistory   = Math.min(13, Math.max(1, daysOfHistory / 7))
+  const avgWeeklyExp  = total90 / weeksOfHistory
   const avgMonthlyExp = avgWeeklyExp * (52 / 12)
 
   const pendingPipeline = unpaidInvoices
