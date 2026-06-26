@@ -168,8 +168,8 @@ export default async function InvoicesPage() {
 
       {!hasActiveSubscription && <ViewOnlyBanner />}
 
-      {/* ── Smart Drafts — unbilled time entries (Pro+) ───────────────────── */}
-      {isPro && unbilledGroups.length > 0 && (
+      {/* ── Smart Drafts — unbilled time entries (Pro+, active subscription required) ── */}
+      {hasActiveSubscription && isPro && unbilledGroups.length > 0 && (
         <SmartInvoiceDrafts groups={unbilledGroups} />
       )}
 
