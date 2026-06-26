@@ -52,7 +52,39 @@ export default async function ExpensesPage({ searchParams }: PageProps) {
     .eq('user_id', user.id)
     .order('category', { ascending: true })
 
-  const budgets = (budgetsRaw ?? []) as { id: string; category: string; monthly_limit: number }[]
+  const budgetsBase = (budgetsRaw ?? []) as { id: string; category: string; monthly_limit: number }[]
+
+  // Checklist #25: budget_alerts cron's email alerts only ever reach the
+  // owner's own verified address (Resend free-tier sandbox restriction) --
+  // every real customer is silently skipped, with no in-app signal to make
+  // up for it. Compute this month's actual spend per budgeted category here
+  // so the budget UI can show real-time status regardless of whether the
+  // email ever sends.
+  let budgets = budgetsBase as (typeof budgetsBase[number] & { amountSpent: number; percentUsed: number })[]
+  if (isBusiness && budgetsBase.length > 0) {
+    const nowForBudgets   = new Date()
+    const monthStartStr   = `${nowForBudgets.getFullYear()}-${String(nowForBudgets.getMonth() + 1).padStart(2, '0')}-01`
+    const nextMonthForBudgets = new Date(nowForBudgets.getFullYear(), nowForBudgets.getMonth() + 1, 1)
+    const monthEndStr     = nextMonthForBudgets.toISOString().split('T')[0]
+
+    const { data: monthExpenses } = await supabase
+      .from('expenses')
+      .select('category, amount')
+      .eq('user_id', user.id)
+      .gte('date', monthStartStr)
+      .lt('date', monthEndStr)
+
+    const spentByCategory: Record<string, number> = {}
+    for (const e of monthExpenses ?? []) {
+      spentByCategory[e.category] = (spentByCategory[e.category] || 0) + Number(e.amount || 0)
+    }
+
+    budgets = budgetsBase.map(b => {
+      const amountSpent = spentByCategory[b.category] || 0
+      const percentUsed = Number(b.monthly_limit) > 0 ? Math.round((amountSpent / Number(b.monthly_limit)) * 100) : 0
+      return { ...b, amountSpent, percentUsed }
+    })
+  }
 
   const { category, start, end } = await searchParams
 

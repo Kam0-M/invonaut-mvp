@@ -13,6 +13,8 @@ type Budget = {
   id: string
   category: string
   monthly_limit: number
+  amountSpent?: number
+  percentUsed?: number
 }
 
 interface BudgetSettingsProps {
@@ -98,7 +100,7 @@ export default function BudgetSettings({
           Budget Alerts
         </h3>
         <p className="text-xs text-gray-400 leading-relaxed">
-          Set monthly spending limits per category. Get emailed at 80% and 100% of each limit.
+          Set monthly spending limits per category. See live status here as you spend, plus email alerts at 80% and 100%.
         </p>
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055FF] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg">
           Business plan only
@@ -126,7 +128,7 @@ export default function BudgetSettings({
       </div>
 
       <p className="text-xs text-gray-500 leading-relaxed">
-        You'll be emailed at 80% and 100% of each monthly limit. Alerts reset each month.
+        Live status below updates as you log expenses. Email alerts at 80%/100% also send once your account's email setup is fully verified.
       </p>
 
       {/* Add form */}
@@ -184,25 +186,46 @@ export default function BudgetSettings({
         <p className="text-sm text-gray-400">No budgets set yet.</p>
       ) : (
         <div className="space-y-2">
-          {budgets.map(budget => (
-            <div key={budget.id} className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100">
-              <div>
-                <p className="text-sm font-bold text-gray-900">{getCategoryLabel(budget.category)}</p>
-                <p className="text-xs text-gray-400 font-medium">{fmt(budget.monthly_limit)} / month</p>
+          {budgets.map(budget => {
+            const percentUsed = budget.percentUsed ?? 0
+            const amountSpent = budget.amountSpent ?? 0
+            const isOver    = percentUsed >= 100
+            const isWarning = percentUsed >= 80 && percentUsed < 100
+            const barColor  = isOver ? 'bg-red-500' : isWarning ? 'bg-amber-500' : 'bg-[#00C896]'
+            const textColor = isOver ? 'text-red-600' : isWarning ? 'text-amber-600' : 'text-gray-400'
+
+            return (
+              <div key={budget.id} className="p-3 rounded-xl bg-gray-50 border border-gray-100 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-gray-900">{getCategoryLabel(budget.category)}</p>
+                    <p className={`text-xs font-bold ${textColor}`}>
+                      {fmt(amountSpent)} / {fmt(budget.monthly_limit)} this month ({percentUsed}%)
+                      {isOver && ' — over budget'}
+                      {isWarning && ' — approaching limit'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleDelete(budget.id)}
+                    disabled={deletingId === budget.id}
+                    className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors flex-shrink-0"
+                    title="Remove budget"
+                  >
+                    {deletingId === budget.id
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${barColor}`}
+                    style={{ width: `${Math.min(100, percentUsed)}%` }}
+                  />
+                </div>
               </div>
-              <button
-                onClick={() => handleDelete(budget.id)}
-                disabled={deletingId === budget.id}
-                className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
-                title="Remove budget"
-              >
-                {deletingId === budget.id
-                  ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : <Trash2 className="w-4 h-4" />
-                }
-              </button>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
