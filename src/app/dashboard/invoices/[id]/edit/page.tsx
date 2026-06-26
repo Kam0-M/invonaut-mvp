@@ -5,6 +5,7 @@ import Link                   from 'next/link'
 import SubscriptionRequired   from '@/components/subscription-required'
 import { isSubscriptionActive } from '@/lib/subscription-status'
 import { FileText }           from 'lucide-react'
+import { resolveSignedUrl }   from '@/lib/storage/signed-url'
 
 export default async function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id }   = await params
@@ -39,6 +40,12 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
   const { data: categories } = await supabase
     .from('revenue_categories').select('id, name, color').eq('user_id', user.id).order('name')
 
+  // Checklist #22: invoice-attachments is now a private bucket. invoice.attachment_url
+  // stays the stable stored value (EditInvoiceForm resubmits it verbatim on save if
+  // untouched) — this signed URL is passed separately, purely for the "view existing
+  // attachment" link.
+  const attachmentDisplayUrl = await resolveSignedUrl(invoice.attachment_url)
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -65,6 +72,7 @@ export default async function EditInvoicePage({ params }: { params: Promise<{ id
           invoiceItems={invoice.invoice_items || []}
           clients={clients || []}
           categories={categories || []}
+          attachmentDisplayUrl={attachmentDisplayUrl}
         />
       </div>
     </div>

@@ -20,6 +20,11 @@ interface EditInvoiceFormProps {
   invoiceItems: any[]
   clients: any[]
   categories: { id: string; name: string; color: string }[]
+  // Checklist #22: signed (temporary) URL for viewing the existing attachment.
+  // Deliberately separate from invoice.attachment_url, which must stay the
+  // stable stored path — that's what gets resubmitted to the DB on save if
+  // the user doesn't touch the attachment, and a signed URL's token expires.
+  attachmentDisplayUrl?: string | null
 }
 
 const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
@@ -46,6 +51,7 @@ export default function EditInvoiceForm({
   invoiceItems,
   clients,
   categories,
+  attachmentDisplayUrl,
 }: EditInvoiceFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -68,6 +74,7 @@ export default function EditInvoiceForm({
   // attachmentFile = a new file the user has chosen (replaces existing on save)
   // removeExisting = user clicked × on the existing attachment
   const [existingUrl,     setExistingUrl]     = useState<string | null>(invoice.attachment_url || null)
+  const [existingDisplayUrl, setExistingDisplayUrl] = useState<string | null>(attachmentDisplayUrl || invoice.attachment_url || null)
   const [attachmentFile,  setAttachmentFile]  = useState<File | null>(null)
   const [removeExisting,  setRemoveExisting]  = useState(false)
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
@@ -138,6 +145,7 @@ export default function EditInvoiceForm({
   const handleRemoveExisting = () => {
     setRemoveExisting(true)
     setExistingUrl(null)
+    setExistingDisplayUrl(null)
   }
 
   // ── Submit ────────────────────────────────────────────────────────────────
@@ -378,10 +386,10 @@ export default function EditInvoiceForm({
 
         <div className="space-y-3">
           {/* Existing attachment from DB */}
-          {existingUrl && !attachmentFile && (
+          {existingUrl && existingDisplayUrl && !attachmentFile && (
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
               <Paperclip className="w-4 h-4 text-gray-500 flex-shrink-0" />
-              <a href={existingUrl} target="_blank" rel="noopener noreferrer"
+              <a href={existingDisplayUrl} target="_blank" rel="noopener noreferrer"
                 className="flex-1 text-sm font-medium text-blue-600 hover:underline truncate">
                 {extractAttachmentName(existingUrl)}
               </a>

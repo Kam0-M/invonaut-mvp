@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { Clock, Lock, FileText, Download, PenLine, CheckCircle2 } from 'lucide-react'
+import { resolveSignedUrls } from '@/lib/storage/signed-url'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -273,7 +274,7 @@ export default async function PortalPage({
     .eq('client_id', clientId)
     .order('uploaded_at', { ascending: false })
 
-  const fileList = (filesRaw ?? []) as {
+  const fileListRaw = (filesRaw ?? []) as {
     id: string
     file_name: string
     file_url: string
@@ -281,6 +282,11 @@ export default async function PortalPage({
     file_type: string
     uploaded_at: string
   }[]
+
+  // Checklist #22: client-files is now a private bucket — resolve every
+  // stored file_url to a fresh signed URL before rendering it for the client.
+  const fileSignedUrls = await resolveSignedUrls(fileListRaw.map(f => f.file_url))
+  const fileList = fileListRaw.map((f, i) => ({ ...f, file_url: fileSignedUrls[i] ?? f.file_url }))
 
   return (
     <div className="min-h-screen bg-[#F8FAFF]">

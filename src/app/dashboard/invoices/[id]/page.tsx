@@ -13,6 +13,7 @@ import { PaymentPrediction }    from '@/components/invoices/payment-prediction'
 import { getInvoiceDisplayStatus } from '@/lib/utils/invoice-status'
 import { NotFound }             from '@/components/ui/not-found'
 import InvoiceContractLinker    from '@/components/contracts/invoice-contract-linker'
+import { resolveSignedUrl }     from '@/lib/storage/signed-url'
 import { makeCurrencyFormatter } from '@/lib/utils/currency'
 
 type PageProps = { params: Promise<{ id: string }> }
@@ -98,6 +99,9 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
   const attachName = invoice.attachment_url
     ? decodeURIComponent(invoice.attachment_url.split('/').pop() || '').replace(/^\d{13}-/, '')
     : null
+  // Checklist #22: invoice-attachments is now a private bucket — the stored
+  // attachment_url no longer resolves directly, exchange it for a signed URL.
+  const attachmentSignedUrl = await resolveSignedUrl(invoice.attachment_url)
 
   return (
     <div className="space-y-5">
@@ -278,10 +282,10 @@ export default async function InvoiceDetailPage({ params }: PageProps) {
           </div>
         )}
 
-        {invoice.attachment_url && attachName && (
+        {attachmentSignedUrl && attachName && (
           <div className="px-6 pb-6 border-t border-gray-50 pt-4">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Attachment</p>
-            <a href={invoice.attachment_url} target="_blank" rel="noopener noreferrer"
+            <a href={attachmentSignedUrl} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-3 px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all group">
               <div className="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors">
                 <Paperclip className="w-4 h-4 text-blue-600" />

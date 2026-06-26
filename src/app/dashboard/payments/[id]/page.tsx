@@ -10,6 +10,7 @@ import DeletePaymentButton  from '@/components/payments/delete-payment-button'
 import EditPaymentForm      from '@/components/payments/edit-payment-form'
 import { makeCurrencyFormatter } from '@/lib/utils/currency'
 import { isSubscriptionActive } from '@/lib/subscription-status'
+import { resolveSignedUrl } from '@/lib/storage/signed-url'
 
 const fmtDate = (s: string) =>
   new Date(s + 'T12:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -71,6 +72,10 @@ export default async function PaymentDetailPage({
   const attachName = payment.attachment_url
     ? decodeURIComponent(payment.attachment_url.split('/').pop() || '').replace(/^\d{13}-/, '')
     : null
+  // Checklist #22: payment-attachments is now a private bucket — exchange the
+  // stored attachment_url for a signed URL, in place, so every downstream
+  // consumer on this page (including EditPaymentForm below) gets it too.
+  payment.attachment_url = await resolveSignedUrl(payment.attachment_url)
 
   return (
     <div className="space-y-5">
