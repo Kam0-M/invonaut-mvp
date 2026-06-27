@@ -59,9 +59,9 @@ interface AffiliateStats {
 
 // ─── CSS ─────────────────────────────────────────────────────────────────────
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=DM+Mono:ital,wght@0,400;0,500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..800&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:ital,wght@0,400;0,500&display=swap');
   .f-display { font-family:'Fraunces',serif; font-optical-sizing:auto; }
-  .f-mono    { font-family:'DM Mono',monospace; }
+  .f-mono    { font-family:'JetBrains Mono',ui-monospace,monospace; }
   .aff-join-card {
     background: linear-gradient(145deg,#002ECC 0%,#0040DD 40%,#0055FF 70%,#002EBF 100%);
     border-radius: 20px;
@@ -89,7 +89,7 @@ const CSS = `
     display:flex; align-items:center; gap:10;
     background:#F8FAFF; border:1px solid rgba(0,85,255,0.15); border-radius:12px;
     padding:14px 16px;
-    font-family:'DM Mono',monospace; font-size:.82rem; color:#0A0A0A;
+    font-family:'JetBrains Mono',ui-monospace,monospace; font-size:.82rem; color:#0A0A0A;
     overflow:hidden;
   }
   .copy-btn {
@@ -455,7 +455,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
             <tbody>
               {(data.referrals || []).map(r => (
                 <tr key={r.id}>
-                  <td style={{color:'#6B7280',fontFamily:"'DM Mono',monospace",fontSize:'.77rem'}}>{fmtDate(r.signup_date)}</td>
+                  <td className="f-mono" style={{color:'#6B7280',fontSize:'.77rem'}}>{fmtDate(r.signup_date)}</td>
                   <td style={{fontWeight:600,textTransform:'capitalize'}}>{r.current_plan || '—'}</td>
                   <td><StatusPill status={r.status}/></td>
                 </tr>
@@ -496,7 +496,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
                 <tbody>
                   {(data.commissions || []).map(c => (
                     <tr key={c.id}>
-                      <td style={{color:'#6B7280',fontFamily:"'DM Mono',monospace",fontSize:'.77rem'}}>{fmtDate(c.created_at)}</td>
+                      <td className="f-mono" style={{color:'#6B7280',fontSize:'.77rem'}}>{fmtDate(c.created_at)}</td>
                       <td style={{color:'#6B7280',fontSize:'.77rem'}}>
                         {c.period_start && c.period_end ? `${fmtDate(c.period_start)} – ${fmtDate(c.period_end)}` : '—'}
                       </td>
@@ -528,7 +528,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
               <tbody>
                 {(data.payouts || []).map(p => (
                   <tr key={p.id}>
-                    <td style={{color:'#6B7280',fontFamily:"'DM Mono',monospace",fontSize:'.77rem'}}>{fmtDate(p.requested_at)}</td>
+                    <td className="f-mono" style={{color:'#6B7280',fontSize:'.77rem'}}>{fmtDate(p.requested_at)}</td>
                     <td style={{color:'#6B7280'}}>{p.payout_method || '—'}</td>
                     <td style={{textAlign:'right',fontWeight:800,color:'#0A0A0A'}}>{fmt(p.amount)}</td>
                     <td><StatusPill status={p.status}/></td>

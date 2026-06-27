@@ -23,11 +23,11 @@ const fmtD  = (s: string) => new Date(s + 'T12:00:00').toLocaleDateString('en-US
 const CAP   = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..900&family=DM+Sans:opsz,wght@9..40,300..700&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600..900&family=DM+Sans:opsz,wght@9..40,300..700&family=JetBrains+Mono:wght@400;500&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
   body { font-family: 'DM Sans', sans-serif; background: #F8FAFF }
   .f-display { font-family: 'Fraunces', serif; font-optical-sizing: auto }
-  .f-mono    { font-family: 'DM Mono', monospace }
+  .f-mono    { font-family: 'JetBrains Mono', ui-monospace, monospace }
   .card { background:#fff; border:1px solid #E2E8F0; border-radius:20px; overflow:hidden }
   .btn-approve { display:flex; align-items:center; gap:9px; padding:14px 28px; border-radius:11px;
     background:linear-gradient(135deg,#059669,#10B981); color:#fff; font-weight:700; font-size:.9rem;
@@ -200,7 +200,7 @@ export default function AssetReviewPage({ params }: { params: Promise<{ token: s
           </div>
           <div className="field">
             <label><DollarSign size={9} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Purchase Cost</label>
-            <span style={{ color: '#0055FF', fontWeight: 700, fontFamily: "'DM Mono', monospace" }}>{fmtC(Number(asset.purchase_cost))}</span>
+            <span className="f-mono" style={{ color: '#0055FF', fontWeight: 700 }}>{fmtC(Number(asset.purchase_cost))}</span>
           </div>
           <div className="field">
             <label><DollarSign size={9} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />Salvage Value</label>
