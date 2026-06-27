@@ -321,7 +321,7 @@ function AddAssetForm({onAdd}:{onAdd:(a:Asset)=>void}) {
                   onChange={e=>set('serial_number',e.target.value)}
                   placeholder="e.g. C02XL0AAJGH5"
                   disabled={!!savedAsset}
-                  style={{fontFamily:"'DM Mono',monospace",fontSize:'.82rem'}}
+                  style={{fontFamily:"'JetBrains Mono',ui-monospace,monospace",fontSize:'.82rem'}}
                 />
               </div>
             )}
@@ -655,7 +655,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
           <p style={{fontSize:'1.3rem',fontWeight:800,fontFamily:"'Fraunces',serif",color:'#0A0A0A',letterSpacing:'-.02em'}}>Financial Reports</p>
           <p style={{fontSize:'.8rem',color:'#64748B',marginTop:4}}>{businessName}</p>
         </div>
-        <p style={{fontSize:'.75rem',color:'#94A3B8',fontFamily:"'DM Mono',monospace"}}>
+        <p className="f-mono" style={{fontSize:'.75rem',color:'#94A3B8'}}>
           Generated {new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
         </p>
       </div>
@@ -1071,7 +1071,7 @@ export function ReportsClient({businessName,tier,invoices,directPayments,expense
                             {a.rejection_note&&<span style={{fontSize:'.68rem',color:'#DC2626',fontStyle:'italic'}}>Rejected: {a.rejection_note}</span>}
                           </div>
                         </td>
-                        <td style={{textAlign:'left',fontFamily:"'DM Mono',monospace",fontSize:'.77rem',color:a.serial_number?'#374151':'#C4CBDA'}}>
+                        <td className="f-mono" style={{textAlign:'left',fontSize:'.77rem',color:a.serial_number?'#374151':'#C4CBDA'}}>
                           {a.has_serial_number===false ? <span style={{color:'#C4CBDA',fontFamily:"'DM Sans',sans-serif",fontStyle:'italic',fontSize:'.72rem'}}>No S/N</span> : (a.serial_number||<span style={{color:'#C4CBDA',fontStyle:'italic',fontFamily:"'DM Sans',sans-serif",fontSize:'.72rem'}}>Not set</span>)}
                         </td>
                         <td><WFBadge status={wfStatus}/></td>

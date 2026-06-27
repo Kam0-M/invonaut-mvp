@@ -74,7 +74,7 @@ function PayoutRow({ payout, onPaid }: { payout: Payout; onPaid: (id: string) =>
 
         {/* Centre — amount + date */}
         <div style={{textAlign:'center',minWidth:100}}>
-          <p style={{margin:0,fontSize:'1.4rem',fontWeight:800,color:'#0A0A0A',fontFamily:"'DM Mono',monospace"}}>
+          <p style={{margin:0,fontSize:'1.4rem',fontWeight:800,color:'#0A0A0A',fontFamily:"'JetBrains Mono',monospace"}}>
             ${Number(payout.amount).toFixed(2)}
           </p>
           <p style={{margin:'2px 0 0',fontSize:'.75rem',color:'#94A3B8'}}>
@@ -196,7 +196,7 @@ export default function AdminPayoutsPage() {
                   )}
                 </div>
                 {pending.length > 0 && (
-                  <span style={{fontSize:'.9rem',fontWeight:700,color:'#0A0A0A',fontFamily:"'DM Mono',monospace"}}>
+                  <span style={{fontSize:'.9rem',fontWeight:700,color:'#0A0A0A',fontFamily:"'JetBrains Mono',monospace"}}>
                     Total owed: ${totalPending.toFixed(2)}
                   </span>
                 )}
@@ -235,7 +235,7 @@ export default function AdminPayoutsPage() {
                         <tr key={p.id} style={{borderBottom: i < history.length-1 ? '1px solid #F1F5F9' : 'none'}}>
                           <td style={{padding:'10px 16px',color:'#374151',fontWeight:600}}>{p.affiliate_name}<br/><span style={{color:'#94A3B8',fontWeight:400,fontSize:'.75rem'}}>{p.affiliate_email}</span></td>
                           <td style={{padding:'10px 16px',color:'#64748B',textTransform:'capitalize'}}>{p.payout_method || '—'}</td>
-                          <td style={{padding:'10px 16px',fontFamily:"'DM Mono',monospace",fontWeight:700,color:'#0A0A0A'}}>${Number(p.amount).toFixed(2)}</td>
+                          <td style={{padding:'10px 16px',fontFamily:"'JetBrains Mono',monospace",fontWeight:700,color:'#0A0A0A'}}>${Number(p.amount).toFixed(2)}</td>
                           <td style={{padding:'10px 16px',color:'#64748B'}}>{p.paid_at ? fmtDate(p.paid_at) : '—'}</td>
                           <td style={{padding:'10px 16px',color:'#94A3B8',fontSize:'.78rem'}}>{p.payout_reference || '—'}</td>
                         </tr>

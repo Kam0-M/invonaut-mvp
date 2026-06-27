@@ -534,7 +534,7 @@ export default function LandingPageClient() {
     <div style={{fontFamily:"'DM Sans',sans-serif",color:'var(--ink)',background:'#fff',overflowX:'clip'}}>
       <link rel="preconnect" href="https://fonts.googleapis.com"/>
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin=""/>
-      <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=DM+Sans:ital,opsz,wght@0,9..40,300..700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+      <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..700&family=DM+Sans:ital,opsz,wght@0,9..40,300..700&display=swap" rel="stylesheet"/>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
       {/* ── NAV ──────────────────────────────────────────────────────────── */}
