@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { Lock, Clock } from 'lucide-react'
 import ContractSigningForm from '@/components/contracts/contract-signing-form'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -107,13 +108,16 @@ export default async function PortalContractPage({
   // 2. Owner branding
   const { data: ownerProfile } = await supabase
     .from('user_profiles')
-    .select('business_name, full_name, logo_url, brand_color, subscription_tier')
+    .select('business_name, full_name, logo_url, brand_color, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
     .eq('id', portalRow.user_id)
     .single()
 
+  // White label branding only applies to Professional and Business tier
+  // owners who currently have an active subscription (Checklist #32).
   const isWhiteLabel =
-    ownerProfile?.subscription_tier === 'professional' ||
-    ownerProfile?.subscription_tier === 'business'
+    isSubscriptionActive(ownerProfile) &&
+    (ownerProfile?.subscription_tier === 'professional' ||
+      ownerProfile?.subscription_tier === 'business')
 
   const brandColor = isWhiteLabel ? (ownerProfile?.brand_color || '#0066FF') : '#0066FF'
   const logoUrl = isWhiteLabel ? (ownerProfile?.logo_url || null) : null
