@@ -6,6 +6,7 @@ import { useCurrency } from '@/lib/context/currency-context'
 // Fraunces headlines, blue gradient accents, clean layout — not the generic dashboard style.
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowRight, Copy, Check, DollarSign, Users, TrendingUp,
@@ -547,6 +548,7 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function AffiliateDashboardPage() {
   const { format: fmt } = useCurrency()
+  const router = useRouter()
   const [data,    setData]    = useState<AffiliateStats | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -554,11 +556,12 @@ export default function AffiliateDashboardPage() {
     setLoading(true)
     try {
       const res  = await fetch('/api/affiliate/stats')
+      if (res.status === 401) { router.push('/login'); return }
       const json = await res.json()
       setData(json)
     } catch { setData({ affiliated: false }) }
     setLoading(false)
-  }, [])
+  }, [router])
 
   useEffect(() => { load() }, [load])
 

@@ -4,6 +4,7 @@
 // Shows all pending affiliate payout requests. Mark paid → sends email to affiliate.
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { CheckCircle, Clock, DollarSign, Loader2, AlertCircle, ExternalLink } from 'lucide-react'
 
 type Payout = {
@@ -116,6 +117,7 @@ function PayoutRow({ payout, onPaid }: { payout: Payout; onPaid: (id: string) =>
 }
 
 export default function AdminPayoutsPage() {
+  const router = useRouter()
   const [pending, setPending]   = useState<Payout[]>([])
   const [history, setHistory]   = useState<Payout[]>([])
   const [loading, setLoading]   = useState(true)
@@ -125,7 +127,7 @@ export default function AdminPayoutsPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/admin/payouts')
-      if (res.status === 403) { setError('Forbidden — admin only'); setLoading(false); return }
+      if (res.status === 403) { router.push('/dashboard'); return }
       const json = await res.json()
       if (!res.ok) { setError(json.error || 'Failed to load'); return }
       setPending(json.pending || [])
