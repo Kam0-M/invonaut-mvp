@@ -106,7 +106,7 @@ export default function DashboardAiStrip({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {/* AI label */}
-      <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 text-white flex-shrink-0">
+      <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-600 text-white flex-shrink-0">
         <Sparkles className="w-3.5 h-3.5" />
         <span className="text-xs font-black tracking-wide">AI</span>
       </div>
