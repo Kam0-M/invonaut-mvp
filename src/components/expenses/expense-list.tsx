@@ -36,7 +36,7 @@ const categoryColors: Record<string, { pill: string; dot: string }> = {
   meals:        { pill: 'bg-orange-50 text-orange-700 border-orange-200',dot: 'bg-orange-500'  },
   marketing:    { pill: 'bg-pink-50 text-pink-700 border-pink-200',      dot: 'bg-pink-500'    },
   office:       { pill: 'bg-cyan-50 text-cyan-700 border-cyan-200',      dot: 'bg-cyan-500'    },
-  professional: { pill: 'bg-violet-50 text-violet-700 border-violet-200',dot: 'bg-violet-500'  },
+  professional: { pill: 'bg-rose-50 text-rose-700 border-rose-200',    dot: 'bg-rose-500'    },
   utilities:    { pill: 'bg-teal-50 text-teal-700 border-teal-200',      dot: 'bg-teal-500'    },
   education:    { pill: 'bg-blue-50 text-blue-700 border-blue-200',dot: 'bg-blue-500'  },
   insurance:    { pill: 'bg-green-50 text-green-700 border-green-200',   dot: 'bg-green-500'   },
