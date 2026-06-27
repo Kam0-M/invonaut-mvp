@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
 import { generateInvoiceEmailHTML, generateInvoiceEmailText } from '@/lib/email/invoice-email-template'
 import { resolveSignedUrl } from '@/lib/storage/signed-url'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 
@@ -81,13 +82,17 @@ export async function POST(request: NextRequest) {
     // Fetch user profile for business info AND white label branding
     const { data: userProfile } = await supabase
       .from('user_profiles')
-      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier')
+      .select('full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
       .eq('id', user.id)
       .single()
 
+    // Checklist #32: white-label is a Pro+ feature — must also require an
+    // active subscription, not just the preserved tier string, or a canceled
+    // former Pro/Business user keeps removing "Powered by Invonaut" forever.
     const isWhiteLabel =
-      userProfile?.subscription_tier === 'professional' ||
-      userProfile?.subscription_tier === 'business'
+      isSubscriptionActive(userProfile) &&
+      (userProfile?.subscription_tier === 'professional' ||
+        userProfile?.subscription_tier === 'business')
 
     const clientData = Array.isArray(invoice.clients) ? invoice.clients[0] : invoice.clients
 

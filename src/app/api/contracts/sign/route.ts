@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
 import { Resend } from 'resend'
 import { generateContractPDF } from '@/lib/contracts/generate-contract-pdf'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
@@ -146,7 +147,7 @@ export async function POST(request: NextRequest) {
       // Fetch owner profile for name + email
       const { data: ownerProfile } = await supabase
         .from('user_profiles')
-        .select('business_name, full_name, email, address, logo_url, brand_color, subscription_tier')
+        .select('business_name, full_name, email, address, logo_url, brand_color, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
         .eq('id', portalRow.user_id)
         .single()
 
@@ -179,9 +180,11 @@ export async function POST(request: NextRequest) {
         .single()
 
       // Generate signed contract PDF
+      // Checklist #32: must also require an active subscription, not just tier.
       const isWhiteLabel =
-        ownerProfile?.subscription_tier === 'professional' ||
-        ownerProfile?.subscription_tier === 'business'
+        isSubscriptionActive(ownerProfile) &&
+        (ownerProfile?.subscription_tier === 'professional' ||
+          ownerProfile?.subscription_tier === 'business')
 
       const pdfArrayBuffer = await generateContractPDF({
         title: contract.title,

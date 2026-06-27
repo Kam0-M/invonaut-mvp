@@ -40,8 +40,10 @@ export default async function DashboardPage() {
   const fmtCompact = makeCompactFormatter((profile as any)?.currency || 'USD', (profile as any)?.currency_symbol)
   const isPro = tier === 'professional' || tier === 'business'
 
-  // Intelligence insights (Pro+)
-  const { data: insights } = isPro ? await supabase
+  // Intelligence insights (Pro+, active subscription only — render below is
+  // already gated this way; gate the query itself too so a canceled former
+  // Pro/Business user doesn't trigger a needless DB read every page load)
+  const { data: insights } = hasActiveSubscription && isPro ? await supabase
     .from('financial_insights')
     .select('id,type,urgency,title,body,action_label,action_url,status,created_at')
     .eq('user_id', user.id)

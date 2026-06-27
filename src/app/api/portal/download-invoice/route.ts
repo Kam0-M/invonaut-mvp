@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { generateInvoicePDF } from '@/lib/pdf/generate-invoice-pdf'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 function createAdminClient() {
   return createSupabaseClient(
@@ -94,15 +95,17 @@ export async function GET(request: NextRequest) {
     const { data: userProfile } = await supabase
       .from('user_profiles')
       .select(
-        'full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier'
+        'full_name, email, business_name, address, logo_url, brand_color, secondary_brand_color, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date'
       )
       .eq('id', portalRow.user_id)
       .single()
 
-    // White label branding only applies to Professional and Business tier owners
+    // White label branding only applies to Professional and Business tier
+    // owners who currently have an active subscription (Checklist #32).
     const isWhiteLabel =
-      userProfile?.subscription_tier === 'professional' ||
-      userProfile?.subscription_tier === 'business'
+      isSubscriptionActive(userProfile) &&
+      (userProfile?.subscription_tier === 'professional' ||
+        userProfile?.subscription_tier === 'business')
 
     // 6. Fetch client details
     const { data: clientRow } = await supabase
