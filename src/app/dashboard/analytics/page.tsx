@@ -64,26 +64,49 @@ function computeHealthScore(params: {
     label: 'No data yet', sub: 'Start invoicing to generate your score'
   }
 
-  let score = 0
+  // Each sub-metric below contributes points out of its own weight. When a
+  // sub-metric isn't computable yet (not enough data — e.g. no paid/overdue
+  // invoices yet for collection rate, or no revenue yet for profit margin),
+  // it's excluded from BOTH the earned points and the weight total entirely,
+  // rather than defaulted to an arbitrary optimistic or pessimistic value —
+  // previously collection rate defaulted to 50 (half credit) while profit
+  // margin defaulted to 0 (no credit) for the same kind of "no data yet"
+  // case. Remaining available metrics are re-weighted so the score still
+  // scales to 0–100. Overdue ratio always has a real value (0 with zero
+  // invoices), so it's never excluded.
+  let earned      = 0
+  let totalWeight = 0
 
-  // Collection rate (0–35 pts)
-  const cr = params.collectionRate ?? 50
-  score += Math.round((cr / 100) * 35)
+  // Collection rate (weight 35)
+  if (params.collectionRate !== null) {
+    const cr = Math.max(0, Math.min(100, params.collectionRate))
+    earned += (cr / 100) * 35
+    totalWeight += 35
+  }
 
-  // Profit margin (0–30 pts) — negative margin = 0
-  const pm = Math.max(0, Math.min(100, params.profitMargin ?? 0))
-  score += Math.round((pm / 100) * 30)
+  // Profit margin (weight 30) — negative margin floors at 0
+  if (params.profitMargin !== null) {
+    const pm = Math.max(0, Math.min(100, params.profitMargin))
+    earned += (pm / 100) * 30
+    totalWeight += 30
+  }
 
-  // Overdue penalty (0–20 pts, 20 = no overdue)
+  // Overdue penalty (weight 20, full 20 = no overdue) — always available
   const odPenalty = Math.round(params.overdueRatio * 20)
-  score += Math.max(0, 20 - odPenalty)
+  earned += Math.max(0, 20 - odPenalty)
+  totalWeight += 20
 
-  // Revenue growth bonus (0–15 pts)
-  const rg = params.revenueGrowth ?? 0
-  if (rg > 20)  score += 15
-  else if (rg > 0)  score += 8
-  else if (rg === 0) score += 4
+  // Revenue growth bonus (weight 15)
+  if (params.revenueGrowth !== null) {
+    const rg = params.revenueGrowth
+    if (rg > 20)       earned += 15
+    else if (rg > 0)   earned += 8
+    else if (rg === 0) earned += 4
+    // rg < 0 earns 0 — no change to `earned`
+    totalWeight += 15
+  }
 
+  let score = totalWeight > 0 ? Math.round((earned / totalWeight) * 100) : 0
   score = Math.min(100, Math.max(0, score))
 
   if (score >= 85) return { score, grade: 'A', color: 'text-teal-700', bg: 'bg-teal-50', border: 'border-teal-200', glow: '0 0 40px rgba(0,212,170,0.15)', label: 'Excellent', sub: 'Your business is firing on all cylinders' }

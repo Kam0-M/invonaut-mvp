@@ -16,6 +16,8 @@ export default function NewClientPage() {
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [duplicateMatch, setDuplicateMatch] = useState<{ id: string; name: string; email: string } | null>(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -37,6 +39,8 @@ export default function NewClientPage() {
           return
         }
 
+        setUserId(user.id)
+
         // Check subscription status
         const { data: profile } = await supabase
           .from('user_profiles')
@@ -56,6 +60,32 @@ export default function NewClientPage() {
 
     checkSubscription()
   }, [router])
+
+  // Checklist #27 — non-blocking duplicate-client warning. Nothing previously warned
+  // about creating an exact duplicate client (same email) under one account, silently
+  // splitting that client's invoice/payment/risk history across two records. Debounced
+  // check against this user's own clients by email (the strongest, lowest-false-positive
+  // signal) — doesn't block creation, just surfaces a one-click "use existing" option.
+  useEffect(() => {
+    if (!userId) return
+    const email = formData.email.trim()
+    if (!email) { setDuplicateMatch(null); return }
+
+    const timer = setTimeout(async () => {
+      const supabase = createClient()
+      const { data } = await supabase
+        .from('clients')
+        .select('id, name, email')
+        .eq('user_id', userId)
+        .ilike('email', email)
+        .limit(1)
+        .maybeSingle()
+
+      setDuplicateMatch(data ? { id: data.id, name: data.name, email: data.email } : null)
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [formData.email, userId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -175,6 +205,22 @@ export default function NewClientPage() {
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="h-12 text-base border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-xl"
             />
+            {duplicateMatch && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-3">
+                <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-xs font-medium text-amber-800">
+                    You already have a client with this email — <span className="font-bold">{duplicateMatch.name}</span>. Creating a new one will split their history across two records.
+                  </p>
+                  <Link
+                    href={`/dashboard/clients/${duplicateMatch.id}`}
+                    className="text-xs font-bold text-amber-900 underline hover:no-underline mt-1 inline-block"
+                  >
+                    Use {duplicateMatch.name} instead →
+                  </Link>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Phone */}
