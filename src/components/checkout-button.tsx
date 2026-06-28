@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { buttonVariants, type ButtonVariant } from '@/components/ui/button'
 
 type CheckoutButtonProps = {
   priceId: string
@@ -10,11 +11,11 @@ type CheckoutButtonProps = {
   disabled?: boolean
 }
 
-export default function CheckoutButton({ 
-  priceId, 
-  planId, 
+export default function CheckoutButton({
+  priceId,
+  planId,
   buttonText,
-  className = "w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-xl font-bold text-sm transition-all",
+  className,
   disabled = false
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -52,11 +53,18 @@ export default function CheckoutButton({
     }
   }
 
+  // Checklist #28 — previously took a raw className with its own gradient/padding/
+  // radius baked in by every caller. Now sources its look from the shared
+  // buttonVariants() helper (variant inferred from caller's className containing
+  // "btn-secondary", default otherwise), with caller className layered on top for
+  // one-off width/sizing only.
+  const variant: ButtonVariant = className?.includes('btn-secondary') ? 'secondary' : 'primary'
+
   return (
     <button
       onClick={handleCheckout}
       disabled={disabled || isLoading}
-      className={className}
+      className={buttonVariants({ variant, size: 'sm', className })}
     >
       {isLoading ? 'Loading...' : buttonText}
     </button>
