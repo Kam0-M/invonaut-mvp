@@ -160,6 +160,30 @@ export async function POST(request: NextRequest) {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       })
 
+      // Checklist #23: the owner's "your client just signed" email below is gated
+      // behind the same OWNER_EMAIL check as #4 (Resend free-tier sandbox can only
+      // deliver to one verified address) -- so real business owners currently get
+      // zero notification of their own contract activity, not just missing client
+      // reminders. This doesn't touch Resend -- it's the in-app fix that doesn't
+      // depend on it. Always write to the Intelligence Feed regardless of whether
+      // the email below actually sends, so contract-signing is never silent.
+      try {
+        await supabase.from('financial_insights').insert({
+          user_id:           portalRow.user_id,
+          type:               'contract_signed',
+          urgency:             'opportunity',
+          title:               `${clientName} signed: ${contract.title}`,
+          body:                `${clientName} signed "${contract.title}" on ${signedAt}. The contract is now active.`,
+          action_label:        'View contract',
+          action_url:          `/dashboard/contracts/${contractId}`,
+          related_client_id:   clientId,
+          ai_model:            null,
+          expires_at:          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+      } catch (insightErr) {
+        console.error('Contract-signed insight insert error:', insightErr)
+      }
+
       const sharedHtml = (recipientName: string) => `
 <!DOCTYPE html>
 <html>

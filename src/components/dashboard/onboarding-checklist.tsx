@@ -61,7 +61,7 @@ export default function OnboardingChecklist({
     },
     {
       id: 'portal', label: 'Set up your client portal',
-      hint: 'Give clients a branded link to view invoices and sign contracts.',
+      hint: 'Set up a branded portal where clients can view invoices and sign contracts — share the link with them directly.',
       href: '/dashboard/portal', done: hasPortal,
     },
   ]
