@@ -8,6 +8,7 @@ import { Plus, Trash2, Loader2, ShieldAlert } from 'lucide-react'
 import { toast } from 'sonner'
 import { EXPENSE_CATEGORIES, getCategoryLabel } from '@/lib/ai/expense-categorization'
 import { createClient } from '@/lib/supabase/client'
+import InlineUpgradePrompt from '@/components/ui/inline-upgrade-prompt'
 
 type Budget = {
   id: string
@@ -94,18 +95,12 @@ export default function BudgetSettings({
 
   if (!isBusiness) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 space-y-3">
-        <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
-          <ShieldAlert className="w-4 h-4 text-gray-400" />
-          Budget Alerts
-        </h3>
-        <p className="text-xs text-gray-400 leading-relaxed">
-          Set monthly spending limits per category. See live status here as you spend, plus email alerts at 80% and 100%.
-        </p>
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055FF] bg-blue-50 border border-blue-100 px-3 py-1.5 rounded-lg">
-          Business plan only
-        </div>
-      </div>
+      <InlineUpgradePrompt
+        icon={ShieldAlert}
+        title="Budget Alerts"
+        description="Set monthly spending limits per category. See live status here as you spend, plus email alerts at 80% and 100%."
+        requiredPlan="Business"
+      />
     )
   }
 

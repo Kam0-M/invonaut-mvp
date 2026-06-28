@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Sparkles, Loader2, AlertTriangle, AlertCircle, Info, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react'
 import { toast } from 'sonner'
+import InlineUpgradePrompt from '@/components/ui/inline-upgrade-prompt'
 
 type ReviewIssue = {
   severity: 'high' | 'medium' | 'low'
@@ -90,18 +91,12 @@ export default function ContractReview({ contractId, isPro }: ContractReviewProp
   // Locked state for non-Pro users
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
-        <h3 className="font-black text-gray-900 text-sm uppercase tracking-wider flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#0055FF]" />
-          AI Contract Review
-        </h3>
-        <p className="text-xs text-gray-400 leading-relaxed">
-          Automatically flag missing protections — no IP clause, no liability cap, weak payment terms, and more.
-        </p>
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0055FF] bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
-          Professional & Business only
-        </div>
-      </div>
+      <InlineUpgradePrompt
+        icon={Sparkles}
+        title="AI Contract Review"
+        description="Automatically flag missing protections — no IP clause, no liability cap, weak payment terms, and more."
+        requiredPlan="Professional & Business"
+      />
     )
   }
 

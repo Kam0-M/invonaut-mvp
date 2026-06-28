@@ -8,6 +8,7 @@ import {
   ArrowRight, X, CheckCircle2, RefreshCw,
   AlertCircle, DollarSign, Users, FileText, Clock
 } from 'lucide-react'
+import InlineUpgradePrompt from '@/components/ui/inline-upgrade-prompt'
 
 interface Insight {
   id: string
@@ -104,26 +105,12 @@ export default function IntelligenceFeed({ insights, isPro, lastRefreshed }: Pro
   /* ── Gated: starter tier ──────────────────────────────────────────────── */
   if (!isPro) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        {/* Signal strip at top */}
-        <div className="inv-signal-strip" />
-        <div className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="inv-live-dot" />
-            <p className="text-xs font-bold text-[#0055FF] uppercase tracking-widest">Intelligence Feed</p>
-          </div>
-          <div className="inv-terminal p-5 text-center">
-            <Zap className="w-5 h-5 text-slate-500 mx-auto mb-3" />
-            <p className="text-sm font-black text-slate-200 mb-1">Intelligence requires Professional</p>
-            <p className="text-xs text-slate-500 mb-4 max-w-xs mx-auto leading-relaxed">
-              Upgrade to get AI-powered signals, client risk profiles, and proactive cash flow warnings.
-            </p>
-            <Link href="/dashboard/billing" className="btn-primary px-4 py-2 rounded-xl text-sm inline-flex items-center gap-1.5">
-              Upgrade <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-      </div>
+      <InlineUpgradePrompt
+        icon={Zap}
+        title="Intelligence Feed"
+        description="Upgrade to get AI-powered signals, client risk profiles, and proactive cash flow warnings."
+        requiredPlan="Professional & Business"
+      />
     )
   }
 
