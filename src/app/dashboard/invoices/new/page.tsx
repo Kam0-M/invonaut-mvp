@@ -351,16 +351,32 @@ export default function NewInvoicePage() {
 
       if (itemsError) throw itemsError
 
-      // Mark time entries as billed (non-fatal)
+      // Mark time entries as billed (non-fatal to invoice creation, but no longer
+      // invisible on failure — Checklist #24: previously the try/catch here only
+      // ever caught network-level fetch exceptions, never an explicit non-2xx
+      // response, so a real failure left the source time entries silently
+      // unbilled with zero signal anywhere, risking a later double-bill if they
+      // got picked into a second invoice.)
       if (timeEntryIds.length > 0) {
         try {
-          await fetch('/api/time/update', {
+          const markBilledRes = await fetch('/api/time/update', {
             method:  'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body:    JSON.stringify({ action: 'mark_billed', entryIds: timeEntryIds, invoiceId: invoice.id }),
           })
+          if (!markBilledRes.ok) {
+            console.error('mark_billed call returned non-OK status:', markBilledRes.status)
+            toast(
+              `Invoice created, but ${timeEntryIds.length} time ${timeEntryIds.length === 1 ? 'entry' : 'entries'} couldn't be marked billed — check Unbilled Hours so they aren't billed twice.`,
+              { duration: 8000 }
+            )
+          }
         } catch {
           console.error('Could not mark time entries as billed.')
+          toast(
+            `Invoice created, but ${timeEntryIds.length} time ${timeEntryIds.length === 1 ? 'entry' : 'entries'} couldn't be marked billed — check Unbilled Hours so they aren't billed twice.`,
+            { duration: 8000 }
+          )
         }
       }
 
