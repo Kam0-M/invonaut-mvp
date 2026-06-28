@@ -45,21 +45,23 @@ ${categoryList}
 
 Respond ONLY with the category value (e.g. "software"). No explanation, no punctuation.`
 
-  try {
-    const response = await getOpenAI().chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: 'You are an expense categorization assistant. Respond only with the category value string.' },
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-      max_tokens: 20,
-    })
+  // Checklist #30: previously wrapped in try/catch that returned 'other' on ANY
+  // error — including OpenAI being unreachable or uncredentialed — making a real
+  // failure indistinguishable from the AI genuinely picking "other". Letting the
+  // call fail loudly here lets the route handler return an honest failure state.
+  // (The fallback to 'other' below stays — that's a *successful* call whose answer
+  // just didn't match a known category value, a genuinely different case.)
+  const response = await getOpenAI().chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: 'You are an expense categorization assistant. Respond only with the category value string.' },
+      { role: 'user', content: prompt },
+    ],
+    temperature: 0.1,
+    max_tokens: 20,
+  })
 
-    const raw = response.choices[0].message.content?.trim().toLowerCase() ?? 'other'
-    const valid = EXPENSE_CATEGORIES.find(c => c.value === raw)
-    return valid ? valid.value : 'other'
-  } catch {
-    return 'other'
-  }
+  const raw = response.choices[0].message.content?.trim().toLowerCase() ?? 'other'
+  const valid = EXPENSE_CATEGORIES.find(c => c.value === raw)
+  return valid ? valid.value : 'other'
 }

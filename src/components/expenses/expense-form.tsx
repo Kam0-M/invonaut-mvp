@@ -43,6 +43,8 @@ export default function ExpenseForm({ clients, hasPro }: ExpenseFormProps) {
       if (data.success && data.category) {
         setCategory(data.category)
         toast.success('Category suggested.')
+      } else {
+        toast.error(data.error || 'AI categorization is unavailable right now — pick a category manually.')
       }
     } catch {
       toast.error('Could not suggest category.')

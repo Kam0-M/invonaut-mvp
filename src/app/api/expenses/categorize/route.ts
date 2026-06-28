@@ -31,7 +31,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, category })
   } catch (err) {
     console.error('Categorize error:', err)
-    // Non-fatal — fall back to 'other' silently
-    return NextResponse.json({ success: true, category: 'other' })
+    // Checklist #30: this previously returned {success:true, category:'other'}
+    // on ANY error, indistinguishable from the client's perspective from the AI
+    // genuinely deciding "other" was the right answer. Surface an honest failure
+    // instead so the UI can tell the user AI categorization didn't run, rather
+    // than presenting an unconfirmed guess as if it were a confident suggestion.
+    return NextResponse.json(
+      { success: false, error: 'AI categorization is unavailable right now. Pick a category manually.' },
+      { status: 502 }
+    )
   }
 }
