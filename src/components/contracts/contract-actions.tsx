@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Send, Loader2, CalendarClock, RefreshCw, Pencil } from 'lucide-react'
+import { buttonVariants } from '@/components/ui/button'
 import Link from 'next/link'
 import { toast } from 'sonner'
 
@@ -140,8 +141,8 @@ export default function ContractActions({
             disabled={isSending}
             className={
               isResend
-                ? 'inline-flex items-center gap-2 border border-blue-300 text-blue-700 bg-white hover:bg-blue-50 px-5 py-2.5 rounded-xl font-bold transition-all disabled:opacity-50'
-                : 'inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl font-bold hover:from-blue-700 hover:to-blue-800 hover: transition-all disabled:opacity-50'
+                ? buttonVariants({ variant: 'outline', className: 'border-blue-300 text-blue-700 hover:bg-blue-50 hover:border-blue-300' })
+                : buttonVariants()
             }
           >
             {isSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}

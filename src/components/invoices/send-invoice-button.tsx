@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Mail, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Dialog } from '@/components/ui/dialog'
+import { buttonVariants } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { refreshServerComponents } from '@/lib/router-refresh'
@@ -99,7 +100,7 @@ export function SendInvoiceButton({
           setIsOpen(true)
           setEmail(clientEmail)
         }}
-        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl btn-primary transition-all duration-200 text-sm whitespace-nowrap"
+        className={buttonVariants({ size: 'default', className: 'text-sm whitespace-nowrap' })}
       >
         <Mail className="w-4 h-4" />
         Send Invoice
@@ -162,14 +163,14 @@ export function SendInvoiceButton({
             <button
               onClick={handleClose}
               disabled={isSending}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-gray-200 bg-white text-gray-700 font-bold hover:bg-gray-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={buttonVariants({ variant: 'outline' })}
             >
               Cancel
             </button>
             <button
               onClick={handleSend}
               disabled={isSending || !email.trim()}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl btn-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={buttonVariants()}
             >
               {isSending ? (
                 <>
