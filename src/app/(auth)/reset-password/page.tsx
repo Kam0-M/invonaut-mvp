@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { checkPasswordLeaked } from '@/lib/security/pwned-password'
 import { PasswordInput } from '@/components/ui/password-input'
 import { toast } from 'sonner'
 import Link from 'next/link'
@@ -26,6 +27,12 @@ export default function ResetPasswordPage() {
     if (password !== confirm) { toast.error('Passwords must match.'); return }
     setLoading(true)
     try {
+      const leakCheck = await checkPasswordLeaked(password)
+      if (leakCheck.pwned) {
+        toast.error('This password has appeared in a known data breach. Please choose a different one.')
+        return
+      }
+
       const { error } = await createClient().auth.updateUser({ password })
       if (error) { toast.error(error.message); return }
       setDone(true)
