@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { createClient } from '@/lib/supabase/client'
+import { checkPasswordLeaked } from '@/lib/security/pwned-password'
 import { Loader2, Check } from 'lucide-react'
 import OAuthButtons from '@/components/auth/oauth-buttons'
 
@@ -35,6 +36,13 @@ export default function SignupPage() {
 
     setLoading(true); setErrors({})
     try {
+      const leakCheck = await checkPasswordLeaked(form.password)
+      if (leakCheck.pwned) {
+        setErrors({ password: 'This password has appeared in a known data breach. Please choose a different one.' })
+        setLoading(false)
+        return
+      }
+
       const supabase = createClient()
       const { data, error } = await supabase.auth.signUp({
         email: form.email, password: form.password,
