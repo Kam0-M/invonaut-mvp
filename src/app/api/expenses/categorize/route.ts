@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { suggestCategory } from '@/lib/ai/expense-categorization'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +18,17 @@ export async function POST(request: NextRequest) {
     }
 
     // AI categorisation is a Professional+ feature
+    // Checklist #36: was tier-only — a canceled Pro/Business user kept
+    // triggering real OpenAI spend indefinitely, since subscription_tier is
+    // intentionally preserved on cancellation (#33).
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
       .eq('id', user.id)
       .single()
     const tier = profile?.subscription_tier ?? 'starter'
-    if (tier !== 'professional' && tier !== 'business') {
+    const canAccess = isSubscriptionActive(profile) && (tier === 'professional' || tier === 'business')
+    if (!canAccess) {
       return NextResponse.json({ success: true, category: null })
     }
 

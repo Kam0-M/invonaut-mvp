@@ -6,6 +6,7 @@ import {
   generateBudgetAlertEmailText,
 } from '@/lib/email/budget-alert-email-template'
 import { getCategoryLabel } from '@/lib/ai/expense-categorization'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 function getResend() { return new Resend(process.env.RESEND_API_KEY) }
 const OWNER_EMAIL = 'kamohelo.thakhisi@gmail.com'
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
         monthly_limit,
         alert_80_sent_month,
         alert_100_sent_month,
-        user_profiles!expense_budgets_user_id_fkey(full_name, email, subscription_tier)
+        user_profiles!expense_budgets_user_id_fkey(full_name, email, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date)
       `)
 
     if (budgetError) {
@@ -64,8 +65,11 @@ export async function GET(request: NextRequest) {
         ? budget.user_profiles[0]
         : budget.user_profiles
 
-      // Business tier only
-      if (profileData?.subscription_tier !== 'business') continue
+      // Business tier only.
+      // Checklist #36: was tier-only — a canceled Business user kept
+      // receiving these emails forever (subscription_tier is intentionally
+      // preserved on cancellation, #33).
+      if (profileData?.subscription_tier !== 'business' || !isSubscriptionActive(profileData)) continue
 
       const ownerEmail = profileData?.email ?? OWNER_EMAIL
       const ownerName  = profileData?.full_name ?? 'there'
