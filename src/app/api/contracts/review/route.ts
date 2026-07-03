@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { reviewContract } from '@/lib/ai/contract-review'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,14 +18,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Check tier — Pro and Business only
+    // Checklist #36: was tier-only — subscription_tier is intentionally
+    // preserved on cancellation (#33), so this let a canceled Pro/Business
+    // user trigger real OpenAI spend indefinitely. Must also require an
+    // active subscription, same pattern as send-invoice/download-invoice.
     const { data: profile } = await supabase
       .from('user_profiles')
-      .select('subscription_tier')
+      .select('subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
       .eq('id', user.id)
       .single()
 
     const tier = profile?.subscription_tier ?? 'starter'
-    if (tier !== 'professional' && tier !== 'business') {
+    const canAccess = isSubscriptionActive(profile) && (tier === 'professional' || tier === 'business')
+    if (!canAccess) {
       return NextResponse.json({
         success: false,
         error: 'AI Contract Review is available on Professional and Business plans.',
