@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { isSubscriptionActive } from '@/lib/subscription-status'
 
 // ── Inline admin client — same pattern as all other cron routes ──────────────
 function createAdminClient() {
@@ -30,18 +31,37 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
 
-  // Fetch all Pro/Business subscribers who should get intelligence features —
-  // includes trialing, not just active. Previously this only matched 'active',
-  // which silently skipped every real user still in their 14-day trial (6 of 9
-  // real Pro/Business signups at time of audit) — compounding the ai_risk_score
-  // gap (Checklist #3), since the cron that computes it never ran for them at all.
-  const { data: profiles } = await supabase
-    .from('user_profiles')
-    .select('id, subscription_tier')
-    .in('subscription_tier', ['professional', 'business'])
-    .in('subscription_status', ['active', 'trialing'])
+  // Checklist #37: an optional ?userId= scopes this run to a single user.
+  // Previously any call to this route — including a single user's manual
+  // "Refresh Intelligence Feed" click via /api/intelligence/refresh — always
+  // ran full AI intelligence generation platform-wide for every Pro/Business
+  // subscriber, not just the caller. The actual scheduled cron (vercel.json,
+  // no query params) is unaffected and still runs for everyone.
+  const { searchParams } = new URL(req.url)
+  const scopedUserId = searchParams.get('userId')
 
-  if (!profiles?.length) return NextResponse.json({ processed: 0 })
+  // Fetch Pro/Business subscribers who should get intelligence features.
+  let profileQuery = supabase
+    .from('user_profiles')
+    .select('id, subscription_tier, stripe_subscription_id, subscription_status, trial_end_date')
+    .in('subscription_tier', ['professional', 'business'])
+
+  if (scopedUserId) profileQuery = profileQuery.eq('id', scopedUserId)
+
+  const { data: candidateProfiles } = await profileQuery
+
+  // Checklist #38: filtering `subscription_status IN ('active','trialing')`
+  // in the query (the prior fix, which correctly stopped skipping trialing
+  // users — 6 of 9 real Pro/Business signups at time of that audit) still
+  // never checked trial_end_date, so a trialing account whose trial had
+  // already expired kept full access indefinitely — the exact gap
+  // isSubscriptionActive() exists to close. A Supabase query filter can't
+  // call that app-level function directly, so — matching the same pattern
+  // already used in the weekly-time-summary cron — fetch the coarse
+  // candidate set, then apply the canonical check as a post-fetch filter.
+  const profiles = (candidateProfiles ?? []).filter(isSubscriptionActive)
+
+  if (!profiles.length) return NextResponse.json({ processed: 0 })
 
   let processed = 0, errors = 0
 
