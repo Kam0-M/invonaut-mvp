@@ -413,7 +413,14 @@ export default function SettingsForm({
           </div>
         </div>
 
-        {!isPro ? (
+        {/* Checklist #41: was tier-only (!isPro) — a canceled Pro/Business
+            user saw the full editable branding form instead of the
+            upgrade-lock screen. Not a live bypass (actual enforcement in
+            the API routes and portal rendering already checks
+            isSubscriptionActive() via #32), but confusing UX and an
+            inconsistency with the pattern used two sections up in this
+            same file (hasActiveSubscription, line 321). */}
+        {!isPro || !hasActiveSubscription ? (
           <div className="bg-[#F8FAFF] border border-blue-100 rounded-xl p-6 text-center">
             <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-3">
               <Lock className="w-5 h-5 text-[#0055FF]" />
