@@ -25,7 +25,7 @@ function generateFollowUpEmailHTML({
     currency: 'USD'
   }).format(total_amount)
 
-  const formattedDate = new Date(due_date).toLocaleDateString('en-US', {
+  const formattedDate = new Date(due_date + 'T12:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -122,7 +122,7 @@ function generateFollowUpEmailText({
     currency: 'USD'
   }).format(total_amount)
 
-  const formattedDate = new Date(due_date).toLocaleDateString('en-US', {
+  const formattedDate = new Date(due_date + 'T12:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'

@@ -33,7 +33,10 @@ const formatDate = (dateStr: string) =>
 
 function getDisplayStatus(status: string, dueDate: string): string {
   if (status === 'paid' || status === 'cancelled') return status
-  const due = new Date(dueDate)
+  // Checklist #40: due_date is a DATE column — the setHours(0,0,0,0) below
+  // only zeroes local time-of-day, it doesn't undo an earlier UTC-midnight
+  // parse shift, so `due` still needs the T12:00:00 anchor first.
+  const due = new Date(dueDate + 'T12:00:00')
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
@@ -312,7 +315,12 @@ export default async function PortalInvoicePage({
                 {invoice.invoice_number}
               </h1>
               <p className="text-sm text-gray-500 mt-1">
-                Issued {formatDate(invoice.issue_date)} · Due {formatDate(invoice.due_date)}
+                {/* Checklist #40 (gap found while fixing the documented items):
+                   issue_date/due_date are DATE columns — formatDate() itself
+                   is generic (also used elsewhere with safe timestamptz
+                   values), so the T12:00:00 anchor is applied at these
+                   call sites rather than inside the shared helper. */}
+                Issued {formatDate(invoice.issue_date + 'T12:00:00')} · Due {formatDate(invoice.due_date + 'T12:00:00')}
               </p>
             </div>
             <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold capitalize w-fit ${badgeClass}`}>

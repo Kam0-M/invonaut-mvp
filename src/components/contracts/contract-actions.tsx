@@ -200,7 +200,8 @@ export default function ContractActions({
             />
             {expiryDate && (
               <p className="text-xs text-gray-400 mt-1.5">
-                Current expiry: {new Date(expiryDate).toLocaleDateString('en-US', {
+                {/* Checklist #40: expiry_date is a DATE column */}
+                Current expiry: {new Date(expiryDate + 'T12:00:00').toLocaleDateString('en-US', {
                   month: 'short', day: 'numeric', year: 'numeric',
                 })}
               </p>

@@ -8,7 +8,7 @@ export type ContractReminderEmailData = {
   }
   
   export function generateContractReminderEmailHTML(data: ContractReminderEmailData): string {
-    const formattedExpiry = new Date(data.expiryDate).toLocaleDateString('en-US', {
+    const formattedExpiry = new Date(data.expiryDate + 'T12:00:00').toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -143,7 +143,7 @@ export type ContractReminderEmailData = {
   }
   
   export function generateContractReminderEmailText(data: ContractReminderEmailData): string {
-    const formattedExpiry = new Date(data.expiryDate).toLocaleDateString('en-US', {
+    const formattedExpiry = new Date(data.expiryDate + 'T12:00:00').toLocaleDateString('en-US', {
       year: 'numeric', month: 'long', day: 'numeric',
     })
     return `

@@ -152,7 +152,8 @@ export default async function DashboardPage() {
 
   const expiringSoon = activeContracts.filter((c: any) => {
     if (!c.expiry_date || c.reminders_dismissed) return false
-    const e = new Date(c.expiry_date)
+    // Checklist #40: expiry_date is a DATE column.
+    const e = new Date(c.expiry_date + 'T12:00:00')
     return e <= now30 && e >= now
   }).length
 

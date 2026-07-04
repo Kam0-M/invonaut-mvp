@@ -32,7 +32,9 @@ const formatDate = (dateStr: string) =>
 
 function getDisplayStatus(status: string, dueDate: string): string {
   if (status === 'paid' || status === 'cancelled') return status
-  const due = new Date(dueDate)
+  // Checklist #40: due_date is a DATE column — see companion fix in
+  // portal/[slug]/invoices/[id]/page.tsx for why setHours() alone isn't enough.
+  const due = new Date(dueDate + 'T12:00:00')
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   due.setHours(0, 0, 0, 0)
@@ -344,11 +346,12 @@ export default async function PortalPage({
                       </span>
                       <span className="text-gray-400 text-xs hidden sm:inline">·</span>
                       <span className="text-gray-500 text-xs">
-                        Issued {formatDate(inv.issue_date)}
+                        {/* Checklist #40 (gap found while fixing the documented items) */}
+                        Issued {formatDate(inv.issue_date + 'T12:00:00')}
                       </span>
                       <span className="text-gray-400 text-xs hidden sm:inline">·</span>
                       <span className="text-gray-500 text-xs">
-                        Due {formatDate(inv.due_date)}
+                        Due {formatDate(inv.due_date + 'T12:00:00')}
                       </span>
                       <span className="text-gray-400 text-xs hidden sm:inline">·</span>
                       <span className="font-bold text-gray-900 text-sm">
@@ -395,7 +398,7 @@ export default async function PortalPage({
                         <p className="font-bold text-gray-900 text-sm">{contract.title}</p>
                         {contract.start_date && (
                           <p className="text-xs text-gray-500 mt-0.5">
-                            {formatDate(contract.start_date)}{contract.end_date ? ` – ${formatDate(contract.end_date)}` : ''}
+                            {formatDate(contract.start_date + 'T12:00:00')}{contract.end_date ? ` – ${formatDate(contract.end_date + 'T12:00:00')}` : ''}
                           </p>
                         )}
                       </div>

@@ -65,7 +65,8 @@ export default async function ContractsPage() {
   const draftCount    = contracts.filter(c => c.status === 'draft').length
   const expiringCount = contracts.filter(c => {
     if (!c.end_date) return false
-    const days = Math.ceil((new Date(c.end_date).getTime() - Date.now()) / 86400000)
+    // Checklist #40: end_date is a DATE column.
+    const days = Math.ceil((new Date(c.end_date + 'T12:00:00').getTime() - Date.now()) / 86400000)
     return days >= 0 && days <= 14
   }).length
   const totalValue = contracts.reduce((s, c) => s + Number(c.total_value || 0), 0)

@@ -52,8 +52,11 @@ export async function analyzePaymentHistory(
 
   // Calculate average days to payment
   const paymentDays = clientInvoices.map((inv) => {
-    const issued = new Date(inv.issue_date)
-    const due = new Date(inv.due_date)
+    // Checklist #40: issue_date/due_date are DATE columns (no time/zone
+    // component) — new Date(x) alone parses as UTC midnight, which shifts
+    // the day backward in negative-UTC timezones.
+    const issued = new Date(inv.issue_date + 'T12:00:00')
+    const due = new Date(inv.due_date + 'T12:00:00')
     return Math.floor((due.getTime() - issued.getTime()) / (1000 * 60 * 60 * 24))
   })
 
@@ -80,7 +83,9 @@ export async function predictPayment(
   invoice: Invoice,
   paymentHistory: PaymentHistory
 ): Promise<PredictionResult> {
-  const dueDate = new Date(invoice.due_date)
+  // Checklist #40: due_date is a DATE column — always parse with a fixed
+  // noon time, never UTC midnight.
+  const dueDate = new Date(invoice.due_date + 'T12:00:00')
   const today = new Date()
   const daysUntilDue = Math.floor(
     (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
@@ -136,7 +141,8 @@ Be transparent that this is a prediction based on patterns, not a guarantee.`
     const aiResponse = JSON.parse(response.choices[0].message.content || '{}')
 
     // Calculate predicted date based on historical avg
-    const predictedDate = new Date(invoice.issue_date)
+    // Checklist #40: issue_date is a DATE column.
+    const predictedDate = new Date(invoice.issue_date + 'T12:00:00')
     predictedDate.setDate(
       predictedDate.getDate() +
         (paymentHistory.avg_days_to_payment || daysUntilDue)
@@ -153,7 +159,8 @@ Be transparent that this is a prediction based on patterns, not a guarantee.`
     console.error('AI prediction error:', error)
 
     // Fallback prediction if AI fails
-    const predictedDate = new Date(invoice.due_date)
+    // Checklist #40: due_date is a DATE column.
+    const predictedDate = new Date(invoice.due_date + 'T12:00:00')
 
     return {
       predicted_date: predictedDate.toISOString().split('T')[0],

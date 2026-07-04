@@ -37,7 +37,7 @@ export function generateInvoiceEmailHTML(data: EmailTemplateData): string {
   const textOnBrand = shouldUseLightText(brandColor) ? '#FFFFFF' : '#1F2937'
   const textOnSecondary = shouldUseLightText(secondaryColor) ? '#FFFFFF' : '#1F2937'
   
-  const formattedDueDate = new Date(data.due_date).toLocaleDateString('en-US', {
+  const formattedDueDate = new Date(data.due_date + 'T12:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
@@ -162,7 +162,7 @@ export function generateInvoiceEmailHTML(data: EmailTemplateData): string {
 }
 
 export function generateInvoiceEmailText(data: EmailTemplateData): string {
-  const formattedDueDate = new Date(data.due_date).toLocaleDateString('en-US', {
+  const formattedDueDate = new Date(data.due_date + 'T12:00:00').toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
