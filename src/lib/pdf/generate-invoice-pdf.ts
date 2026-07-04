@@ -183,8 +183,9 @@ export async function generateInvoicePDF(data: InvoiceData, options?: PDFOptions
 
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(100)
-  doc.text(new Date(data.issue_date).toLocaleDateString(), 60, yPosition)
-  doc.text(new Date(data.due_date).toLocaleDateString(), 60, yPosition + 7)
+  // Checklist #40: issue_date/due_date are DATE columns.
+  doc.text(new Date(data.issue_date + 'T12:00:00').toLocaleDateString(), 60, yPosition)
+  doc.text(new Date(data.due_date + 'T12:00:00').toLocaleDateString(), 60, yPosition + 7)
   
   // Status badge with colors
   const statusColors: Record<string, { bg: number[]; text: number[] }> = {

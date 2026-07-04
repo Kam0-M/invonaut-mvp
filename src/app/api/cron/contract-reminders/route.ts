@@ -92,7 +92,10 @@ export async function GET(request: NextRequest) {
 
     // ─── Step 3: For each contract, fire any unsent reminder stages ──────────
     for (const contract of upcomingContracts ?? []) {
-      const expiryDate = new Date(contract.expiry_date)
+      // Checklist #40: expiry_date is a DATE column — always parse with a
+      // fixed noon time to avoid a UTC-midnight shift feeding the actual
+      // day-count used by the reminder-stage and auto-expire logic below.
+      const expiryDate = new Date(contract.expiry_date + 'T12:00:00')
       const msUntilExpiry = expiryDate.getTime() - now.getTime()
       const daysUntilExpiry = Math.ceil(msUntilExpiry / (1000 * 60 * 60 * 24))
 

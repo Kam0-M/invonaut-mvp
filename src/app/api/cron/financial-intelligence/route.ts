@@ -107,7 +107,11 @@ async function runIntelligenceForUser(supabase: any, userId: string, tier: strin
 
   // ── Derived metrics ────────────────────────────────────────────────────────
   const outstanding = (invoices ?? []).filter((i: any) => i.status === 'sent')
-  const paid30      = (invoices ?? []).filter((i: any) => i.status === 'paid' && new Date(i.issue_date) >= day30)
+  // Checklist #40: issue_date/date are DATE columns — parse with a fixed
+  // noon time so the 30/60-day window filters below aren't UTC-midnight
+  // shift-prone (this feeds revenue-reliability and spending-spike
+  // detection, not just display).
+  const paid30      = (invoices ?? []).filter((i: any) => i.status === 'paid' && new Date(i.issue_date + 'T12:00:00') >= day30)
 
   // Revenue concentration
   const revByClient: Record<string, number> = {}
@@ -123,8 +127,8 @@ async function runIntelligenceForUser(supabase: any, userId: string, tier: strin
   const unbilledValue = (timeEntries ?? []).reduce((s: any, t: any) => s + (t.duration_seconds / 3600) * (t.hourly_rate ?? 0), 0)
 
   // Spending change
-  const recentSpend = (expenses ?? []).filter((e: any) => new Date(e.date) >= day30).reduce((s: any, e: any) => s + Number(e.amount), 0)
-  const priorSpend  = (expenses ?? []).filter((e: any) => new Date(e.date) < day30 && new Date(e.date) >= day60).reduce((s: any, e: any) => s + Number(e.amount), 0)
+  const recentSpend = (expenses ?? []).filter((e: any) => new Date(e.date + 'T12:00:00') >= day30).reduce((s: any, e: any) => s + Number(e.amount), 0)
+  const priorSpend  = (expenses ?? []).filter((e: any) => new Date(e.date + 'T12:00:00') < day30 && new Date(e.date + 'T12:00:00') >= day60).reduce((s: any, e: any) => s + Number(e.amount), 0)
   const spendChange = priorSpend > 0 ? Math.round(((recentSpend - priorSpend) / priorSpend) * 100) : 0
 
   // Cash balance
