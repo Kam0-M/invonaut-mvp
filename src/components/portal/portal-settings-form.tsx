@@ -273,7 +273,11 @@ export default function PortalSettingsForm({
       </div>
 
       {/* ── Branding preview ──────────────────────────────────────────────── */}
-      {isPro ? (
+      {/* Checklist #41: was tier-only (isPro) — a canceled Pro/Business
+          user saw the editable branding preview instead of the
+          upgrade-lock screen. hasActiveSubscription was already an
+          accepted prop here but never actually used. */}
+      {isPro && hasActiveSubscription ? (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-sm transition-all">
           <div className="flex items-center gap-3 mb-5">
             <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
