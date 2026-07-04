@@ -499,7 +499,12 @@ function DashboardScreen({ data, onRefresh }: { data: AffiliateStats; onRefresh:
                     <tr key={c.id}>
                       <td className="f-mono" style={{color:'#6B7280',fontSize:'.77rem'}}>{fmtDate(c.created_at)}</td>
                       <td style={{color:'#6B7280',fontSize:'.77rem'}}>
-                        {c.period_start && c.period_end ? `${fmtDate(c.period_start)} – ${fmtDate(c.period_end)}` : '—'}
+                        {/* Checklist #40 (gap found while fixing the documented items):
+                           period_start/period_end are DATE columns, unlike this
+                           file's other fmtDate() calls (signup_date, created_at,
+                           requested_at are all timestamptz) — anchor at the call
+                           site rather than inside the shared helper. */}
+                        {c.period_start && c.period_end ? `${fmtDate(c.period_start + 'T12:00:00')} – ${fmtDate(c.period_end + 'T12:00:00')}` : '—'}
                       </td>
                       <td style={{textAlign:'right',fontWeight:800,color:'#16A34A'}}>{fmt(c.amount)}</td>
                       <td><StatusPill status={c.status}/></td>
