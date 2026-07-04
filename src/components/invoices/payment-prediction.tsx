@@ -148,7 +148,13 @@ export function PaymentPrediction({ invoiceId, clientId, clientName, invoiceAmou
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString('en-US', {
+      // Checklist #40 (gap found while fixing the documented items):
+      // predictedDate is a date-only "YYYY-MM-DD" string (see
+      // lib/ai/payment-predictions.ts's predicted_date). A bare
+      // new Date() on a date-only string parses as UTC midnight, shifting
+      // the displayed day backward in negative-UTC timezones — even though
+      // the server-side value itself is already correctly computed.
+      return new Date(dateString + 'T12:00:00').toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
