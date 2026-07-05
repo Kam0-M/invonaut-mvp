@@ -32,9 +32,7 @@ const CSS = `
   }
   .hero-mesh {
     background:
-      radial-gradient(ellipse 90% 70% at 105% -5%,  rgba(0,85,255,0.09) 0%, transparent 55%),
-      radial-gradient(ellipse 60% 50% at -5%  110%,  rgba(0,196,160,0.07) 0%, transparent 55%),
-      radial-gradient(ellipse 40% 40% at 50%  -10%,  rgba(99,102,241,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse 70% 55% at 100% 0%, rgba(0,85,255,0.06) 0%, transparent 60%),
       #ffffff;
   }
   @keyframes cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
@@ -54,7 +52,6 @@ const CSS = `
     .hero-grid     { grid-template-columns:1fr !important; }
     .steps-grid    { grid-template-columns:1fr 1fr !important; }
     .auto-header   { grid-template-columns:1fr !important; gap:24px !important; }
-    .auto-stats    { grid-template-columns:1fr 1fr !important; }
     .auto-row      { grid-template-columns:1fr !important; gap:4px !important; }
     .auto-sched    { display:none !important; }
     .trust-grid    { grid-template-columns:1fr 1fr !important; }
@@ -65,7 +62,6 @@ const CSS = `
   }
   @media(max-width:600px){
     .steps-grid    { grid-template-columns:1fr !important; }
-    .auto-stats    { grid-template-columns:1fr !important; }
     .trust-grid    { grid-template-columns:1fr !important; }
     .footer-grid   { grid-template-columns:1fr !important; }
     .platform-items{ grid-template-columns:1fr !important; }
@@ -132,36 +128,36 @@ function SystemLog() {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PAINS = [
-  { n:'01', head:'Your invoices are being paid whenever your clients feel like it.',
-    body:"Without automated follow-ups, late payment becomes the default. Most businesses have thousands of dollars sitting in outstanding invoices — not because clients won't pay, but because nobody is consistently and professionally asking." },
-  { n:'02', head:"Half your income isn't showing up anywhere.",
-    body:"Cash from a client. A POS payment. A bank transfer that came in while you were on a job. Most finance tools only see invoices — leaving a big part of your real income invisible, and your numbers wrong." },
-  { n:'03', head:"You'll find out your contract expired after it already matters.",
+  { head:'Your invoices are being paid whenever your clients feel like it.',
+    body:"Without automated follow-ups, late payment becomes the default. Most businesses have thousands of dollars sitting in outstanding invoices. Not because clients won't pay, but because nobody is consistently and professionally asking." },
+  { head:"Half your income isn't showing up anywhere.",
+    body:"Cash from a client. A POS payment. A bank transfer that came in while you were on a job. Most finance tools only see invoices, leaving a big part of your real income invisible and your numbers wrong." },
+  { head:"You'll find out your contract expired after it already matters.",
     body:"Contracts expire quietly. The client knows their obligations are over. You find out when the work stops or the disagreement starts. By then, you're already at a disadvantage." },
 ]
 const STEPS = [
-  { n:'01', c:'var(--blue)', title:'Capture all income',        body:"Log invoices for billed work. Log direct payments for everything else — cash, card, bank transfer, mobile money. Your complete picture, in one place." },
+  { n:'01', c:'var(--blue)', title:'Capture all income',        body:"Log invoices for billed work. Log direct payments for everything else: cash, card, bank transfer, mobile money. Your complete picture, in one place." },
   { n:'02', c:'var(--teal)', title:'Invonaut handles the chasing', body:"Every invoice is scored for payment risk. Overdue invoices trigger follow-up emails automatically. You stay informed without spending an hour on admin." },
   { n:'03', c:'var(--blue)', title:'Contracts protect you',     body:"Create from templates, collect signatures in minutes. Automatic reminders at 30, 15, 7, and 1 day before expiry. Nothing slips through without you knowing." },
-  { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash forecast brings together your expected income and tracked expenses. See exactly what's coming — before it becomes a problem." },
+  { n:'04', c:'var(--teal)', title:'Know your financial future',body:"A 90-day cash forecast brings together your expected income and tracked expenses. See exactly what's coming before it becomes a problem." },
 ]
 const PLATFORM = [
   { group:'Track every dollar', color:'var(--blue)',
     items:[
-      { name:'Invoice management',     desc:"Create, send, and track invoices with your branding on them. The system predicts which clients might pay late and follows up on your behalf — without you asking it to." },
+      { name:'Invoice management',     desc:"Create, send, and track invoices with your branding on them. The system predicts which clients might pay late and follows up on your behalf, without you asking it to." },
       { name:'Direct payment logging', desc:"Not every payment comes with an invoice. Log cash, card, bank transfer, and mobile money in seconds so your real income is always reflected in your numbers." },
-      { name:'Time tracking',          desc:"Start a timer or log hours manually. When it's time to bill, convert tracked time to a full invoice in one click — line items already filled in." },
+      { name:'Time tracking',          desc:"Start a timer or log hours manually. When it's time to bill, convert tracked time to a full invoice in one click, line items already filled in." },
       { name:'Expense tracking',       desc:"Log what you spend, upload receipts, and set monthly limits. Get notified at 80% and 100% of your limit so nothing catches you off guard." },
     ]},
   { group:'Protect your work', color:'var(--teal)',
     items:[
-      { name:'Contract management', desc:"Six ready-to-use contract templates, a library of standard clauses, and legally binding digital signatures. Reminders go out at 30, 15, 7, and 1 day before expiry — automatically." },
-      { name:'Client portal',       desc:"A branded space where clients view their invoices, download PDFs, and sign contracts. They get a link by email — no account, no password, no friction." },
-      { name:'White-label branding',desc:"Your logo and colours appear on every invoice, every email, and every client-facing page. Invonaut works in the background — clients only see your brand." },
+      { name:'Contract management', desc:"Six ready-to-use contract templates, a library of standard clauses, and legally binding digital signatures. Reminders go out automatically at 30, 15, 7, and 1 day before expiry." },
+      { name:'Client portal',       desc:"A branded space where clients view their invoices, download PDFs, and sign contracts. They get a link by email. No account, no password, no friction." },
+      { name:'White-label branding',desc:"Your logo and colours appear on every invoice, every email, and every client-facing page. Invonaut works in the background. Clients only see your brand." },
     ]},
   { group:'Understand your money', color:'var(--blue)',
     items:[
-      { name:'Cash flow forecast',   desc:"See your next 90 days in plain numbers — how much is coming in, how much is going out, and how long your money lasts. Updated every time you open it." },
+      { name:'Cash flow forecast',   desc:"See your next 90 days in plain numbers: how much is coming in, how much is going out, and how long your money lasts. Updated every time you open it." },
       { name:'Revenue intelligence', desc:"Every dollar broken down by source, client, and category. See which work earns the most and which clients are worth the most of your time." },
       { name:'Bank connections',     desc:"Link your bank account and transactions come in automatically. Invonaut matches deposits to outstanding invoices and keeps your records current." },
     ]},
@@ -173,8 +169,8 @@ const AUTOMATIONS = [
   { s:'Daily · 9:00am',   n:'Budget overspend alerts',       d:"An email goes out at 80% and again at 100% of any expense category's monthly limit." },
   { s:'Monday · 9:00am',  n:'Weekly time summary',           d:"Total hours logged, billable value outstanding, and any work not yet converted to an invoice." },
   { s:'On send',          n:'Invoice payment risk scoring',  d:"Every invoice is assessed for likelihood of on-time payment based on the client's history." },
-  { s:'On entry',         n:'Expense category suggestions',  d:"Invonaut suggests the right category from what you type. Accept it or change it — the system learns either way." },
-  { s:'On open',          n:'90-day cash forecast refresh',  d:"Your cash position is recalculated every time you open the cash flow page — always based on current data." },
+  { s:'On entry',         n:'Expense category suggestions',  d:"Invonaut suggests the right category from what you type. Accept it or change it. The system learns either way." },
+  { s:'On open',          n:'90-day cash forecast refresh',  d:"Your cash position is recalculated every time you open the cash flow page, always based on current data." },
 ]
 
 // ─── Persona data ─────────────────────────────────────────────────────────────
@@ -183,7 +179,7 @@ const PERSONAS = [
     type:      'The freelancer',
     color:     '#0055FF',
     bg:        'rgba(0,85,255,0.06)',
-    headline:  'Invoice sent. Client gone quiet. Follow-up sent — automatically.',
+    headline:  'Invoice sent. Client gone quiet. Follow-up sent automatically.',
     context:   'Eight active clients. Invoicing per project. No bandwidth to chase.',
     scenario:  'On Tuesday at 9:00am, INV-0015 was 8 days past due with a 52% payment risk score. An automated follow-up went out. Another went out on day 14. No reminder set. No login required.',
     features:  ['AI payment risk scoring', 'Automated follow-up emails', 'Invoice status tracking'],
@@ -194,7 +190,7 @@ const PERSONAS = [
     bg:        'rgba(0,196,160,0.06)',
     headline:  'Three ways clients pay. One place it all shows up.',
     context:   'Six clients. One invoiced monthly. Two pay bank transfer. Two pay cash. One pays via POS.',
-    scenario:  'Cash and transfer payments were invisible before — only invoiced revenue was tracked. Now all six income streams appear in one dashboard. Real revenue. Not just invoiced revenue.',
+    scenario:  'Cash and transfer payments were invisible before. Only invoiced revenue was tracked. Now all six income streams appear in one dashboard. Real revenue, not just invoiced revenue.',
     features:  ['Direct payment logging', 'Revenue categories', 'Unified income view'],
   },
   {
@@ -203,7 +199,7 @@ const PERSONAS = [
     bg:        'rgba(255,107,53,0.06)',
     headline:  'Contract expiring in 12 days. Already renewed.',
     context:   'Three active service contracts. Government and NGO clients. Terms matter.',
-    scenario:  'A 30-day reminder went out. Then a 15-day. Then a 7-day. The contract was renewed three weeks before expiry — not three days after. The system watched it so you didn\'t have to.',
+    scenario:  'A 30-day reminder went out. Then a 15-day. Then a 7-day. The contract was renewed three weeks before expiry, not three days after. The system watched it so you didn\'t have to.',
     features:  ['Contract management', 'Auto expiry reminders at 30/15/7/1d', 'Digital signatures'],
   },
 ]
@@ -221,7 +217,7 @@ function PersonaSection() {
                 The same problem.<br/>Three different businesses.
               </h2>
               <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
-                Invonaut is built for any business where money comes in on terms — and where financial admin currently requires too much of your attention.
+                Invonaut is built for any business where money comes in on terms, and where financial admin currently requires too much of your attention.
               </p>
             </div>
           </motion.div>
@@ -276,7 +272,7 @@ function PersonaSection() {
 // Real screenshots from the live product, sharpened + upscaled.
 // Files: /public/screenshots/{dashboard,intelligence,invoices-pipeline,invoices-risk,cash-forecast,analytics-bhs,analytics-clients}.webp
 const GALLERY = [
-  { src:'/screenshots/dashboard.webp',         tag:'Dashboard',  title:'Business Health Score',        sub:'Computed live — every page load',         accent:'#0055FF' },
+  { src:'/screenshots/dashboard.webp',         tag:'Dashboard',  title:'Business Health Score',        sub:'Computed live, every page load',         accent:'#0055FF' },
   { src:'/screenshots/intelligence.webp',      tag:'Dashboard',  title:'Intelligence Feed',             sub:'8 signals, ranked by urgency',             accent:'#00C4A0' },
   { src:'/screenshots/invoices-risk.webp',     tag:'Invoices',   title:'AI payment risk, per invoice',  sub:'Recalculated daily, not on request',       accent:'#FF6B35' },
   { src:'/screenshots/invoices-pipeline.webp', tag:'Invoices',   title:'Unbilled time → invoice draft', sub:'One click from hours to invoice',          accent:'#0055FF' },
@@ -620,11 +616,11 @@ export default function LandingPageClient() {
                 <span className="grad-text">admin<br/>department.</span>
               </motion.h1>
               <motion.p variants={fadeUp} style={{fontSize:'1.1rem',color:'var(--mid)',lineHeight:1.75,marginBottom:28,maxWidth:490}}>
-                At 9:00 this morning, Invonaut sent a follow-up to a client 8 days late, flagged a contract expiring in 6 days, and refreshed your 90-day cash position — all without a single login. That's not a setting you configure. That's how it runs every day.
+                At 9:00 this morning, Invonaut sent a follow-up to a client 8 days late, flagged a contract expiring in 6 days, and refreshed your 90-day cash position. No login required. That's not a setting you configure. That's how it runs every day.
               </motion.p>
               <motion.div variants={fadeUp} style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center',marginBottom:20}}>
                 <Link href="/signup" style={{background:'linear-gradient(135deg,#0044EE,#0066FF)',color:'#fff',padding:'14px 30px',borderRadius:10,fontWeight:700,fontSize:'.95rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:8,boxShadow:'0 4px 20px rgba(0,85,255,0.35)'}}>
-                  Start free — 14 days <ArrowRight size={16} strokeWidth={2.5}/>
+                  Start free for 14 days <ArrowRight size={16} strokeWidth={2.5}/>
                 </Link>
                 <Link href="#screenshots" style={{color:'var(--blue)',fontWeight:600,fontSize:'.875rem',textDecoration:'none',display:'flex',alignItems:'center',gap:5}}>
                   See the product <ArrowRight size={14}/>
@@ -635,10 +631,10 @@ export default function LandingPageClient() {
               </motion.p>
             </motion.div>
 
-            {/* Right — frosted glass system log card */}
+            {/* Right — system log, presented as a running ledger */}
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.65,duration:.9}}
               className="hidden lg:block">
-              <motion.div style={{background:'rgba(255,255,255,0.88)',backdropFilter:'blur(12px)',border:'1px solid rgba(0,85,255,0.12)',borderRadius:16,padding:28,boxShadow:'0 8px 40px rgba(0,85,255,0.1)'}}>
+              <motion.div style={{background:'#fff',borderRadius:14,padding:'26px 28px',border:'1px solid var(--rule)',borderTop:'3px solid var(--blue)',boxShadow:'0 1px 2px rgba(10,12,18,0.04)'}}>
                 <SystemLog/>
               </motion.div>
             </motion.div>
@@ -673,13 +669,8 @@ export default function LandingPageClient() {
           </Reveal>
           {PAINS.map((p,i)=>(
             <Reveal key={i}>
-              <motion.div variants={fadeUp} style={{display:'grid',gridTemplateColumns:'72px 1fr',gap:44,paddingBottom:i<2?60:0,marginBottom:i<2?60:0,borderBottom:i<2?'1px solid rgba(255,255,255,0.07)':'none'}}>
-                <div className="f-display" style={{fontSize:'2.8rem',fontWeight:800,lineHeight:1,paddingTop:2,
-                  background:'linear-gradient(135deg,var(--blue),var(--teal))',
-                  WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',
-                  opacity:.35}}>
-                  {p.n}
-                </div>
+              <motion.div variants={fadeUp} style={{display:'grid',gridTemplateColumns:'3px 1fr',gap:32,paddingBottom:i<2?60:0,marginBottom:i<2?60:0,borderBottom:i<2?'1px solid rgba(255,255,255,0.07)':'none'}}>
+                <div style={{background:i%2?'var(--teal)':'var(--blue)',borderRadius:2,opacity:.5}}/>
                 <div>
                   <p className="f-display" style={{fontSize:'clamp(1.3rem,2.5vw,1.85rem)',fontWeight:700,color:'#EEF2FF',lineHeight:1.25,marginBottom:16}}>{p.head}</p>
                   <p style={{fontSize:'1rem',color:'rgba(180,193,255,0.52)',lineHeight:1.8}}>{p.body}</p>
@@ -779,7 +770,7 @@ export default function LandingPageClient() {
                 </h2>
               </div>
               <p style={{fontSize:'.975rem',color:'var(--mid)',lineHeight:1.8}}>
-                Eight processes run automatically every day. Chasing late payments, warning about expiring contracts, keeping your forecast current — without you logging in.
+                Eight processes run automatically every day. Chasing late payments, warning about expiring contracts, keeping your forecast current, all without you logging in.
               </p>
             </motion.div>
           </Reveal>
@@ -794,19 +785,6 @@ export default function LandingPageClient() {
               </Reveal>
             ))}
           </div>
-          <Reveal>
-            <motion.div variants={fadeUp} className="auto-stats" style={{marginTop:32,display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
-              {[{v:'8',l:'Automated processes'},{v:'24/7',l:'Runs while you sleep'},{v:'0',l:'Manual triggers needed'}].map((s,i)=>(
-                <div key={i} style={{padding:'24px',background:'#fff',borderRadius:12,border:'1px solid var(--rule)',textAlign:'center'}}>
-                  <p className="f-display" style={{fontSize:'2.2rem',fontWeight:800,letterSpacing:'-.03em',marginBottom:6,
-                    background:'linear-gradient(135deg,var(--blue),var(--teal))',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text'}}>
-                    {s.v}
-                  </p>
-                  <p style={{fontSize:'.78rem',color:'var(--mid)',fontWeight:500}}>{s.l}</p>
-                </div>
-              ))}
-            </motion.div>
-          </Reveal>
         </div>
       </section>
 
@@ -817,8 +795,8 @@ export default function LandingPageClient() {
             {[
               {title:'No lock-in',         body:'Cancel any time. Your data exports in full. No contracts. No exit fees.'},
               {title:'Free for 14 days',   body:'Every plan, fully featured. No credit card required to start. Try everything before you commit.'},
-              {title:'Built on solid security', body:'Your financial data is protected at the row level — only you can see it. Payments handled by Stripe, one of the world\'s most trusted payment processors.'},
-              {title:'No outside funding', body:"Built without investors. Pricing reflects what the product is worth — not a growth target. That keeps it honest."},
+              {title:'Built on solid security', body:'Your financial data is protected at the row level. Only you can see it. Payments handled by Stripe, one of the world\'s most trusted payment processors.'},
+              {title:'No outside funding', body:"Built without investors. Pricing reflects what the product is worth, not a growth target. That keeps it honest."},
             ].map(({title,body})=>(
               <Reveal key={title}>
                 <motion.div variants={fadeUp}>
@@ -853,7 +831,7 @@ export default function LandingPageClient() {
                 <div style={{position:'relative',borderRadius:20,overflow:'hidden',boxShadow:'0 24px 64px rgba(0,0,0,0.12)'}}>
                   <Image
                     src="/founder-kamo.jpg"
-                    alt="Kamo Motelle — Founder, Invonaut"
+                    alt="Kamo Motelle, Founder of Invonaut"
                     width={400}
                     height={533}
                     quality={95}
@@ -910,10 +888,10 @@ export default function LandingPageClient() {
                 </div>
 
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
-                  Talking to small business owners and service businesses, the same pattern kept surfacing — capable people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
+                  Talking to small business owners and service businesses, the same pattern kept surfacing: capable people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
                 </p>
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
-                  The overhead isn't the work. It's just the tax on doing good work. So I spent a year building a system that eliminates it entirely — contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
+                  The overhead isn't the work. It's just the tax on doing good work. So I spent a year building a system that eliminates it entirely: contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
                 </p>
                 <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:36}}>
                   Invonaut is that system. Built solo. Designed to run quietly in the background while you focus on the part that actually matters.
@@ -976,7 +954,7 @@ export default function LandingPageClient() {
                 </h2>
               </div>
               <div style={{padding:'12px 20px',border:'1px solid rgba(0,85,255,0.25)',borderRadius:10,fontSize:'.8rem',color:'var(--blue)',fontWeight:600,maxWidth:360,lineHeight:1.65,background:'rgba(0,85,255,0.03)'}}>
-                Founding member pricing locks in permanently. You pay this price forever — it never increases as the product evolves. Ends at public launch.
+                Founding member pricing locks in permanently. You pay this price forever. It never increases as the product evolves. Ends at public launch.
               </div>
             </motion.div>
           </Reveal>
@@ -1007,7 +985,7 @@ export default function LandingPageClient() {
                       </div>
                     ))}
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',paddingTop:4}}>
-                      <span style={{fontSize:'.85rem',fontWeight:700,color:'var(--ink)'}}>Total — 4 logins, no AI</span>
+                      <span style={{fontSize:'.85rem',fontWeight:700,color:'var(--ink)'}}>Total: 4 logins, no AI</span>
                       <span className="f-mono" style={{fontSize:'1.05rem',fontWeight:700,color:'#EF4444'}}>$153/mo</span>
                     </div>
                   </div>
@@ -1056,7 +1034,7 @@ export default function LandingPageClient() {
           </Reveal>
           <Reveal>
             <motion.p variants={fadeUp} style={{fontSize:'.8rem',color:'var(--faint)',marginTop:20,textAlign:'center'}}>
-              A bookkeeper charges $300–500/month. A fractional CFO charges more. Invonaut automates what both do — starting at $29.
+              A bookkeeper charges $300 to $500 a month. A fractional CFO charges more. Invonaut automates what both do, starting at $29.
             </motion.p>
           </Reveal>
         </div>
@@ -1081,7 +1059,7 @@ export default function LandingPageClient() {
               </p>
               <div style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center',marginBottom:18}}>
                 <Link href="/signup" style={{background:'#fff',color:'#0044EE',padding:'15px 36px',borderRadius:10,fontWeight:800,fontSize:'1rem',textDecoration:'none',display:'inline-flex',alignItems:'center',gap:10,boxShadow:'0 4px 24px rgba(0,0,0,0.2)'}}>
-                  Start free — 14 days <ArrowRight size={17} strokeWidth={2.5}/>
+                  Start free for 14 days <ArrowRight size={17} strokeWidth={2.5}/>
                 </Link>
                 <Link href="#pricing" style={{color:'rgba(255,255,255,0.55)',fontWeight:600,fontSize:'.9rem',textDecoration:'none'}}>
                   See pricing →
@@ -1096,9 +1074,9 @@ export default function LandingPageClient() {
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 {[
                   {icon:Zap,    color:'#60A5FA', bg:'rgba(96,165,250,0.12)', v:'8 processes',   l:'fire every day without you logging in'},
-                  {icon:Clock,  color:'#34D399', bg:'rgba(52,211,153,0.12)', v:'Zero chasing',  l:'invoices are followed up automatically'},
-                  {icon:Shield, color:'#A78BFA', bg:'rgba(167,139,250,0.12)',v:'All contracts', l:'have automatic expiry reminders active'},
-                  {icon:TrendingUp,color:'#FCD34D',bg:'rgba(252,211,77,0.12)',v:'90-day view',  l:'of your cash position, always current'},
+                  {icon:Clock,  color:'#5EEAD4', bg:'rgba(94,234,212,0.12)', v:'Zero chasing',  l:'invoices are followed up automatically'},
+                  {icon:Shield, color:'#60A5FA', bg:'rgba(96,165,250,0.12)',v:'All contracts', l:'have automatic expiry reminders active'},
+                  {icon:TrendingUp,color:'#5EEAD4',bg:'rgba(94,234,212,0.12)',v:'90-day view',  l:'of your cash position, always current'},
                 ].map((card,i)=>{
                   const Icon=card.icon
                   return (
@@ -1145,7 +1123,7 @@ export default function LandingPageClient() {
                         onMouseLeave={e=>(e.currentTarget.style.color='rgba(255,255,255,0.4)')}>
                         {lk.l}
                         {(lk as any).earn && (
-                          <span style={{color:'#FF6B35',fontWeight:700}}> — Earn 30%</span>
+                          <span style={{color:'#FF6B35',fontWeight:700}}> · Earn 30%</span>
                         )}
                       </Link>
                     </li>
