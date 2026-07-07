@@ -33,6 +33,8 @@ const CSS = `
   .hero-mesh {
     background:
       radial-gradient(ellipse 70% 55% at 100% 0%, rgba(0,85,255,0.06) 0%, transparent 60%),
+      repeating-linear-gradient(180deg, rgba(7,7,15,0.045) 0px, rgba(7,7,15,0.045) 1px, transparent 1px, transparent 28px),
+      repeating-linear-gradient(90deg, rgba(7,7,15,0.02) 0px, rgba(7,7,15,0.02) 1px, transparent 1px, transparent 140px),
       #ffffff;
   }
   @keyframes cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
@@ -67,6 +69,16 @@ const CSS = `
     .platform-items{ grid-template-columns:1fr !important; }
   }
 `
+
+// ─── Ledger texture ─────────────────────────────────────────────────────────
+// Faint ruled-paper / spreadsheet-grid lines — a background device grounded in
+// what Invonaut actually is (a ledger that runs itself), used in place of a
+// flat solid fill on every light section. Values are tuned so the lines read
+// as texture, not as a visible grid: opacity lives in the rgba, never on the
+// section itself, so text on top stays full-strength.
+const LEDGER =
+  'repeating-linear-gradient(180deg, rgba(7,7,15,0.045) 0px, rgba(7,7,15,0.045) 1px, transparent 1px, transparent 28px),' +
+  'repeating-linear-gradient(90deg, rgba(7,7,15,0.02) 0px, rgba(7,7,15,0.02) 1px, transparent 1px, transparent 140px)'
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 const E = [0.16, 1, 0.3, 1] as const
@@ -128,11 +140,11 @@ function SystemLog() {
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const PAINS = [
-  { head:'Your invoices are being paid whenever your clients feel like it.',
+  { tag:'Uncollected revenue', head:'Your invoices are being paid whenever your clients feel like it.',
     body:"Without automated follow-ups, late payment becomes the default. Most businesses have thousands of dollars sitting in outstanding invoices. Not because clients won't pay, but because nobody is consistently and professionally asking." },
-  { head:"Half your income isn't showing up anywhere.",
+  { tag:'Untracked income', head:"Half your income isn't showing up anywhere.",
     body:"Cash from a client. A POS payment. A bank transfer that came in while you were on a job. Most finance tools only see invoices, leaving a big part of your real income invisible and your numbers wrong." },
-  { head:"You'll find out your contract expired after it already matters.",
+  { tag:'Contract exposure', head:"You'll find out your contract expired after it already matters.",
     body:"Contracts expire quietly. The client knows their obligations are over. You find out when the work stops or the disagreement starts. By then, you're already at a disadvantage." },
 ]
 const STEPS = [
@@ -207,7 +219,7 @@ const PERSONAS = [
 // ─── Persona section ───────────────────────────────────────────────────────────
 function PersonaSection() {
   return (
-    <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+    <section style={{padding:'100px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <Reveal>
           <motion.div variants={fadeUp} style={{marginBottom:64}}>
@@ -438,7 +450,7 @@ function ScreenshotShowcase() {
   const gridRest = rest.slice(2)
 
   return (
-    <section style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+    <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <Reveal>
           <motion.div variants={fadeUp} style={{marginBottom:56}}>
@@ -672,6 +684,7 @@ export default function LandingPageClient() {
               <motion.div variants={fadeUp} style={{display:'grid',gridTemplateColumns:'3px 1fr',gap:32,paddingBottom:i<2?60:0,marginBottom:i<2?60:0,borderBottom:i<2?'1px solid rgba(255,255,255,0.07)':'none'}}>
                 <div style={{background:i%2?'var(--teal)':'var(--blue)',borderRadius:2,opacity:.5}}/>
                 <div>
+                  <p className="f-mono" style={{fontSize:'.68rem',fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:i%2?'var(--teal)':'#5B8DFF',marginBottom:14}}>{p.tag}</p>
                   <p className="f-display" style={{fontSize:'clamp(1.3rem,2.5vw,1.85rem)',fontWeight:700,color:'#EEF2FF',lineHeight:1.25,marginBottom:16}}>{p.head}</p>
                   <p style={{fontSize:'1rem',color:'rgba(180,193,255,0.52)',lineHeight:1.8}}>{p.body}</p>
                 </div>
@@ -688,7 +701,7 @@ export default function LandingPageClient() {
       <div id="screenshots"><ScreenshotShowcase/></div>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" style={{padding:'100px 24px',background:'var(--surf)'}}>
+      <section id="how-it-works" style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{marginBottom:64}}>
@@ -718,7 +731,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── PLATFORM ─────────────────────────────────────────────────────── */}
-      <section id="platform" style={{padding:'100px 24px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+      <section id="platform" style={{padding:'100px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:24,marginBottom:72}}>
@@ -759,7 +772,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── AUTOMATION ───────────────────────────────────────────────────── */}
-      <section style={{padding:'100px 24px',background:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
+      <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1000,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'flex-end',marginBottom:64}} className="auto-header">
@@ -789,7 +802,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── TRUST ────────────────────────────────────────────────────────── */}
-      <section style={{padding:'64px 24px',background:'#fff',borderTop:'1px solid var(--rule)',borderBottom:'1px solid var(--rule)'}}>
+      <section style={{padding:'64px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)',borderBottom:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1060,margin:'0 auto'}}>
           <div className="trust-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:40}}>
             {[
@@ -811,7 +824,7 @@ export default function LandingPageClient() {
 
 
       {/* ── FOUNDER ──────────────────────────────────────────────────────── */}
-      <section style={{padding:'120px 24px 100px',background:'#fff',borderTop:'1px solid var(--rule)'}}>
+      <section style={{padding:'120px 24px 100px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1060,margin:'0 auto'}}>
           <Reveal>
             <motion.div
@@ -887,13 +900,13 @@ export default function LandingPageClient() {
                   </p>
                 </div>
 
-                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
+                <p style={{fontSize:'.97rem',color:'var(--mid)',lineHeight:1.85,marginBottom:20}}>
                   Talking to small business owners and service businesses, the same pattern kept surfacing: capable people losing hours every week to things that should never require human attention. Sending payment reminders. Reconciling bank statements. Building financial reports from spreadsheets that were already out of date.
                 </p>
-                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:20}}>
+                <p style={{fontSize:'.97rem',color:'var(--mid)',lineHeight:1.85,marginBottom:20}}>
                   The overhead isn't the work. It's just the tax on doing good work. So I spent a year building a system that eliminates it entirely: contracts that track themselves, invoices that follow up automatically, cash flow that updates without you touching it, and financial statements that generate in one click.
                 </p>
-                <p style={{fontSize:'.97rem',color:'var(--muted)',lineHeight:1.85,marginBottom:36}}>
+                <p style={{fontSize:'.97rem',color:'var(--mid)',lineHeight:1.85,marginBottom:36}}>
                   Invonaut is that system. Built solo. Designed to run quietly in the background while you focus on the part that actually matters.
                 </p>
 
@@ -917,7 +930,7 @@ export default function LandingPageClient() {
                       Founder &amp; CEO, Invonaut
                     </p>
                   </div>
-                  <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderRadius:8,background:'var(--surf)',border:'1px solid var(--rule)'}}>
+                  <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8,padding:'8px 16px',borderRadius:8,background:'#fff',border:'1px solid var(--rule)'}}>
                     <img src="/naut-blue.svg" alt="" aria-hidden="true" style={{width:18,height:18,objectFit:'contain',opacity:.7}}/>
                     <span style={{fontSize:'.75rem',fontWeight:700,color:'var(--faint)',letterSpacing:'.05em',textTransform:'uppercase'}}>Invonaut</span>
                   </div>
@@ -943,7 +956,7 @@ export default function LandingPageClient() {
       `}</style>
 
       {/* ── PRICING ──────────────────────────────────────────────────────── */}
-      <section id="pricing" style={{padding:'100px 24px',background:'var(--surf)'}}>
+      <section id="pricing" style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{marginBottom:56,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:24}}>
