@@ -7,7 +7,7 @@ import { useRef, useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { ArrowRight, Check, Zap, TrendingUp, Clock, Shield, X, Menu } from 'lucide-react'
+import { ArrowRight, X, Menu } from 'lucide-react'
 import LandingPricingSection from '@/components/landing-pricing-section'
 
 // ─── Global styles ────────────────────────────────────────────────────────────
@@ -240,30 +240,27 @@ function PersonaSection() {
             <Reveal key={i}>
               <motion.div variants={fadeUp} style={{background:'#fff',padding:'36px 32px',height:'100%',display:'flex',flexDirection:'column',gap:0}}>
                 {/* Type badge */}
-                <div style={{display:'inline-flex',alignItems:'center',gap:8,marginBottom:24}}>
+                <div style={{display:'inline-flex',alignItems:'center',gap:8,marginBottom:22}}>
                   <span style={{width:8,height:8,borderRadius:'50%',background:p.color,flexShrink:0,display:'inline-block'}}/>
                   <span style={{fontSize:'.68rem',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:p.color}}>{p.type}</span>
                 </div>
 
                 {/* Headline */}
-                <p className="f-display" style={{fontSize:'clamp(1.05rem,1.8vw,1.3rem)',fontWeight:700,color:'var(--ink)',lineHeight:1.3,marginBottom:20,letterSpacing:'-.015em'}}>{p.headline}</p>
+                <p className="f-display" style={{fontSize:'clamp(1.05rem,1.8vw,1.3rem)',fontWeight:700,color:'var(--ink)',lineHeight:1.3,marginBottom:10,letterSpacing:'-.015em'}}>{p.headline}</p>
 
-                {/* Context */}
-                <p style={{fontSize:'.8rem',color:'var(--faint)',lineHeight:1.7,marginBottom:20,fontStyle:'italic'}}>{p.context}</p>
+                {/* Context, as a mono meta line rather than italic prose */}
+                <p className="f-mono" style={{fontSize:'.72rem',color:'var(--faint)',letterSpacing:'-.01em',marginBottom:22}}>{p.context}</p>
 
-                {/* Scenario */}
-                <div style={{padding:'16px 18px',borderRadius:10,background:p.bg,marginBottom:24,flex:1}}>
-                  <p style={{fontSize:'.825rem',color:'var(--ink)',lineHeight:1.8}}>{p.scenario}</p>
+                {/* Scenario, presented as a ledger log rather than a colored callout box */}
+                <div style={{borderTop:'1px solid var(--rule)',paddingTop:16,marginBottom:22,flex:1}}>
+                  <p style={{fontSize:'.82rem',color:'var(--mid)',lineHeight:1.8}}>{p.scenario}</p>
                 </div>
 
-                {/* Features */}
-                <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:8}}>
+                {/* Capabilities used, as a hairline-divided mono list — no icon bullets */}
+                <ul style={{listStyle:'none',padding:0,margin:0,borderTop:'1px solid var(--rule)'}}>
                   {p.features.map(f=>(
-                    <li key={f} style={{display:'flex',alignItems:'center',gap:10}}>
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{flexShrink:0}}>
-                        <circle cx="7" cy="7" r="7" fill={p.color} fillOpacity=".12"/>
-                        <path d="M4.5 7l1.8 1.8L9.5 5.5" stroke={p.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                    <li key={f} style={{display:'flex',alignItems:'baseline',gap:10,padding:'9px 0',borderBottom:'1px solid var(--rule)'}}>
+                      <span className="f-mono" style={{fontSize:'.7rem',color:p.color,flexShrink:0}}>→</span>
                       <span style={{fontSize:'.78rem',color:'var(--mid)',fontWeight:500}}>{f}</span>
                     </li>
                   ))}
@@ -280,18 +277,102 @@ function PersonaSection() {
   )
 }
 
-// ─── Product gallery ────────────────────────────────────────────────────────
+// ─── Ledger preview ─────────────────────────────────────────────────────────
+// The page's signature device: a real-looking record of mixed events (invoice,
+// payment, expense, contract, forecast) in one table, tabular and right-aligned
+// like an actual financial document — not a screenshot, not an illustration.
+const LEDGER_ROWS = [
+  { date:'2026-07-01', ref:'INV-00089', party:'Acme Corp',              type:'invoice',       note:'8 days overdue · reminder sent',  amt:'+4,200.00' },
+  { date:'2026-07-01', ref:'PAY-0231',  party:'Dara M.',                type:'cash',          note:'logged from mobile',              amt:'+180.00' },
+  { date:'2026-07-02', ref:'EXP-0117',  party:'Adobe · annual plan',    type:'expense',       note:'categorized on entry',            amt:'-240.00' },
+  { date:'2026-07-02', ref:'CT-0044',   party:'Northside Media',       type:'contract',      note:'signed · auto-filed',             amt:'—' },
+  { date:'2026-07-03', ref:'PAY-0232',  party:'Riverstone Consulting',  type:'bank transfer', note:'reconciled automatically',        amt:'+1,150.00' },
+  { date:'2026-07-05', ref:'FCT-090',   party:'90-day forecast',        type:'system',        note:'refreshed on open',               amt:'+18,600.00' },
+]
+
+function LedgerPreview() {
+  return (
+    <section style={{padding:'100px 24px',backgroundColor:'var(--surf2)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+      <div style={{maxWidth:1160,margin:'0 auto'}}>
+        <div className="ledger-preview-grid" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:64}}>
+          <Reveal>
+            <motion.div variants={fadeUp}>
+              <p style={{fontSize:'.72rem',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--faint)',marginBottom:20}}>Inside the ledger</p>
+              <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)',marginBottom:20}}>
+                Not a dashboard.<br/>A record that keeps itself.
+              </h2>
+              <p style={{fontSize:'.95rem',color:'var(--mid)',lineHeight:1.8,marginBottom:36}}>
+                Every invoice, payment, expense, and contract event lands in the same place the moment it happens: timestamped, reconciled, right-aligned like it should be. This is the layer everything else on this page is describing.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,borderTop:'1px solid var(--rule)',paddingTop:24}}>
+                {[
+                  {l:'Receivable · 30d', v:'$12,400', c:'var(--ink)'},
+                  {l:'Cash · today',     v:'$8,240',  c:'var(--teal)'},
+                  {l:'Forecast · 90d',   v:'$24,900', c:'var(--ink)'},
+                  {l:'At-risk · flagged',v:'$4,200',  c:'var(--orange)'},
+                ].map(s=>(
+                  <div key={s.l}>
+                    <p className="f-mono" style={{fontSize:'.62rem',letterSpacing:'.08em',textTransform:'uppercase',color:'var(--faint)',marginBottom:6}}>{s.l}</p>
+                    <p className="f-mono" style={{fontSize:'1.15rem',fontWeight:600,color:s.c}}>{s.v}</p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          </Reveal>
+
+          <Reveal>
+            <motion.div variants={fadeUp} style={{borderRadius:12,border:'1px solid var(--rule)',background:'#fff',overflow:'hidden'}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 20px',borderBottom:'1px solid var(--rule)',background:'var(--surf)'}}>
+                <span className="f-mono" style={{fontSize:'.66rem',letterSpacing:'.1em',textTransform:'uppercase',color:'var(--mid)'}}>ledger · week of jul 1</span>
+                <span className="f-mono" style={{fontSize:'.66rem',color:'var(--faint)'}}>6 entries · auto-reconciled</span>
+              </div>
+              <div style={{overflowX:'auto'}}>
+                <table style={{width:'100%',minWidth:560,borderCollapse:'collapse',textAlign:'left'}}>
+                  <thead>
+                    <tr style={{borderBottom:'1px solid var(--rule)'}}>
+                      {['date','ref','party','note','amount'].map((h,i)=>(
+                        <th key={h} className="f-mono" style={{padding:'10px 16px',fontSize:'.6rem',letterSpacing:'.08em',textTransform:'uppercase',color:'var(--faint)',fontWeight:500,textAlign:i===4?'right':'left'}}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {LEDGER_ROWS.map((r,i)=>{
+                      const positive = r.amt.startsWith('+')
+                      const dash = r.amt === '—'
+                      return (
+                        <tr key={i} style={{borderBottom:i<LEDGER_ROWS.length-1?'1px solid var(--rule)':'none'}}>
+                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.72rem',color:'var(--mid)'}}>{r.date.slice(5)}</td>
+                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.72rem',color:'var(--faint)'}}>{r.ref}</td>
+                          <td style={{padding:'12px 16px',fontSize:'.78rem',color:'var(--ink)',fontWeight:600}}>{r.party}</td>
+                          <td style={{padding:'12px 16px',fontSize:'.74rem',color:'var(--mid)'}}>{r.note}</td>
+                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.78rem',fontWeight:600,textAlign:'right',color:dash?'var(--faint)':positive?'var(--teal)':'var(--orange)'}}>{r.amt}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',padding:'12px 20px',borderTop:'1px solid var(--rule)',background:'var(--surf)'}}>
+                <span className="f-mono" style={{fontSize:'.66rem',color:'var(--mid)'}}>net week</span>
+                <span className="f-mono" style={{fontSize:'.78rem',fontWeight:600,color:'var(--ink)'}}>+$23,890.00</span>
+              </div>
+            </motion.div>
+          </Reveal>
+        </div>
+      </div>
+      <style jsx global>{`
+        @media(max-width:900px){ .ledger-preview-grid{ grid-template-columns:1fr !important; } }
+      `}</style>
+    </section>
+  )
+}
+
 // Real screenshots from the live product, sharpened + upscaled.
 // Files: /public/screenshots/{dashboard,intelligence,invoices-pipeline,invoices-risk,cash-forecast,analytics-bhs,analytics-clients}.webp
 const GALLERY = [
-  { src:'/screenshots/dashboard.webp',         tag:'Dashboard',  title:'Business Health Score',        sub:'Computed live, every page load',         accent:'#0055FF' },
-  { src:'/screenshots/intelligence.webp',      tag:'Dashboard',  title:'Intelligence Feed',             sub:'8 signals, ranked by urgency',             accent:'#00C4A0' },
-  { src:'/screenshots/invoices-risk.webp',     tag:'Invoices',   title:'AI payment risk, per invoice',  sub:'Recalculated daily, not on request',       accent:'#FF6B35' },
-  { src:'/screenshots/invoices-pipeline.webp', tag:'Invoices',   title:'Unbilled time → invoice draft', sub:'One click from hours to invoice',          accent:'#0055FF' },
-  { src:'/screenshots/cash-forecast.webp',     tag:'Cash Flow',  title:'90-day forecast',                sub:'Projected from invoices + expense run rate', accent:'#00C4A0' },
-  { src:'/screenshots/analytics-bhs.webp',     tag:'Analytics',  title:'Collection rate, margin, growth', sub:'One score, four inputs',                   accent:'#0055FF' },
-  { src:'/screenshots/analytics-clients.webp', tag:'Analytics',  title:'Client revenue concentration',   sub:'See who your business depends on',         accent:'#FF6B35' },
-  { src:'/screenshots/reports-pnl.webp',       tag:'Reports',    title:'Profit & Loss statement',        sub:'Real financial statements, not a summary', accent:'#00C4A0' },
+  { src:'/screenshots/dashboard.webp',    tag:'Dashboard',  title:'Business Health Score',        sub:'Computed live, every page load',           accent:'#0055FF' },
+  { src:'/screenshots/intelligence.webp', tag:'Dashboard',  title:'Intelligence Feed',             sub:'8 signals, ranked by urgency',              accent:'#00C4A0' },
+  { src:'/screenshots/cash-forecast.webp',tag:'Cash Flow',  title:'90-day forecast',                sub:'Projected from invoices + expense run rate',accent:'#FF6B35' },
 ]
 
 function GalleryCard({ item, size='md', onOpen }: { item: typeof GALLERY[0]; size?: 'lg' | 'md'; onOpen: () => void }) {
@@ -446,8 +527,6 @@ function GalleryLightbox({ item, onClose }: { item: typeof GALLERY[0] | null; on
 function ScreenshotShowcase() {
   const [openItem, setOpenItem] = useState<typeof GALLERY[0] | null>(null)
   const [big, ...rest] = GALLERY
-  const grid2 = rest.slice(0, 2)
-  const gridRest = rest.slice(2)
 
   return (
     <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
@@ -459,24 +538,24 @@ function ScreenshotShowcase() {
             </p>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:20}}>
               <h2 className="f-display" style={{fontSize:'clamp(1.9rem,4vw,3rem)',fontWeight:800,letterSpacing:'-.022em',lineHeight:1.08,color:'var(--ink)'}}>
-                The actual product.
+                A few real screens.
               </h2>
               <p style={{fontSize:'.9rem',color:'var(--mid)',maxWidth:340,lineHeight:1.75}}>
-                Real screens, pulled live from a running account. Click any shot to see it in full.
+                Pulled live from a running account. The rest is worth finding out inside the free trial.
               </p>
             </div>
           </motion.div>
         </Reveal>
 
-        {/* Gallery grid: 1 large left + 2 stacked right, then a 4-up row below */}
-        <div className="gallery-top" style={{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:14,marginBottom:14}}>
+        {/* Gallery: 1 large left + 2 stacked right. Deliberately just three — not a full tour. */}
+        <div className="gallery-top" style={{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:14}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{height:'100%',minHeight:360}}>
               <GalleryCard item={big} size="lg" onOpen={() => setOpenItem(big)}/>
             </motion.div>
           </Reveal>
           <div style={{display:'grid',gridTemplateRows:'1fr 1fr',gap:14}}>
-            {grid2.map((item,i)=>(
+            {rest.map(item=>(
               <Reveal key={item.title}>
                 <motion.div variants={fadeUp} style={{height:'100%',minHeight:170}}>
                   <GalleryCard item={item} onOpen={() => setOpenItem(item)}/>
@@ -485,30 +564,13 @@ function ScreenshotShowcase() {
             ))}
           </div>
         </div>
-
-        <div className="gallery-bottom" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:14}}>
-          {gridRest.map(item=>(
-            <Reveal key={item.title}>
-              <motion.div variants={fadeUp} style={{height:'100%',minHeight:200}}>
-                <GalleryCard item={item} onOpen={() => setOpenItem(item)}/>
-              </motion.div>
-            </Reveal>
-          ))}
-        </div>
       </div>
 
       <GalleryLightbox item={openItem} onClose={() => setOpenItem(null)}/>
 
       <style jsx global>{`
-        @media(max-width:1100px){
-          .gallery-bottom{ grid-template-columns:repeat(3,1fr) !important; }
-        }
         @media(max-width:900px){
           .gallery-top{ grid-template-columns:1fr !important; }
-          .gallery-bottom{ grid-template-columns:1fr 1fr !important; }
-        }
-        @media(max-width:560px){
-          .gallery-bottom{ grid-template-columns:1fr !important; }
         }
         .gallery-card:hover .gallery-expand-hint{ opacity:1 !important; }
       `}</style>
@@ -694,6 +756,9 @@ export default function LandingPageClient() {
         </div>
       </section>
 
+      {/* ── LEDGER PREVIEW ───────────────────────────────────────────────── */}
+      <LedgerPreview/>
+
       {/* ── PERSONA SCENARIOS ────────────────────────────────────────────── */}
       <PersonaSection/>
 
@@ -715,11 +780,9 @@ export default function LandingPageClient() {
             {STEPS.map((s,i)=>(
               <Reveal key={i}>
                 <motion.div variants={fadeUp} style={{padding:'36px 28px',background:'#fff',borderRight:i<3?'1px solid var(--rule)':'none',height:'100%'}}>
-                  <div className="f-display" style={{fontSize:'2.4rem',fontWeight:800,marginBottom:24,lineHeight:1,
-                    background:`linear-gradient(135deg,${s.c},${s.c === 'var(--blue)' ? 'var(--teal)' : 'var(--blue)'})`,
-                    WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent',backgroundClip:'text',
-                    opacity:.25}}>
-                    {s.n}
+                  <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:28}}>
+                    <span className="f-mono" style={{fontSize:'.8rem',color:s.c,fontWeight:600,letterSpacing:'-.01em'}}>{s.n}</span>
+                    <span className="f-mono" style={{fontSize:'.6rem',color:'var(--faint)',letterSpacing:'.1em',textTransform:'uppercase'}}>step</span>
                   </div>
                   <p style={{fontWeight:700,fontSize:'.875rem',color:'var(--ink)',marginBottom:10,letterSpacing:'-.01em'}}>{s.title}</p>
                   <p style={{fontSize:'.825rem',color:'var(--mid)',lineHeight:1.8}}>{s.body}</p>
@@ -1025,11 +1088,8 @@ export default function LandingPageClient() {
                       'Automated follow-ups, daily',
                       'Business Health Score',
                     ].map(f=>(
-                      <div key={f} style={{display:'flex',alignItems:'center',gap:10}}>
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{flexShrink:0}}>
-                          <circle cx="7" cy="7" r="7" fill="rgba(0,85,255,0.1)"/>
-                          <path d="M4.5 7l1.8 1.8L9.5 5.5" stroke="#0055FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                      <div key={f} style={{display:'flex',alignItems:'baseline',gap:10}}>
+                        <span className="f-mono" style={{fontSize:'.7rem',color:'var(--blue)',flexShrink:0}}>→</span>
                         <span style={{fontSize:'.82rem',color:'var(--mid)'}}>{f}</span>
                       </div>
                     ))}
@@ -1083,27 +1143,25 @@ export default function LandingPageClient() {
               </p>
             </div>
 
-            {/* Right — stat cards */}
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-                {[
-                  {icon:Zap,    color:'#60A5FA', bg:'rgba(96,165,250,0.12)', v:'8 processes',   l:'fire every day without you logging in'},
-                  {icon:Clock,  color:'#5EEAD4', bg:'rgba(94,234,212,0.12)', v:'Zero chasing',  l:'invoices are followed up automatically'},
-                  {icon:Shield, color:'#60A5FA', bg:'rgba(96,165,250,0.12)',v:'All contracts', l:'have automatic expiry reminders active'},
-                  {icon:TrendingUp,color:'#5EEAD4',bg:'rgba(94,234,212,0.12)',v:'90-day view',  l:'of your cash position, always current'},
-                ].map((card,i)=>{
-                  const Icon=card.icon
-                  return (
-                    <div key={i} style={{display:'flex',alignItems:'center',gap:16,padding:'16px 20px',borderRadius:14,background:'rgba(255,255,255,0.07)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(8px)'}}>
-                      <div style={{width:38,height:38,borderRadius:10,background:card.bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                        <Icon size={17} style={{color:card.color}}/>
-                      </div>
-                      <div>
-                        <p style={{fontWeight:800,fontSize:'.9rem',color:'#fff',letterSpacing:'-.01em',marginBottom:2}}>{card.v}</p>
-                        <p style={{fontSize:'.78rem',color:'rgba(255,255,255,0.5)',lineHeight:1.5}}>{card.l}</p>
-                      </div>
-                    </div>
-                  )
-                })}
+            {/* Right — tomorrow's log, bookending the hero's system log */}
+            <div style={{borderRadius:14,background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.14)',overflow:'hidden'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,padding:'14px 20px',borderBottom:'1px solid rgba(255,255,255,0.12)'}}>
+                <span style={{width:7,height:7,borderRadius:'50%',background:'#5EEAD4',flexShrink:0}}/>
+                <span className="f-mono" style={{fontSize:'.62rem',letterSpacing:'.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.5)'}}>
+                  tomorrow · 09:00
+                </span>
+              </div>
+              {[
+                { t:'09:00', d:'Overdue invoices followed up, automatically' },
+                { t:'09:00', d:'Contracts checked at 30 / 15 / 7 / 1 day out' },
+                { t:'on open', d:'Cash position refreshed, 90 days ahead' },
+                { t:'always', d:'Nothing on this list required you' },
+              ].map((row,i,arr)=>(
+                <div key={i} className="f-mono" style={{display:'grid',gridTemplateColumns:'62px 1fr',gap:14,padding:'14px 20px',borderBottom:i<arr.length-1?'1px solid rgba(255,255,255,0.08)':'none'}}>
+                  <span style={{fontSize:'.68rem',color:'rgba(255,255,255,0.4)'}}>{row.t}</span>
+                  <span style={{fontSize:'.78rem',color:'rgba(255,255,255,0.85)',lineHeight:1.5}}>{row.d}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
