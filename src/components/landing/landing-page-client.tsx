@@ -25,16 +25,9 @@ const CSS = `
     --surf:  #F8FAFF;
     --surf2: #EFF4FF;
   }
-  .grad-text {
-    background: linear-gradient(135deg, var(--blue) 0%, #3B82F6 50%, var(--teal) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
   .hero-mesh {
     background:
       radial-gradient(ellipse 70% 55% at 100% 0%, rgba(0,85,255,0.06) 0%, transparent 60%),
-      repeating-linear-gradient(180deg, rgba(7,7,15,0.045) 0px, rgba(7,7,15,0.045) 1px, transparent 1px, transparent 28px),
-      repeating-linear-gradient(90deg, rgba(7,7,15,0.02) 0px, rgba(7,7,15,0.02) 1px, transparent 1px, transparent 140px),
       #ffffff;
   }
   @keyframes cursor-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
@@ -69,16 +62,6 @@ const CSS = `
     .platform-items{ grid-template-columns:1fr !important; }
   }
 `
-
-// ─── Ledger texture ─────────────────────────────────────────────────────────
-// Faint ruled-paper / spreadsheet-grid lines — a background device grounded in
-// what Invonaut actually is (a ledger that runs itself), used in place of a
-// flat solid fill on every light section. Values are tuned so the lines read
-// as texture, not as a visible grid: opacity lives in the rgba, never on the
-// section itself, so text on top stays full-strength.
-const LEDGER =
-  'repeating-linear-gradient(180deg, rgba(7,7,15,0.045) 0px, rgba(7,7,15,0.045) 1px, transparent 1px, transparent 28px),' +
-  'repeating-linear-gradient(90deg, rgba(7,7,15,0.02) 0px, rgba(7,7,15,0.02) 1px, transparent 1px, transparent 140px)'
 
 // ─── Animations ───────────────────────────────────────────────────────────────
 const E = [0.16, 1, 0.3, 1] as const
@@ -219,7 +202,7 @@ const PERSONAS = [
 // ─── Persona section ───────────────────────────────────────────────────────────
 function PersonaSection() {
   return (
-    <section style={{padding:'100px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+    <section style={{padding:'100px 24px',backgroundColor:'#fff',borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <Reveal>
           <motion.div variants={fadeUp} style={{marginBottom:64}}>
@@ -251,15 +234,13 @@ function PersonaSection() {
                 {/* Context, as a mono meta line rather than italic prose */}
                 <p className="f-mono" style={{fontSize:'.72rem',color:'var(--faint)',letterSpacing:'-.01em',marginBottom:22}}>{p.context}</p>
 
-                {/* Scenario, presented as a ledger log rather than a colored callout box */}
-                <div style={{borderTop:'1px solid var(--rule)',paddingTop:16,marginBottom:22,flex:1}}>
-                  <p style={{fontSize:'.82rem',color:'var(--mid)',lineHeight:1.8}}>{p.scenario}</p>
-                </div>
+                {/* Scenario */}
+                <p style={{fontSize:'.82rem',color:'var(--mid)',lineHeight:1.8,marginBottom:24,flex:1}}>{p.scenario}</p>
 
-                {/* Capabilities used, as a hairline-divided mono list — no icon bullets */}
-                <ul style={{listStyle:'none',padding:0,margin:0,borderTop:'1px solid var(--rule)'}}>
+                {/* Capabilities used — spacing only, no divider lines */}
+                <ul style={{listStyle:'none',padding:0,margin:0,display:'flex',flexDirection:'column',gap:11}}>
                   {p.features.map(f=>(
-                    <li key={f} style={{display:'flex',alignItems:'baseline',gap:10,padding:'9px 0',borderBottom:'1px solid var(--rule)'}}>
+                    <li key={f} style={{display:'flex',alignItems:'baseline',gap:10}}>
                       <span className="f-mono" style={{fontSize:'.7rem',color:p.color,flexShrink:0}}>→</span>
                       <span style={{fontSize:'.78rem',color:'var(--mid)',fontWeight:500}}>{f}</span>
                     </li>
@@ -292,7 +273,7 @@ const LEDGER_ROWS = [
 
 function LedgerPreview() {
   return (
-    <section style={{padding:'100px 24px',backgroundColor:'var(--surf2)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+    <section style={{padding:'100px 24px',backgroundColor:'var(--surf2)',borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <div className="ledger-preview-grid" style={{display:'grid',gridTemplateColumns:'1fr 2fr',gap:64}}>
           <Reveal>
@@ -304,7 +285,7 @@ function LedgerPreview() {
               <p style={{fontSize:'.95rem',color:'var(--mid)',lineHeight:1.8,marginBottom:36}}>
                 Every invoice, payment, expense, and contract event lands in the same place the moment it happens: timestamped, reconciled, right-aligned like it should be. This is the layer everything else on this page is describing.
               </p>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,borderTop:'1px solid var(--rule)',paddingTop:24}}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginTop:8}}>
                 {[
                   {l:'Receivable · 30d', v:'$12,400', c:'var(--ink)'},
                   {l:'Cash · today',     v:'$8,240',  c:'var(--teal)'},
@@ -340,12 +321,12 @@ function LedgerPreview() {
                       const positive = r.amt.startsWith('+')
                       const dash = r.amt === '—'
                       return (
-                        <tr key={i} style={{borderBottom:i<LEDGER_ROWS.length-1?'1px solid var(--rule)':'none'}}>
-                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.72rem',color:'var(--mid)'}}>{r.date.slice(5)}</td>
-                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.72rem',color:'var(--faint)'}}>{r.ref}</td>
-                          <td style={{padding:'12px 16px',fontSize:'.78rem',color:'var(--ink)',fontWeight:600}}>{r.party}</td>
-                          <td style={{padding:'12px 16px',fontSize:'.74rem',color:'var(--mid)'}}>{r.note}</td>
-                          <td className="f-mono" style={{padding:'12px 16px',fontSize:'.78rem',fontWeight:600,textAlign:'right',color:dash?'var(--faint)':positive?'var(--teal)':'var(--orange)'}}>{r.amt}</td>
+                        <tr key={i}>
+                          <td className="f-mono" style={{padding:'14px 16px',fontSize:'.72rem',color:'var(--mid)'}}>{r.date.slice(5)}</td>
+                          <td className="f-mono" style={{padding:'14px 16px',fontSize:'.72rem',color:'var(--faint)'}}>{r.ref}</td>
+                          <td style={{padding:'14px 16px',fontSize:'.78rem',color:'var(--ink)',fontWeight:600}}>{r.party}</td>
+                          <td style={{padding:'14px 16px',fontSize:'.74rem',color:'var(--mid)'}}>{r.note}</td>
+                          <td className="f-mono" style={{padding:'14px 16px',fontSize:'.78rem',fontWeight:600,textAlign:'right',color:dash?'var(--faint)':positive?'var(--teal)':'var(--orange)'}}>{r.amt}</td>
                         </tr>
                       )
                     })}
@@ -529,7 +510,7 @@ function ScreenshotShowcase() {
   const [big, ...rest] = GALLERY
 
   return (
-    <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+    <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
       <div style={{maxWidth:1160,margin:'0 auto'}}>
         <Reveal>
           <motion.div variants={fadeUp} style={{marginBottom:56}}>
@@ -687,7 +668,7 @@ export default function LandingPageClient() {
               </motion.p>
               <motion.h1 variants={fadeUp} className="f-display" style={{fontSize:'clamp(2.6rem,5.5vw,4.6rem)',fontWeight:800,lineHeight:1.03,letterSpacing:'-.025em',marginBottom:20}}>
                 You built a business,<br/>not an{' '}
-                <span className="grad-text">admin<br/>department.</span>
+                <span style={{color:'var(--blue)'}}>admin<br/>department.</span>
               </motion.h1>
               <motion.p variants={fadeUp} style={{fontSize:'1.1rem',color:'var(--mid)',lineHeight:1.75,marginBottom:28,maxWidth:490}}>
                 At 9:00 this morning, Invonaut sent a follow-up to a client 8 days late, flagged a contract expiring in 6 days, and refreshed your 90-day cash position. No login required. That's not a setting you configure. That's how it runs every day.
@@ -766,7 +747,7 @@ export default function LandingPageClient() {
       <div id="screenshots"><ScreenshotShowcase/></div>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-      <section id="how-it-works" style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER}}>
+      <section id="how-it-works" style={{padding:'100px 24px',backgroundColor:'var(--surf)'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{marginBottom:64}}>
@@ -794,7 +775,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── PLATFORM ─────────────────────────────────────────────────────── */}
-      <section id="platform" style={{padding:'100px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+      <section id="platform" style={{padding:'100px 24px',backgroundColor:'#fff',borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:24,marginBottom:72}}>
@@ -835,7 +816,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── AUTOMATION ───────────────────────────────────────────────────── */}
-      <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+      <section style={{padding:'100px 24px',backgroundColor:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1000,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'flex-end',marginBottom:64}} className="auto-header">
@@ -853,7 +834,7 @@ export default function LandingPageClient() {
           <div style={{background:'#fff',borderRadius:16,border:'1px solid var(--rule)',overflow:'hidden'}}>
             {AUTOMATIONS.map((a,i)=>(
               <Reveal key={i}>
-                <motion.div variants={fadeUp} className="auto-row" style={{display:'grid',gridTemplateColumns:'160px 1fr 2fr',gap:32,padding:'18px 24px',borderBottom:i<AUTOMATIONS.length-1?'1px solid var(--rule)':'none',alignItems:'baseline'}}>
+                <motion.div variants={fadeUp} className="auto-row" style={{display:'grid',gridTemplateColumns:'160px 1fr 2fr',gap:32,padding:'20px 24px',alignItems:'baseline',background:i%2?'var(--surf)':'#fff'}}>
                   <p className="f-mono auto-sched" style={{fontSize:'.68rem',color:'var(--blue)',fontWeight:500,paddingTop:1}}>{a.s}</p>
                   <p style={{fontWeight:700,fontSize:'.85rem',color:'var(--ink)',letterSpacing:'-.01em'}}>{a.n}</p>
                   <p style={{fontSize:'.8rem',color:'var(--mid)',lineHeight:1.75}}>{a.d}</p>
@@ -865,7 +846,7 @@ export default function LandingPageClient() {
       </section>
 
       {/* ── TRUST ────────────────────────────────────────────────────────── */}
-      <section style={{padding:'64px 24px',backgroundColor:'#fff',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)',borderBottom:'1px solid var(--rule)'}}>
+      <section style={{padding:'64px 24px',backgroundColor:'#fff',borderTop:'1px solid var(--rule)',borderBottom:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1060,margin:'0 auto'}}>
           <div className="trust-grid" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:40}}>
             {[
@@ -887,7 +868,7 @@ export default function LandingPageClient() {
 
 
       {/* ── FOUNDER ──────────────────────────────────────────────────────── */}
-      <section style={{padding:'120px 24px 100px',backgroundColor:'var(--surf)',backgroundImage:LEDGER,borderTop:'1px solid var(--rule)'}}>
+      <section style={{padding:'120px 24px 100px',backgroundColor:'var(--surf)',borderTop:'1px solid var(--rule)'}}>
         <div style={{maxWidth:1060,margin:'0 auto'}}>
           <Reveal>
             <motion.div
@@ -1019,7 +1000,7 @@ export default function LandingPageClient() {
       `}</style>
 
       {/* ── PRICING ──────────────────────────────────────────────────────── */}
-      <section id="pricing" style={{padding:'100px 24px',backgroundColor:'var(--surf)',backgroundImage:LEDGER}}>
+      <section id="pricing" style={{padding:'100px 24px',backgroundColor:'var(--surf)'}}>
         <div style={{maxWidth:1160,margin:'0 auto'}}>
           <Reveal>
             <motion.div variants={fadeUp} style={{marginBottom:56,display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:24}}>
