@@ -55,10 +55,16 @@ export default function PricingClientWrapper({
     ? 'All plans include 14-day free trial · No credit card required · Cancel anytime'
     : 'Flexible billing · Cancel anytime · Instant access'
 
+  // Accent colours follow the tier mapping already established elsewhere in
+  // the app (orange=Starter, blue=Professional, teal=Business). The
+  // highlighted card's accent is a lighter blue tint (#60A5FA) for contrast
+  // against its dark background — same adjustment the homepage's
+  // LandingPricingSection already makes for the same reason.
   const plans = [
     {
       id: 'starter',
       name: 'Starter',
+      accent: 'var(--orange)',
       monthlyPrice: 29,
       annualMonthlyPrice: 24,
       annualTotalPrice: 290,
@@ -83,6 +89,7 @@ export default function PricingClientWrapper({
     {
       id: 'professional',
       name: 'Professional',
+      accent: '#60A5FA',
       monthlyPrice: 59,
       annualMonthlyPrice: 49,
       annualTotalPrice: 590,
@@ -107,6 +114,7 @@ export default function PricingClientWrapper({
     {
       id: 'business',
       name: 'Business',
+      accent: 'var(--teal)',
       monthlyPrice: 109,
       annualMonthlyPrice: 91,
       annualTotalPrice: 1090,
@@ -127,172 +135,140 @@ export default function PricingClientWrapper({
     },
   ]
 
+  // Matches the checkmark path already used in LandingPricingSection —
+  // same icon on both pricing surfaces instead of two different treatments.
   const CHECK = (
-    <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" style={{ flexShrink: 0, marginTop: 3 }}>
+      <path fillRule="evenodd" d="M11.78 3.97a.75.75 0 0 1 0 1.06l-5.5 5.5a.75.75 0 0 1-1.06 0l-2.5-2.5a.75.75 0 1 1 1.06-1.06L5.75 8.94l4.97-4.97a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
     </svg>
   )
 
   return (
-    <div className="min-h-screen bg-gray-50 py-16 px-4">
-      <div className="max-w-7xl mx-auto">
-
-        {/* Header */}
-        <div className="text-center mb-10">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">Choose Your Plan</h1>
-          <p className="text-xl text-gray-600">
-            {isLoggedIn && hasEverSubscribed
-              ? 'Select a plan to reactivate your subscription'
-              : 'Start with a 14-day free trial. No credit card required.'}
-          </p>
-        </div>
-
-        {/* Billing toggle */}
-        <div className="flex items-center justify-center gap-4 mb-12">
-          <span className={`text-sm font-bold ${billing === 'monthly' ? 'text-gray-900' : 'text-gray-400'}`}>
-            Monthly
+    <div>
+      {/* Billing toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 14, marginBottom: 48 }}>
+        <span style={{ fontSize: '.875rem', fontWeight: 700, color: billing === 'monthly' ? 'var(--ink)' : 'var(--faint)' }}>
+          Monthly
+        </span>
+        <button
+          onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
+          style={{ position: 'relative', width: 44, height: 24, background: billing === 'annual' ? 'var(--blue)' : 'var(--rule)', borderRadius: 999, border: 'none', cursor: 'pointer', transition: 'background .2s', flexShrink: 0 }}
+          aria-label="Toggle billing period"
+        >
+          <span style={{ position: 'absolute', top: 4, width: 16, height: 16, background: '#fff', borderRadius: '50%', left: billing === 'annual' ? 24 : 4, transition: 'left .2s' }} />
+        </button>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: '.875rem', fontWeight: 700, color: billing === 'annual' ? 'var(--ink)' : 'var(--faint)' }}>
+          Annual
+          <span style={{ background: 'rgba(0,196,160,0.12)', color: 'var(--teal)', fontSize: '.7rem', fontWeight: 700, padding: '3px 10px', borderRadius: 999 }}>
+            Save 2 months
           </span>
-          <button
-            onClick={() => setBilling(b => b === 'monthly' ? 'annual' : 'monthly')}
-            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${
-              billing === 'annual' ? 'bg-blue-600' : 'bg-gray-300'
-            }`}
-            aria-label="Toggle billing period"
-          >
-            <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-              billing === 'annual' ? 'translate-x-6' : 'translate-x-1'
-            }`} />
-          </button>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-bold ${billing === 'annual' ? 'text-gray-900' : 'text-gray-400'}`}>
-              Annual
-            </span>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
-              Save 2 months
-            </span>
-          </div>
-        </div>
+        </span>
+      </div>
 
-        {/* Plan cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          {plans.map(plan => {
-            const isCurrent = hasActiveSubscription && currentTier === plan.id
-            const activePriceId = billing === 'annual' ? plan.annualPriceId : plan.monthlyPriceId
+      {/* Plan cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {plans.map(plan => {
+          const isCurrent = hasActiveSubscription && currentTier === plan.id
+          const activePriceId = billing === 'annual' ? plan.annualPriceId : plan.monthlyPriceId
+          const hl = plan.highlighted
+          const fg = hl ? '#fff' : 'var(--ink)'
+          const sub = hl ? 'rgba(255,255,255,0.5)' : 'var(--mid)'
 
-            return (
-              <div
-                key={plan.id}
-                className={`rounded-2xl p-8 border flex flex-col transition-all duration-200 relative hover:-translate-y-0.5 ${
-                  plan.highlighted
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 border-blue-500'
-                    : plan.id === 'starter'
-                    ? 'bg-white border-orange-200'
-                    : plan.id === 'business'
-                    ? 'bg-white border-teal-200'
-                    : 'bg-white border-gray-100'
-                }`}
-                style={{
-                  boxShadow: plan.id === 'starter'
-                    ? '0 0 36px rgba(255,107,53,0.14), 0 2px 14px rgba(0,0,0,0.05)'
-                    : plan.id === 'professional'
-                    ? '0 0 40px rgba(0,102,255,0.18), 0 2px 14px rgba(0,0,0,0.07)'
-                    : '0 0 36px rgba(0,212,170,0.14), 0 2px 14px rgba(0,0,0,0.05)',
-                }}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-5 py-1.5 rounded-full text-xs font-bold shadow-lg uppercase tracking-wide">
-                    Most Popular
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <h3 className={`text-2xl font-black mb-1 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                    {plan.name}
-                  </h3>
-                  <p className={`text-sm font-medium ${plan.highlighted ? 'text-blue-100' : 'text-gray-500'}`}>
-                    {plan.description}
-                  </p>
+          return (
+            <div
+              key={plan.id}
+              className="transition-all duration-200 hover:-translate-y-0.5"
+              style={{
+                background: hl ? 'var(--ink)' : '#fff',
+                border: `1px solid ${hl ? 'var(--ink)' : 'var(--rule)'}`,
+                borderRadius: 16,
+                padding: '36px 32px',
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                boxShadow: hl ? '0 24px 64px rgba(0,0,0,0.18)' : '0 1px 4px rgba(0,0,0,0.04)',
+              }}
+            >
+              {hl && (
+                <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', background: 'var(--blue)', color: '#fff', fontSize: '.65rem', fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', padding: '5px 16px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+                  Most Popular
                 </div>
+              )}
 
-                {/* Price display */}
-                <div className="mb-1">
-                  <div className="flex items-end gap-1">
-                    <span className={`text-5xl font-black ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      ${billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice}
-                    </span>
-                    <span className={`font-medium mb-1.5 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
-                      /month
-                    </span>
-                  </div>
-                  {billing === 'annual' && (
-                    <p className={`text-xs font-semibold mt-0.5 ${plan.highlighted ? 'text-teal-200' : 'text-emerald-600'}`}>
-                      Billed ${plan.annualTotalPrice}/year
-                    </p>
-                  )}
-                </div>
-
-                <p className={`text-sm font-semibold mb-8 ${
-                  hasActiveSubscription && currentTier === plan.id
-                    ? plan.highlighted ? 'text-teal-200' : 'text-blue-600'
-                    : plan.highlighted ? 'text-teal-200' : 'text-green-700'
-                }`}>
-                  {getTrialText(plan.id)}
+              <div style={{ marginBottom: 24 }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: fg, marginBottom: 4, letterSpacing: '-.01em' }}>
+                  {plan.name}
+                </h3>
+                <p style={{ fontSize: '.825rem', color: sub, fontWeight: 500 }}>
+                  {plan.description}
                 </p>
+              </div>
 
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((feature, i) => (
-                    <li key={feature} className="flex items-start gap-3">
-                      <span className={
-                        plan.highlighted ? 'text-teal-300' :
-                        plan.id === 'starter' ? 'text-orange-400' :
-                        plan.id === 'business' ? 'text-teal-500' : 'text-blue-500'
-                      }>{CHECK}</span>
-                      <span className={`text-sm ${
-                        plan.highlighted
-                          ? i === 0 ? 'text-white font-bold' : 'text-white font-medium'
-                          : i === 0 ? 'text-gray-900 font-bold' : 'text-gray-700 font-medium'
-                      }`}>
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {isCurrent ? (
-                  <button
-                    disabled
-                    className="block w-full bg-gray-300 text-gray-600 text-center py-4 rounded-xl font-bold text-base cursor-not-allowed"
-                  >
-                    Current Plan
-                  </button>
-                ) : (
-                  <CheckoutButton
-                    priceId={activePriceId}
-                    planId={plan.id}
-                    buttonText={getButtonText(plan.id)}
-                    disabled={!activePriceId}
-                    className={`block w-full text-center py-4 rounded-xl font-bold text-base transition-all hover:shadow-xl ${
-                      plan.highlighted
-                        ? 'bg-white text-blue-600 hover:bg-blue-50'
-                        : 'bg-gray-900 text-white hover:bg-gray-800'
-                    }`}
-                  />
+              <div style={{ marginBottom: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+                  <span className="f-mono" style={{ fontSize: '2.75rem', fontWeight: 700, color: fg, letterSpacing: '-.03em', lineHeight: 1 }}>
+                    ${billing === 'annual' ? plan.annualMonthlyPrice : plan.monthlyPrice}
+                  </span>
+                  <span style={{ fontWeight: 500, marginBottom: 6, color: sub, fontSize: '.85rem' }}>
+                    /month
+                  </span>
+                </div>
+                {billing === 'annual' && (
+                  <p className="f-mono" style={{ fontSize: '.72rem', fontWeight: 600, marginTop: 6, color: hl ? '#7DD3C0' : 'var(--teal)' }}>
+                    Billed ${plan.annualTotalPrice}/year
+                  </p>
                 )}
               </div>
-            )
-          })}
-        </div>
 
-        <p className="text-center text-gray-600 mt-12 text-sm font-medium">{footerText}</p>
+              <p style={{ fontSize: '.8rem', fontWeight: 600, marginTop: 8, marginBottom: 28, color: isCurrent ? (hl ? '#7DD3C0' : 'var(--blue)') : (hl ? 'rgba(255,255,255,0.55)' : 'var(--teal)') }}>
+                {getTrialText(plan.id)}
+              </p>
 
-        <div className="text-center mt-6">
-          <Link
-            href={isLoggedIn ? '/dashboard' : '/'}
-            className="text-blue-600 hover:text-blue-700 font-semibold text-sm"
-          >
-            {isLoggedIn ? '← Back to Dashboard' : '← Back to Home'}
-          </Link>
-        </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', flex: 1, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {plan.features.map((feature, i) => (
+                  <li key={feature} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <span style={{ color: plan.accent, flexShrink: 0 }}>{CHECK}</span>
+                    <span style={{
+                      fontSize: '.82rem',
+                      lineHeight: 1.5,
+                      color: hl ? (i === 0 ? '#fff' : 'rgba(255,255,255,0.75)') : (i === 0 ? 'var(--ink)' : 'var(--mid)'),
+                      fontWeight: i === 0 ? 700 : 500,
+                    }}>
+                      {feature}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {isCurrent ? (
+                <button
+                  disabled
+                  style={{ width: '100%', padding: '14px 0', borderRadius: 10, fontWeight: 700, fontSize: '.9rem', background: 'var(--rule)', color: 'var(--mid)', border: 'none', cursor: 'not-allowed', textAlign: 'center' }}
+                >
+                  Current Plan
+                </button>
+              ) : (
+                <CheckoutButton
+                  priceId={activePriceId}
+                  planId={plan.id}
+                  buttonText={getButtonText(plan.id)}
+                  disabled={!activePriceId}
+                  className="w-full py-3.5 px-6 text-[.9rem]"
+                />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      <p style={{ textAlign: 'center', color: 'var(--mid)', marginTop: 48, fontSize: '.85rem', fontWeight: 500 }}>
+        {footerText}
+      </p>
+
+      <div style={{ textAlign: 'center', marginTop: 24 }}>
+        <Link href={isLoggedIn ? '/dashboard' : '/'} style={{ color: 'var(--blue)', fontWeight: 600, fontSize: '.85rem', textDecoration: 'none' }}>
+          {isLoggedIn ? '← Back to Dashboard' : '← Back to Home'}
+        </Link>
       </div>
     </div>
   )
